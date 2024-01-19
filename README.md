@@ -3,7 +3,7 @@ A magyaranime.eu oldalhoz készült kiegészítő, amelynek segítségével kön
 
 ## Előnézet
 
-![Az oldal előnézete a kiegészítővel. (Példa anime: Attack on Titan 1.Évad 1.Rész)](\img\Preveiw-Beta.png "Előnézet (beta)")
+![Az oldal előnézete a kiegészítővel. (Példa anime: Attack on Titan 1.Évad 1.Rész)](https://github.com/TTK987/MagyarAnimeTweaks/blob/87f8752c6c51b76c1336562d758cf78e2e5abbb4/Preveiw-Beta.png "Előnézet (beta)")
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
