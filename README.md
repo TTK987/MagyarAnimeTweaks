@@ -1,15 +1,20 @@
 # MagyarAnimeTweaks
 A magyaranime.eu oldalhoz készült kiegészítő, amelynek segítségével könnyebben lehet nézni az oldalon található animéket.
-## Előnyök
-- plyr.io videólejátszó használata ezzel reklámok nélkül nézheted az animéket.
+
+## Előnézet
+
+![Az oldal előnézete a kiegészítővel. (Példa anime: Attack on Titan 1.Évad 1.Rész)](\img\Preveiw-Beta.png "Előnézet (beta)")
+
+## Funkciók
+- plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
 - Az indavideo-ról linkelt animék letöltésének lehetősége.
-- Gyorsgombok a videólejátszóhoz.
+- Gyorsgombok a videólejátszóhoz. (Csak a plyr.io videólejátszóhoz.)
   - 'Ctrl + Jobbra nyíl' - 85 másodperccel előre.
   - 'Ctrl + Balra nyíl' - 85 másodperccel hátra.
   - 'Alt + Jobbra nyíl' - Következő rész.
   - 'Alt + Balra nyíl' - Előző rész.
 - A Következő rész gomb linkjének fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
-- Az összes gyorsgomb módosítható a beállításokban.
+- Az összes gyorsgomb módosítása a beállításokban.
 
 ## Telepítés
 ### Telepítés a böngészőből
@@ -62,3 +67,16 @@ Részletes leírás a beállításokról:
 
 ## Fejlesztők
 - [ttk987](https://discord.com/user)  - Tulajdonos, fejlesztő
+
+## Támogatás
+- [PayPal](https://paypal.me/ttk987) - PayPal
+- [Patreon](https://www.patreon.com/ttk987) - Patreon
+- [Ko-fi](https://ko-fi.com/ttk987) - Ko-fi
+- GitHub csillag: ez is nagyon sokat segít, ha adsz egy csillagot a projektnek. :)
+
+## Köszönet
+- [MagyarAnime](https://magyaranime.eu/) - A munkájukért és az oldalért.
+- A **összes** Fansub csoportnak - A **munkájukért** és az **igényes feliratokért** és **fordításokért**.
+
+
+# További jó animézést!
