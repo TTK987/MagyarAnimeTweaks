@@ -5,7 +5,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 ## Előnézet
 
-![Az oldal előnézete a kiegészítővel. (Példa anime: Attack on Titan 1.Évad 1.Rész)](\Preveiw-Beta.png "Előnézet (beta)")
+![Az oldal előnézete a kiegészítővel. (Példa anime: Attack on Titan 1.Évad 1.Rész)](Preveiw-Beta.png "Előnézet (beta)")
 
 ## EZ A KIEGÉSZÍTŐ MÉG BÉTA VERZIÓBAN VAN, ÍGY NEM MŰKÖDIK MINDEN FUNKCIÓJA! ÉS LEHETNEK BENNE BUGOK!
 
