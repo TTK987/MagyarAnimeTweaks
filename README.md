@@ -42,7 +42,7 @@ támogatása NEM valószínű, hogy meg fog történni, mert a Mega.nz titkosít
 ### Telepítés a forráskódból
 1. Töltsd le a kiegészítő forráskódját.
 2. Tömörítsd ki a fájlokat.
-3. Látogass el a [chrome bővítmények](chrome://extensions) vagy az [opera bővítmények](opera://extensions) oldalra.
+3. Látogass el a [chrome://extensions](chrome://extensions) vagy az [opera://extensions](opera://extensions) oldalra.
 4. Kapcsold be a fejlesztői módot.
 5. Kattints a `Load unpacked` vagy a `Kicsomagolt bővítmények betöltése` gombra.
 6. Válaszd ki a kiegészítő mappáját.
