@@ -1,0 +1,21 @@
+{
+    "name": "MagyarAnimeTweaks",
+    "description": "This extension adds some tweaks to MagyarAnime (magyaranime.eu).",
+    "manifest_version": 3,
+    "version": "1.0",
+    "permissions": ["tabs", "storage", "scripting"],
+    "author": "TTK987",
+    "content_scripts": [
+        {
+            "matches": ["*://magyaranime.eu/*"],
+            "js": ["content.js", "player.js"],
+            "css": ["player.css"],
+            "all_frames": true
+        },
+        {
+            "matches": ["*://embed.indavideo.hu/*"],
+            "js": ["indavideo.js"],
+            "all_frames": true
+        }
+    ]
+}
