@@ -3,11 +3,9 @@
 window.addEventListener('message', function (event) {
     if (event.data && event.data.plugin === 'MATweaks') {
         if (event.data.type === 'getSourceUrl') {
-            // Add a retry system if the video src is embed.indavideo.hu/*
             for (var i = 0; i < 50; i++) {
                 var sourceUrlDefault = document.getElementById('html5video').src;
                 if (sourceUrlDefault.includes('embed.indavideo.hu/')) {
-                    // Retry
                     console.log('Indavideo: The video\'s source url is invalid. Retrying...' + i);
                 } else {
                     if (sourceUrlDefault.includes('.360.')) {
@@ -28,9 +26,8 @@ window.addEventListener('message', function (event) {
                     }
                 }
             }
-
-                window.location.reload();
-
+                window.location.reload(); // For now, just reload the page and hope for the best.
+                // TODO: Find a better solution for finding the source url reliably.
         }
     }
 });
