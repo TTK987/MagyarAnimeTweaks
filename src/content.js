@@ -1,6 +1,5 @@
 // ---------------------------------------------------------------------------------------------------------------------
 var settings = {
-    // Feature settings.
     forwardSkip: {
         enabled: true,
         duration: 85,
@@ -133,7 +132,6 @@ function createSettingsWindow() {
                                 <input class="MATweaks-settings-window-body-content-item-feature-input" type="number" id="MATweaks-forwardSkip-duration" name="MATweaks-forwardSkip-duration" value="${settings.forwardSkip.duration}">
                             </div>
                             <div class="MATweaks-settings-window-body-content-item-feature">
-                                <!-- Get shortcut by listening to the keydown event. -->
                                 <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-forwardSkip-key">Gomb</label>
                                 <input class="MATweaks-settings-window-body-content-item-feature-input" type="text" id="MATweaks-forwardSkip-key" name="MATweaks-forwardSkip-key" value="${forwardSkip}">
                             </div>
@@ -163,7 +161,6 @@ function createSettingsWindow() {
                                 <span class="MATweaks-settings-window-body-content-item-feature-checkbox-custom"></span>
                             </div>
                             <div class="MATweaks-settings-window-body-content-item-feature">
-                                <!-- Get shortcut by listening to the keydown event. -->
                                 <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-nextEpisode-key">Gomb</label>
                                 <input class="MATweaks-settings-window-body-content-item-feature-input" type="text" id="MATweaks-nextEpisode-key" name="MATweaks-nextEpisode-key" value="${nextEpisode}">
                             </div>
@@ -176,7 +173,6 @@ function createSettingsWindow() {
                                 <span class="MATweaks-settings-window-body-content-item-feature-checkbox-custom"></span>
                             </div>
                             <div class="MATweaks-settings-window-body-content-item-feature">
-                                <!-- Get shortcut by listening to the keydown event. -->
                                 <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-previousEpisode-key">Gomb</label>
                                 <input class="MATweaks-settings-window-body-content-item-feature-input" type="text" id="MATweaks-previousEpisode-key" name="MATweaks-previousEpisode-key" value="${previousEpisode}">
                             </div>
@@ -189,7 +185,6 @@ function createSettingsWindow() {
                                 <span class="MATweaks-settings-window-body-content-item-feature-checkbox-custom"></span>
                             </div>
                             <div class="MATweaks-settings-window-body-content-item-feature">
-                                <!-- Get shortcut by listening to the keydown event. -->
                                 <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-toggleFullscreen-key">Gomb</label>
                                 <input class="MATweaks-settings-window-body-content-item-feature-input" type="text" id="MATweaks-toggleFullscreen-key" name="MATweaks-toggleFullscreen-key" value="${toggleFullscreen}">
                             </div>
@@ -253,7 +248,6 @@ function createSettingsWindow() {
             justify-content: space-between;
         }
         
-        /* Hide the browser's default checkbox */
         .MATweaks-settings-window-body-content-item-feature input {
           opacity: 0;
           cursor: pointer;
@@ -261,12 +255,10 @@ function createSettingsWindow() {
           width: 0;
         }
         
-        /* Create a custom checkbox */
         .MATweaks-settings-window-body-content-item-feature-checkbox-custom {
             height: 30px;
             width: 30px;
             background-color: #000000;
-            /* padding: 10px; */
             border-radius: 10px;
             display: flex;
             justify-content: center;
@@ -276,35 +268,26 @@ function createSettingsWindow() {
             flex-wrap: nowrap;
         }
         
-        /* On mouse-over, add a grey background color */
         .MATweaks-settings-window-body-content-item-feature:hover input ~ .MATweaks-settings-window-body-content-item-feature-checkbox-custom {
           background-color: #222222;
         }
         
-        /* When the checkbox is checked, add a blue background */
         .MATweaks-settings-window-body-content-item-feature input:checked ~ .MATweaks-settings-window-body-content-item-feature-checkbox-custom {
           background-color: #2b2d30;
         }
         
-        /* Create the checkmark/indicator (hidden when not checked) */
         .MATweaks-settings-window-body-content-item-feature-checkbox-custom:after {
           content: "";
           display: none;
         }
         
-        /* Show the checkmark when checked */
         .MATweaks-settings-window-body-content-item-feature input:checked ~ .MATweaks-settings-window-body-content-item-feature-checkbox-custom:after {
           display: block;
         }
         
-        /* Style the checkmark/indicator */
         .MATweaks-settings-window-body-content-item-feature .MATweaks-settings-window-body-content-item-feature-checkbox-custom:after {
           content: "✔";
         }
-                
-        
-        
-        
         .MA-Tweaks-settings-popup {
             position: absolute;
             top: 65%;
@@ -657,12 +640,10 @@ function replaceIFrame(SourceUrl360p, SourceUrl720p) {
                 },
             },
             quality: {
-                // 720p if available.
                 default: qualityOptions.includes(720) ? 720 : 360,
                 options: qualityOptions,
                 forced: true,
                 onChange: (quality) => {
-                    // Replace the video source with the new quality.
                     if (quality === 720) {
                         document.querySelector("video").setAttribute("src", SourceUrl720p);
                     } else if (quality === 360) {
@@ -796,8 +777,7 @@ async function downloadFile(url, filename) {
 }
 lastLogTime =  0;
 function LogDownloadProgress(max, loaded) {
-    // Only update DOM once every 100ms.
-    if (Date.now() - lastLogTime < 1000) {
+    if (Date.now() - lastLogTime < 1000) /* Update every second */ {
         return;
     } else {
         lastLogTime = Date.now();
