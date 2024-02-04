@@ -5,14 +5,12 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 ## Előnézet
 
-![Az oldal előnézete a kiegészítővel. (Példa anime: Attack on Titan 1.Évad 1.Rész)](Preveiw-Beta.png "Előnézet (beta)")
+![Az oldal előnézete a kiegészítővel.](/img/Preview.png "Előnézet")
 
-## EZ A KIEGÉSZÍTŐ MÉG BÉTA VERZIÓBAN VAN, ÍGY NEM MŰKÖDIK MINDEN FUNKCIÓJA! ÉS LEHETNEK BENNE BUGOK!
+## EZ A KIEGÉSZÍTŐ MÉG BÉTA VERZIÓBAN VAN, EZÉRT LEHETNEK BENNE BUGOK!
 
 
 ## Jelenlegi hibák:
-- Néha nem működik a videólejátszó váltás. (Egy hibaüzenet jelenik meg a lejátszó helyén.) Ekkor újra kell tölteni az 
-oldalt addig, amíg nem működik. Ez a hiba már ismert, és a következő verzióban javítva lesz.
 - CSAK az indavideo-ról linkelt animék vannak támogatva. (Mega.nz-ről linkelt animék nem.) A Mega.nz-ről linkelt animék 
 támogatása NEM valószínű, hogy meg fog történni, mert a Mega.nz titkosított fájlokat használ, ezért hosszú időbe telne, mire megoldanám a problémát.
 
@@ -49,33 +47,36 @@ támogatása NEM valószínű, hogy meg fog történni, mert a Mega.nz titkosít
 7. És kész is, most már használhatod a kiegészítőt.
 
 
-### Telepítés Tampermonkey segítségével (nem elérhető)
+### Telepítés Tampermonkey segítségével
 1. Telepítsd a Tampermonkey kiegészítőt a [Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) vagy az [Opera](https://addons.opera.com/en/extensions/details/tampermonkey-beta/) böngésződbe.
-2. Látogass el a [MagyarAnimeTweaks](https://greasyfork.org/en/scripts/) oldalra.
+2. Látogass el a [MagyarAnimeTweaks](https://greasyfork.org/hu/scripts/) oldalra.
 3. Kattints a `Install this script` gombra.
 4. És kész is, most már használhatod a kiegészítőt.
 
 
 ## Beállítások
+![A beállítások menü](/img/Settings.png "Beállítások")
 A beállításokat a profilodra kattintva éred el, ami egy előugró ablakban jelenik meg. Itt tudod beállítani a kiegészítőt.
 Részletes leírás a beállításokról:
-- **Következő rész gomb linkjének fixálása:** Ha be van kapcsolva, akkor az összes gomb linkjét fixálja. (720p-ről 720p-re, 1080p-ről 1080p-re)
-- **Gyorsgombok:** Ha be van kapcsolva, akkor a gyorsgombok használhatóak lesznek.
-    - **Minden gyorsgombnál elérhető:**
-        - *Bekapcsolás:* Ha be van kapcsolva, akkor a gyorsgomb használható lesz.
-        - *Gyorsgomb:* Itt tudod beállítani a gyorsgombot.
-    - **Idő léptetésnél elérhető:**
-        - *Léptetés:* Itt tudod beállítani, hogy mennyit lépjen az időben a videó.
-- *Fejlesztői beállítások:* Ha be van kapcsolva, akkor a fejlesztői beállítások elérhetőek lesznek.
-    - **Fejlesztői beállítások:** Ha be van kapcsolva, akkor a fejlesztői beállítások elérhetőek lesznek.
-        - *Konzol üzenetek:* Ha be van kapcsolva, akkor a konzol üzenetek elérhetőek lesznek.
-        - *Lejátszó:* Kiválaszthatod, hogy melyik videólejátszót szeretnéd használni.
-           - *Gomb:* Ha be van kapcsolva, akkor egy gombbal tudod váltani a videólejátszót, anélkül, hogy újra kellene tölteni az oldalt.
+- **Előre / Hátra ugrás**:
+  - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van előre és hátra ugrani a videóban. (Persze az alap +/- 5 sec mellett.)
+  - **Ugrás időtartama** - Itt tudod beállítani, hogy mennyi legyen az előre és hátra ugrás időtartama. (Másodpercben)
+  - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy előre vagy hátra ugorj a videóban.
+- **Következő / Előző epizód**:
+  - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van a következő és az előző epizódra ugrani.
+  - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy a következő vagy az előző epizódra ugorj.
+- **Javítások**:
+  - **Engedélyezve** - Ha be van kapcsolva, akkor a fixálja a hibákat az oldalon.
+  - **Leírás**: A részek linkjeinek fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
+- **Fejlesztői beállítások**:
+  - **Engedélyezve** - Ha be van kapcsolva, akkor a fejlesztői beállítások szerint fog működni a kiegészítő.
+  - **Alapértelmezett lejátszó** - Itt tudod beállítani, hogy melyik videólejátszót szeretnéd használni. (Indavideo / plyr.io / alap HTML5 lejátszó)
+  - **Console log** - Ha be van kapcsolva, akkor a kiegészítő minden műveletéről logolást kapsz a konzolon.
+  - **Egyéb (nem listázott)** - Ha engedélyezve vannak a fejlesztői beállítások, akkor a devtools-t is visszahozza a kiegészítő. (Ez amiatt van, hogy ha valami hibát találsz, akkor tudj jelenteni nekem.)
 
-  
 ## Hibajelentés
 - Ha hibát találsz a kiegészítőben, akkor azt a [GitHub](https://github.com/TTK987/MagyarAnimeTweaks/issues/) oldalon tudod jelenteni.
-- Opcionálisan nekem is küldhetsz üzenetet Discordon: *ttk987*
+- Opcionálisan nekem is küldhetsz üzenetet Discordon: *ttk987*  [Discord](https://discord.com/users/537718439586955285)
 
 
 ## Nyilatkozat
@@ -99,8 +100,7 @@ Részletes leírás a beállításokról:
 
 ## Fejlesztők
 - [ttk987](https://discord.com/users/537718439586955285)  - Tulajdonos, fejlesztő
-- *Barátom1* - Segített a kiegészítő tesztelésében és az ötletekkel.
-- *Barátom2* - Segített a kiegészítő tesztelésében.
+- *Ha szeretnél hozzájárulni a kiegészítő fejlesztéséhez, akkor nyugodtan írj nekem Discordon.*
 
 
 ## Támogatás
