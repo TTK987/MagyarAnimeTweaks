@@ -92,7 +92,7 @@ Részletes leírás a beállításokról:
 - The program is protected by the MIT licence.
 - The extension can only be used on the magyaranime.eu website.
 - The developers are not responsible for any damages caused by the use of the extension.
-- The extension was created in accordance with the "The content on the site is freely available" terms of the Magyar Anime website.
+- The extension was created in accordance with the "Az oldalon található tartalom szabadon felhasználható" terms of the Magyar Anime website.
 - The extension was created in accordance with the DMCA rules of the Magyar Anime website. [MA DMCA](https://magyaranime.eu/web/dmca/)
 - The developers (/s) reserve the right to modify the extension at any time.
 - If the developer (/s) of Magyar Anime requests it, I will remove the extension from GitHub and any other platform.
