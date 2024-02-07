@@ -1,4 +1,4 @@
-// The plyr.io player.
+/* Plyr v3.6.8 Unminified */
 "object" == typeof navigator && function(e, t) {
     "object" == typeof exports && "undefined" != typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define("Plyr", t) : (e = "undefined" != typeof globalThis ? globalThis : e || self).Plyr = t()
 }(this, (function() {
