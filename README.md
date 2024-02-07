@@ -25,7 +25,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 
 ## Telepítés
-### Telepítés a böngészőboltból (nem elérhető)
+### Telepítés a böngészőboltból (nem elérhető) (Várunk az elfogadásra)
 1. Telepítsd a kiégészítőt az [Opera](https://addons.opera.com/) vagy a [Chrome](https://chromewebstore.google.com/category/extensions) böngésződbe.
 2. Látogass el a [magyaranime.eu](https://magyaranime.eu/) oldalra.
 3. És kész is, most már használhatod a kiegészítőt.
@@ -36,7 +36,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 2. Tömörítsd ki a fájlokat.
 3. Látogass el a [chrome://extensions](chrome://extensions) vagy az [opera://extensions](opera://extensions) oldalra.
 4. Kapcsold be a fejlesztői módot.
-5. Kattints a `Load unpacked` vagy a `Kicsomagolt bővítmények betöltése` gombra.
+5. Kattints a `Load unpacked` vagy a `Kicsomagolt elemek betöltése` gombra.
 6. Válaszd ki a kiegészítő mappáját.
 7. És kész is, most már használhatod a kiegészítőt.
 
