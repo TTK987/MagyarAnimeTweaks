@@ -35,13 +35,6 @@
             "js": ["indavideo.js"],
             "all_frames": true,
             "run_at": "document_end"
-        },
-        {
-            "matches": ["*://*.mega.nz/embed/*"],
-            "js": ["player.js", "mega.js"],
-            "css": ["player.css"],
-            "all_frames": true,
-            "run_at": "document_end"
         }
     ]
 }
