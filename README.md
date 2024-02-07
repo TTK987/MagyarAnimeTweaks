@@ -61,6 +61,14 @@ Részletes leírás a beállításokról:
     - **Console log** - Ha be van kapcsolva, akkor a kiegészítő minden műveletéről logolást kapsz a konzolon.
     - **Egyéb (nem listázott)** - Ha engedélyezve vannak a fejlesztői beállítások, akkor a devtools-t is visszahozza a kiegészítő. (Ez amiatt van, hogy ha valami hibát találsz, akkor tudj jelenteni nekem.)
 
+## Adatvédelem
+- A kiegészítő NEM gyűjt semmilyen adatot a felhasználókról.
+- A kiegészítő NEM küld semmilyen adatot se a fejlesztőnek, se senkinek.
+
+## Engedélyek
+- storage - A kiégészítő beállításainak tárolásához.
+- declarativeNetRequest - A disable-devtools elérésének megakadályozásához. (ez az engedély csak akkor kell, ha a fejlesztői beállítások engedélyezve vannak a kiegészítőben)
+
 ## Mi várható a következő verzióban?
 - Automatikus ugrás a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
 - Ha a nincs következő rész, akkor az anime adatlapjára ugrás.
@@ -92,12 +100,13 @@ Részletes leírás a beállításokról:
 - The program is protected by the MIT licence.
 - The extension can only be used on the magyaranime.eu website.
 - The developers are not responsible for any damages caused by the use of the extension.
-- The extension was created in accordance with the "Az oldalon található tartalom szabadon felhasználható" terms of the Magyar Anime website.
+- The extension was created in accordance with the "The content on the site is freely available" terms of the Magyar Anime website.
 - The extension was created in accordance with the DMCA rules of the Magyar Anime website. [MA DMCA](https://magyaranime.eu/web/dmca/)
 - The developers (/s) reserve the right to modify the extension at any time.
 - If the developer (/s) of Magyar Anime requests it, I will remove the extension from GitHub and any other platform.
 - The extension is only available in Hungarian.
 - By using the extension you accept the above.
+
 
 ## Fejlesztők
 - [ttk987](https://discord.com/users/537718439586955285)  - Tulajdonos, fejlesztő
