@@ -1,6 +1,6 @@
 // DON'T TOUCH THESE VARIABLES!
 var MATweaksVersion = "0.1.3";
-var LastUpdate = "2024.02.08";
+var LastUpdate = "2024.02.07";
 // ---------------------------------------------------------------------------------------------------------------------
 var settings = { // Default settings
     forwardSkip: { // Forward skip settings (default: ctrl + →)
