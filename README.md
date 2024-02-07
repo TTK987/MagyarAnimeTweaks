@@ -1,6 +1,7 @@
 # MagyarAnimeTweaks
 A magyaranime.eu oldalhoz készült kiegészítő, amelynek segítségével könnyebben lehet nézni az oldalon található animéket.
 Ez a kiegészítő animenéző(k)től animenézőknek készült, hogy könnyebbé tegye az animék nézését.
+Ebben a kiegészítőben található funkciók közé tartozik a plyr.io videólejátszó használata, az indavideo-ról linkelt animék letöltésének lehetősége, gyorsgombok a videólejátszóhoz, gyorsgombok az animék közötti navigáláshoz és hibák fixálása.
 A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem.
 
 ## Előnézet
@@ -8,24 +9,17 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png "Előnézet")
 
 ## EZ A KIEGÉSZÍTŐ MÉG BÉTA VERZIÓBAN VAN, EZÉRT LEHETNEK BENNE BUGOK!
-
-
-## Jelenlegi hibák:
-- CSAK az indavideo-ról linkelt animék vannak támogatva. (Mega.nz-ről linkelt animék nem.) A Mega.nz-ről linkelt animék 
-támogatása NEM valószínű, hogy meg fog történni, mert a Mega.nz titkosított fájlokat használ, ezért hosszú időbe telne, mire megoldanám a problémát.
-
-
-
+## Jelenlegi Verzió: 0.1.3
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
 - Az indavideo-ról linkelt animék letöltésének lehetősége.
 - Gyorsgombok a videólejátszóhoz. (Csak a plyr.io videólejátszóhoz.)
-  - 'Ctrl + Jobbra nyíl' - 85 másodperccel előre.
-  - 'Ctrl + Balra nyíl' - 85 másodperccel hátra.
+    - 'Ctrl + Jobbra nyíl' - 85 másodperccel előre.
+    - 'Ctrl + Balra nyíl' - 85 másodperccel hátra.
 - Gyorsgombok az animék közötti navigáláshoz.
-  - 'Alt + Jobbra nyíl' - Következő rész.
-  - 'Alt + Balra nyíl' - Előző rész.
+    - 'Alt + Jobbra nyíl' - Következő rész.
+    - 'Alt + Balra nyíl' - Előző rész.
 - A Következő / Előző rész gomb és az összes rész gomb linkjének fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
 - Mindent be lehet állítani a kiegészítő beállításaiban. (A beállításokat a profilodra kattintva éred el, ami egy előugró ablakban jelenik meg.)
 
@@ -47,32 +41,34 @@ támogatása NEM valószínű, hogy meg fog történni, mert a Mega.nz titkosít
 7. És kész is, most már használhatod a kiegészítőt.
 
 
-### Telepítés Tampermonkey segítségével
-1. Telepítsd a Tampermonkey kiegészítőt a [Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) vagy az [Opera](https://addons.opera.com/en/extensions/details/tampermonkey-beta/) böngésződbe.
-2. Látogass el a [MagyarAnimeTweaks](https://greasyfork.org/hu/scripts/) oldalra.
-3. Kattints a `Install this script` gombra.
-4. És kész is, most már használhatod a kiegészítőt.
-
-
 ## Beállítások
 ![A beállítások menü](/img/Settings.png "Beállítások")
 A beállításokat a profilodra kattintva éred el, ami egy előugró ablakban jelenik meg. Itt tudod beállítani a kiegészítőt.
 Részletes leírás a beállításokról:
 - **Előre / Hátra ugrás**:
-  - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van előre és hátra ugrani a videóban. (Persze az alap +/- 5 sec mellett.)
-  - **Ugrás időtartama** - Itt tudod beállítani, hogy mennyi legyen az előre és hátra ugrás időtartama. (Másodpercben)
-  - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy előre vagy hátra ugorj a videóban.
+    - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van előre és hátra ugrani a videóban. (Persze az alap +/- 5 sec mellett.)
+    - **Ugrás időtartama** - Itt tudod beállítani, hogy mennyi legyen az előre és hátra ugrás időtartama. (Másodpercben)
+    - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy előre vagy hátra ugorj a videóban.
 - **Következő / Előző epizód**:
-  - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van a következő és az előző epizódra ugrani.
-  - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy a következő vagy az előző epizódra ugorj.
+    - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van a következő és az előző epizódra ugrani.
+    - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy a következő vagy az előző epizódra ugorj.
 - **Javítások**:
-  - **Engedélyezve** - Ha be van kapcsolva, akkor a fixálja a hibákat az oldalon.
-  - **Leírás**: A részek linkjeinek fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
+    - **Engedélyezve** - Ha be van kapcsolva, akkor a fixálja a hibákat az oldalon.
+    - **Leírás**: A részek linkjeinek fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
 - **Fejlesztői beállítások**:
-  - **Engedélyezve** - Ha be van kapcsolva, akkor a fejlesztői beállítások szerint fog működni a kiegészítő.
-  - **Alapértelmezett lejátszó** - Itt tudod beállítani, hogy melyik videólejátszót szeretnéd használni. (Indavideo / plyr.io / alap HTML5 lejátszó)
-  - **Console log** - Ha be van kapcsolva, akkor a kiegészítő minden műveletéről logolást kapsz a konzolon.
-  - **Egyéb (nem listázott)** - Ha engedélyezve vannak a fejlesztői beállítások, akkor a devtools-t is visszahozza a kiegészítő. (Ez amiatt van, hogy ha valami hibát találsz, akkor tudj jelenteni nekem.)
+    - **Engedélyezve** - Ha be van kapcsolva, akkor a fejlesztői beállítások szerint fog működni a kiegészítő.
+    - **Alapértelmezett lejátszó** - Itt tudod beállítani, hogy melyik videólejátszót szeretnéd használni. (Indavideo / plyr.io / alap HTML5 lejátszó)
+    - **Console log** - Ha be van kapcsolva, akkor a kiegészítő minden műveletéről logolást kapsz a konzolon.
+    - **Egyéb (nem listázott)** - Ha engedélyezve vannak a fejlesztői beállítások, akkor a devtools-t is visszahozza a kiegészítő. (Ez amiatt van, hogy ha valami hibát találsz, akkor tudj jelenteni nekem.)
+
+## Mi várható a következő verzióban?
+- Automatikus ugrás a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
+- Ha a nincs következő rész, akkor az anime adatlapjára ugrás.
+- Egyenlőre csak ezek a funkciók vannak tervben, de ha van valami ötleted, akkor nyugodtan írj nekem Discordon.
+
+## Mik lesznek a kiegészítőben a jövőben?
+- Mega.nz alap lejátszója helyett a plyr.io lejátszó használata.
+
 
 ## Hibajelentés
 - Ha hibát találsz a kiegészítőben, akkor azt a [GitHub](https://github.com/TTK987/MagyarAnimeTweaks/issues/) oldalon tudod jelenteni.
@@ -81,22 +77,27 @@ Részletes leírás a beállításokról:
 
 ## Nyilatkozat
 - A kiegészítő NEM áll kapcsolatban sem a magyaranime.eu oldallal, sem az indavideo.hu oldallal.
-  Tehát a kiegészítő fejlesztői nem állnak kapcsolatban a magyaranime.eu oldal fejlesztőivel.
 - A programot az MIT licensz védi.
 - A kiégészítő csak a magyaranime.eu oldalon használható.
 - A fejlesztők nem vállalnak felelősséget a kiegészítő használatából eredő károkért.
+- A kiegészítő a Magyar Anime oldalon található "Az oldalon található tartalom szabadon felhasználható" feltételeknek megfelelően készült.
+- A kiegészítő a Magyar Anime oldal DMCA szabályainak megfelelően készült. [MA DMCA](https://magyaranime.eu/web/dmca/)
+- A kiegészítő fejlesztője (/fejlesztői) fenntartják a jogot, hogy bármikor módosítsák a kiegészítőt.
+- A Magyar Anime fejlesztőjének (/fejlesztőinek) kérése esetén a kiegészítőt eltávolítom a GitHubról és minden más platformról.
+- A kiegészítő csak magyar nyelven érhető el.
 - A kiegészítő használatával elfogadod a fentebb felsoroltakat.
-
 
 ## Disclaimer
 - The extension is NOT related to the magyaranime.eu website or the indavideo.hu website.
-  So the extension developers are not related to the developers of the magyaranime.eu website.
 - The program is protected by the MIT licence.
 - The extension can only be used on the magyaranime.eu website.
 - The developers are not responsible for any damages caused by the use of the extension.
-- By using the extension you accept the above.
+- The extension was created in accordance with the "The content on the site is freely available" terms of the Magyar Anime website.
+- The extension was created in accordance with the DMCA rules of the Magyar Anime website. [MA DMCA](https://magyaranime.eu/web/dmca/)
+- The developers (/s) reserve the right to modify the extension at any time.
+- If the developer (/s) of Magyar Anime requests it, I will remove the extension from GitHub and any other platform.
 - The extension is only available in Hungarian.
-
+- By using the extension you accept the above.
 
 ## Fejlesztők
 - [ttk987](https://discord.com/users/537718439586955285)  - Tulajdonos, fejlesztő
