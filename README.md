@@ -25,8 +25,8 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 
 ## Telepítés
-### Telepítés a böngészőboltból (nem elérhető) (Várunk az elfogadásra)
-1. Telepítsd a kiégészítőt az [Opera](https://addons.opera.com/) vagy a [Chrome](https://chromewebstore.google.com/category/extensions) böngésződbe.
+### Telepítés a böngészőboltból (Chrome elérhető, Opera még nem)
+1. Telepítsd a kiégészítőt az [Opera](https://addons.opera.com/) vagy a [Chrome](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) böngésződbe.
 2. Látogass el a [magyaranime.eu](https://magyaranime.eu/) oldalra.
 3. És kész is, most már használhatod a kiegészítőt.
 
