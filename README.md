@@ -118,7 +118,7 @@ Részletes leírás a beállításokról:
 - GitHub csillag: ez is nagyon sokat segít, ha adsz egy csillagot a projektnek. :)
 
 ## Köszönet
-- [MagyarAnime](https://magyaranime.eu/) - A munkájukért és az oldalért.
+- **[MagyarAnime](https://magyaranime.eu/) - A munkájukért és az oldalért.**
 - A **összes** Fansub csoportnak - A **munkájukért** és az **igényes feliratokért** és **fordításokért**.
 
 
