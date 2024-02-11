@@ -128,7 +128,7 @@ function createSettingsWindow() {
     const nextEpisode = `${settings.nextEpisode.altKey ? 'Alt + ' : ''}${settings.nextEpisode.ctrlKey ? 'Ctrl + ' : ''}${settings.nextEpisode.shiftKey ? 'Shift + ' : ''}${settings.nextEpisode.key}`;
     const previousEpisode = `${settings.previousEpisode.altKey ? 'Alt + ' : ''}${settings.previousEpisode.ctrlKey ? 'Ctrl + ' : ''}${settings.previousEpisode.shiftKey ? 'Shift + ' : ''}${settings.previousEpisode.key}`;
     // --------------------------
-    // And here is the html+css code... (It supports custom themes) ( 284 lines of html+css code... in a js file... in one block... )
+    // And here is the html+css code... (It supports custom themes (all colors are from the MA.eu's css)) ( 284 lines of html+css code... in a js file... in one block... )
     settingsWindow.innerHTML = `
         <div class="MA-Tweaks-settings-popup-content">
             <div class="MATweaks-settings-window-header">
