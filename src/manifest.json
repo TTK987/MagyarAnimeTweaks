@@ -3,7 +3,7 @@
     "description": "Egy kis segítség a MagyarAnime.eu oldalhoz.",
     "manifest_version": 3,
     "version": "0.1.3",
-    "permissions": ["tabs", "storage", "activeTab", "declarativeNetRequest"],
+    "permissions": ["storage", "declarativeNetRequest"],
     "declarative_net_request": {
         "rule_resources": [
             {
