@@ -14,7 +14,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
-- Az indavideo-ról linkelt animék letöltésének lehetősége.
+- Az indavideo-ról linkelt **animék letöltésének** lehetősége.
 - Gyorsgombok a videólejátszóhoz. (Csak a plyr.io videólejátszóhoz.)
     - 'Ctrl + Jobbra nyíl' - 85 másodperccel előre.
     - 'Ctrl + Balra nyíl' - 85 másodperccel hátra.
@@ -26,8 +26,8 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 
 ## Telepítés
-### Telepítés a böngészőboltból (Chrome elérhető, Opera még nem)
-1. Telepítsd a kiégészítőt az [Opera](https://addons.opera.com/) vagy a [Chrome](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) böngésződbe.
+### Telepítés a böngészőboltból
+1. Telepítsd a kiégészítőt a [Chrome](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) böngésződbe.
 2. Látogass el a [magyaranime.eu](https://magyaranime.eu/) oldalra.
 3. És kész is, most már használhatod a kiegészítőt.
 
