@@ -10,7 +10,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 ## EZ A KIEGÉSZÍTŐ MÉG BÉTA VERZIÓBAN VAN, EZÉRT LEHETNEK BENNE BUGOK!
 ## Jelenlegi Verzió: 0.1.3
- - Új verzió várhatóan: 2024.02.14
+ - Új verzió várhatóan: 2024.02.14 (Bizonyos okok miatt (főleg tesztelés), a V.0.1.4 *késni fog*)
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
