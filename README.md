@@ -9,25 +9,26 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png "Előnézet")
 
 ## EZ A KIEGÉSZÍTŐ MÉG BÉTA VERZIÓBAN VAN, EZÉRT LEHETNEK BENNE BUGOK!
-## Jelenlegi Verzió: 0.1.3
- - Új verzió várhatóan: 2024.02.14 (Bizonyos okok miatt (főleg tesztelés), a V.0.1.4 *késni fog*)
+## Jelenlegi Verzió: 0.1.4
+**Elérhető az új verzió!**
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
 - Az indavideo-ról linkelt **animék letöltésének** lehetősége.
 - Gyorsgombok a videólejátszóhoz. (Csak a plyr.io videólejátszóhoz.)
-    - 'Ctrl + Jobbra nyíl' - 85 másodperccel előre.
-    - 'Ctrl + Balra nyíl' - 85 másodperccel hátra.
+  - 'Ctrl + Jobbra nyíl' - 85 másodperccel előre.
+  - 'Ctrl + Balra nyíl' - 85 másodperccel hátra.
 - Gyorsgombok az animék közötti navigáláshoz.
-    - 'Alt + Jobbra nyíl' - Következő rész.
-    - 'Alt + Balra nyíl' - Előző rész.
+  - 'Alt + Jobbra nyíl' - Következő rész.
+  - 'Alt + Balra nyíl' - Előző rész.
+- Automatikus ugrás a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
 - A Következő / Előző rész gomb és az összes rész gomb linkjének fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
 - Mindent be lehet állítani a kiegészítő beállításaiban. (A beállításokat a profilodra kattintva éred el, ami egy előugró ablakban jelenik meg.)
 
 
 ## Telepítés
 ### Telepítés a böngészőboltból
-1. Telepítsd a kiégészítőt a [Chrome](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) böngésződbe.
+1. Telepítsd a kiégészítőt a [Chrome](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) böngésződbe. ([INNEN](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia))
 2. Látogass el a [magyaranime.eu](https://magyaranime.eu/) oldalra.
 3. És kész is, most már használhatod a kiegészítőt.
 
@@ -47,36 +48,51 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 A beállításokat a profilodra kattintva éred el, ami egy előugró ablakban jelenik meg. Itt tudod beállítani a kiegészítőt.
 Részletes leírás a beállításokról:
 - **Előre / Hátra ugrás**:
-    - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van előre és hátra ugrani a videóban. (Persze az alap +/- 5 sec mellett.)
-    - **Ugrás időtartama** - Itt tudod beállítani, hogy mennyi legyen az előre és hátra ugrás időtartama. (Másodpercben)
-    - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy előre vagy hátra ugorj a videóban.
+  - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van előre és hátra ugrani a videóban. (Persze az alap +/- 5 sec mellett.)
+  - **Ugrás időtartama** - Itt tudod beállítani, hogy mennyi legyen az előre és hátra ugrás időtartama. (Másodpercben)
+  - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy előre vagy hátra ugorj a videóban.
 - **Következő / Előző epizód**:
-    - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van a következő és az előző epizódra ugrani.
-    - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy a következő vagy az előző epizódra ugorj.
+  - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van a következő és az előző epizódra ugrani.
+  - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy a következő vagy az előző epizódra ugorj.
 - **Javítások**:
-    - **Engedélyezve** - Ha be van kapcsolva, akkor a fixálja a hibákat az oldalon.
-    - **Leírás**: A részek linkjeinek fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
+  - **Engedélyezve** - Ha be van kapcsolva, akkor a fixálja a hibákat az oldalon.
+  - **Leírás**: A részek linkjeinek fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
+- **Automatikus következő epizód**:
+  - **Engedélyezve** - Ha be van kapcsolva, akkor automatikusan átugrik a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
+  - **Ugrás időtartama** - Itt tudod beállítani, hogy mennyi legyen az időtartam, amikor átugrik a következő részre. (Másodpercben) (Negatív érték esetén az érték 0 lesz (azaz közvetlenül a rész vége után ugrunk a következő részre))
 - **Fejlesztői beállítások**:
-    - **Engedélyezve** - Ha be van kapcsolva, akkor a fejlesztői beállítások szerint fog működni a kiegészítő.
-    - **Alapértelmezett lejátszó** - Itt tudod beállítani, hogy melyik videólejátszót szeretnéd használni. (Indavideo / plyr.io / alap HTML5 lejátszó)
-    - **Console log** - Ha be van kapcsolva, akkor a kiegészítő minden műveletéről logolást kapsz a konzolon.
-    - **Egyéb (nem listázott)** - Ha engedélyezve vannak a fejlesztői beállítások, akkor a devtools-t is visszahozza a kiegészítő. (Ez amiatt van, hogy ha valami hibát találsz, akkor tudj jelenteni nekem.)
+  - **Engedélyezve** - Ha be van kapcsolva, akkor a fejlesztői beállítások szerint fog működni a kiegészítő.
+  - **Alapértelmezett lejátszó** - Itt tudod beállítani, hogy melyik videólejátszót szeretnéd használni. (Alap (nincs csere) / plyr.io (híredetés mentes)  / HTML5 (sima video elem))
+  - **Console log** - Ha be van kapcsolva, akkor a kiegészítő minden műveletéről logolást kapsz a konzolon.
 
 ## Adatvédelem
 - A kiegészítő NEM gyűjt semmilyen adatot a felhasználókról.
 - A kiegészítő NEM küld semmilyen adatot se a fejlesztőnek, se senkinek.
 
-## Engedélyek
-- storage - A kiégészítő beállításainak tárolásához.
-- declarativeNetRequest - A disable-devtools elérésének megakadályozásához. (ez az engedély csak akkor kell, ha a fejlesztői beállítások engedélyezve vannak a kiegészítőben)
 
-## Mi várható a következő verzióban?
-- Automatikus ugrás a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
-- Ha a nincs következő rész, akkor az anime adatlapjára ugrás.
-- Egyenlőre csak ezek a funkciók vannak tervben, de ha van valami ötleted, akkor nyugodtan írj nekem Discordon.
+## Gyakran Ismételt Kérdések
+- Milyen böngészőkön használható a kiegészítő?
+  - A kiegészítőt Chrome és Opera böngészőkben teszteltem, de más Chromium alapú böngészőkben is működhet.
+    - Ezek a böngészők: Brave, Vivaldi, Microsoft Edge, stb.
 
-## Mik lesznek a kiegészítőben a jövőben?
-- Mega.nz alap lejátszója helyett a plyr.io lejátszó használata.
+
+
+- Tudom használni a kiegészítőt telefonon?
+  - Igen! A kiegészítőt telefonon is használhatod, de nem fognak működni például a gyorsgombok (mert nincs billentyűzet) és a beállítások is furcsán fognak kinézni.
+  - A kiegészítőt csak Androidon teszteltem a Kiwi böngészőben. ([Kiwi Browser](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser))
+  - Elvileg az összes Chromium alapú böngészőben működnie kellene telefonon is. (ami engedélyezi a kiegészítők telepítését) (Pl.: Yandex Browser, stb.)
+
+
+- Miért készítettem ezt a kiegészítőt?
+  - Mert szeretem az animéket és az oldal használhatóságát szerettem volna növelni. (Habár az oldal már így is nagyon jó.)
+  
+
+- Mi várható a következő verzióban?
+  - Mega.nz alap lejátszója helyett a plyr.io lejátszó használata.
+  
+
+- Mik lesznek a kiegészítőben a jövőben?
+  - Még nincs konkrét terv, de ha van ötleted, akkor nyugodtan írd meg nekem Discordon. :)
 
 
 ## Hibajelentés
@@ -108,14 +124,13 @@ Részletes leírás a beállításokról:
 - The extension is only available in Hungarian.
 - By using the extension you accept the above.
 
-
 ## Fejlesztők
 - [ttk987](https://discord.com/users/537718439586955285)  - Tulajdonos, fejlesztő
 - *Ha szeretnél hozzájárulni a kiegészítő fejlesztéséhez, akkor nyugodtan írj nekem Discordon.*
 
 
 ## Támogatás
-- [Ko-fi](https://ko-fi.com/ttk987) - Ko-fi (Hatalmas segítség, hogy motivált maradjak.)
+- [Ko-fi](https://ko-fi.com/ttk987) - Ko-fi (Hatalmas segítség, hogy motivált maradjak.) **(Ha van "felesleges" pénzed, akkor inkább támogasd a Magyar Anime-t.) ([ITT](https://magyaranime.eu/web/tamogatas/))**
 - GitHub csillag: ez is nagyon sokat segít, ha adsz egy csillagot a projektnek. :)
 
 ## Köszönet
