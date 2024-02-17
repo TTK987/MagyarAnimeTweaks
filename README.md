@@ -94,6 +94,10 @@ Részletes leírás a beállításokról:
 - Mik lesznek a kiegészítőben a jövőben?
   - Még nincs konkrét terv, de ha van ötleted, akkor nyugodtan írd meg nekem Discordon. :)
 
+- Miért nem az animék fordításával segítek?
+  - Mert ha kitalálok valami új dolgot (pl jelentkezek fodítónak / lektornak / formázónak), akkor abba nagyon bele tudok merülni, de viszont gyorsan kiégek. (Ez ennél a kiegészítőnél is megtörtént még a fejlesztés elején. :D) (Érdekel a fordítás / lektorálás / formázás, de szerintem sokkal jobb jelentkezők vannak, mint én.(De majd egyszer talán... ))
+  - De viszont ha te értesz a fordításhoz / lektoráláshoz vagy formázáshoz, akkor például az [AkioFansub](https://akiofansub.hu/felvetel/) oldalon tudsz jelentkezni fordítónak vagy lektornak. (Ez csak egy példa, de rengeteg fansub csoport van, akiknek szükségük van fordítókra és lektorokra.)
+  
 
 ## Hibajelentés
 - Ha hibát találsz a kiegészítőben, akkor azt a [GitHub](https://github.com/TTK987/MagyarAnimeTweaks/issues/) oldalon tudod jelenteni.
