@@ -9,7 +9,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png "Előnézet")
 
 ## Jelenlegi Verzió: 0.1.4
-**Elérhető az új verzió!**
+**Elérhető az új verzió!** (_**[ITT](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)**_)
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
