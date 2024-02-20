@@ -8,7 +8,6 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png "Előnézet")
 
-## EZ A KIEGÉSZÍTŐ MÉG BÉTA VERZIÓBAN VAN, EZÉRT LEHETNEK BENNE BUGOK!
 ## Jelenlegi Verzió: 0.1.4
 **Elérhető az új verzió!**
 
