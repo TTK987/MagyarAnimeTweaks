@@ -95,7 +95,7 @@ Részletes leírás a beállításokról:
   - Még nincs konkrét terv, de ha van ötleted, akkor nyugodtan írd meg nekem Discordon. :)
 
 - Miért nem az animék fordításával segítek?
-  - Mert ha kitalálok valami új dolgot (pl jelentkezek fodítónak / lektornak / formázónak), akkor abba nagyon bele tudok merülni, de viszont gyorsan kiégek. (Ez ennél a kiegészítőnél is megtörtént még a fejlesztés elején. :D) (Érdekel a fordítás / lektorálás / formázás, de szerintem sokkal jobb jelentkezők vannak, mint én.(De majd egyszer talán... ))
+  - Mert ha kitalálok valami új dolgot (pl jelentkezek fordítónak / lektornak / formázónak), akkor abba nagyon bele tudok merülni, de viszont gyorsan kiégek. (Ez ennél a kiegészítőnél is megtörtént még a fejlesztés elején. :D) (Érdekel a fordítás / lektorálás / formázás, de szerintem sokkal jobb jelentkezők vannak, mint én.(De majd egyszer talán... ))
   - De viszont ha te értesz a fordításhoz / lektoráláshoz vagy formázáshoz, akkor például az [AkioFansub](https://akiofansub.hu/felvetel/) oldalon tudsz jelentkezni fordítónak / lektornak vagy formázónak. (Ez csak egy példa, de rengeteg fansub csoport van, akiknek szükségük van emberekre.)
   
 
