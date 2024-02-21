@@ -110,7 +110,7 @@ Részletes leírás a beállításokról:
 
 
 ## Nyilatkozat
-- A kiegészítő NEM áll kapcsolatban sem a magyaranime.eu oldallal, sem az indavideo.hu oldallal.
+- A kiegészítő NEM áll kapcsolatban sem a Mega.nz, sem a indavideo.hu oldallal.
 - A programot az MIT licensz védi.
 - A kiégészítő csak a magyaranime.eu oldalon használható.
 - A fejlesztők nem vállalnak felelősséget a kiegészítő használatából eredő károkért.
@@ -124,7 +124,7 @@ Részletes leírás a beállításokról:
 - A kiegészítő használatával elfogadod a fentebb felsoroltakat.
 
 ## Disclaimer
-- The extension is NOT related to the magyaranime.eu website or the indavideo.hu website.
+- The extension is NOT related to the Mega.nz website or the indavideo.hu website.
 - The program is protected by the MIT licence.
 - The extension can only be used on the magyaranime.eu website.
 - The developers are not responsible for any damages caused by the use of the extension.
