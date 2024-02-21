@@ -1,5 +1,6 @@
 # MagyarAnimeTweaks
-![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=Felhaszn%C3%A1l%C3%B3k&labelColor=%23182031&color=%233F9FFF) ![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=Verzi%C3%B3&labelColor=%23182031&color=%233F9FFF)
+![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=Felhaszn%C3%A1l%C3%B3k&labelColor=%23182031&color=%233F9FFF) ![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=Verzi%C3%B3&labelColor=%23182031&color=%233F9FFF) ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/TTK987/MagyarAnimeTweaks/total?style=flat&logo=github&logoColor=%233F9FFF&label=Let%C3%B6lt%C3%A9sek%20(GitHub)&labelColor=%23182031&color=%233F9FFF)
+
 
 
 
