@@ -18,7 +18,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 - **Következő verzió: 2024.02.23 (V.0.1.5)**
 
 
-**V.0.1.4 Letölthető:** (_**[INNEN](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)**_)
+**V.0.1.4 Letölthető:** _**[INNEN](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)**_
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
