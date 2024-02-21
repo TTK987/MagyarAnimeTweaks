@@ -15,6 +15,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png "Előnézet")
 
 ## Jelenlegi Verzió: 0.1.4
+- **Következő verzió: 2024.02.23 (V.0.1.5)**
 **Elérhető az új verzió!** (_**[ITT](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)**_)
 
 ## Funkciók
