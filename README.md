@@ -1,4 +1,6 @@
 # MagyarAnimeTweaks
+![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=Felhaszn%C3%A1l%C3%B3k&labelColor=%23182031&color=%233F9FFF)
+
 A magyaranime.eu oldalhoz készült kiegészítő, amelynek segítségével könnyebben lehet nézni az oldalon található animéket.
 Ez a kiegészítő animenéző(k)től animenézőknek készült, hogy könnyebbé tegye az animék nézését.
 Ebben a kiegészítőben található funkciók közé tartozik a plyr.io videólejátszó használata, az indavideo-ról linkelt animék letöltésének lehetősége, gyorsgombok a videólejátszóhoz, gyorsgombok az animék közötti navigáláshoz és hibák fixálása.
