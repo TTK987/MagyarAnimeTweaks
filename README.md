@@ -1,18 +1,19 @@
 # MagyarAnimeTweaks
-![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=Felhaszn%C3%A1l%C3%B3k&labelColor=%23182031&color=%233F9FFF)
-![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=Verzi%C3%B3&labelColor=%23182031&color=%233F9FFF)
+![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=Felhaszn%C3%A1l%C3%B3k&labelColor=%23182031&color=%233F9FFF&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
+![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=Verzi%C3%B3&labelColor=%23182031&color=%233F9FFF&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
+![Chrome Web Store Stars](https://img.shields.io/chrome-web-store/stars/kpaljcmdlnbnebockdplokocfgegiaia?style=flat&logo=googlechrome&logoColor=%233F9FFF&label=%C3%89rt%C3%A9kel%C3%A9s&labelColor=%23182031&color=%233F9FFF&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
 ![GitHub Downloads](https://img.shields.io/github/downloads/TTK987/MagyarAnimeTweaks/total?style=flat&logo=github&logoColor=%233F9FFF&label=Let%C3%B6lt%C3%A9sek%20(GitHub)&labelColor=%23182031&color=%233F9FFF)
 ![GitHub manifest version](https://img.shields.io/github/manifest-json/v/TTK987/MagyarAnimeTweaks?filename=src%2Fmanifest.json&style=flat&logo=github&logoColor=3F9FFF&label=GitHub%20Verzi%C3%B3&labelColor=182031&color=3F9FFF)
 
 
 
-![Chrome Support](https://img.shields.io/badge/Chrome-Támogatott-blue?logo=googlechrome&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716)
-![Firefox Support](https://img.shields.io/badge/Firefox-Nem_támogatott-blue?logo=firefox&logoColor=%233F9FFF&labelColor=%23182031&color=%23871d16)
-![Opera Support](https://img.shields.io/badge/Opera-Támogatott-blue?logo=opera&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716)
-![Opera GX Support](https://img.shields.io/badge/Opera_GX-Támogatott-blue?logo=operagx&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716)
-![Brave Support](https://img.shields.io/badge/Brave-Támogatott-blue?logo=brave&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716)
-![Android Support](https://img.shields.io/badge/Android-Támogatott_(Kiwi_Browser)-blue?logo=android&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716)
-![Microsoft Edge Support](https://img.shields.io/badge/Microsoft_Edge-Támogatott-blue?logo=microsoftedge&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716)
+![Chrome Support](https://img.shields.io/badge/Chrome-Támogatott-blue?logo=googlechrome&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
+![Firefox Support](https://img.shields.io/badge/Firefox-Nem_támogatott-blue?logo=firefox&logoColor=%233F9FFF&labelColor=%23182031&color=%23871d16&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
+![Opera Support](https://img.shields.io/badge/Opera-Támogatott-blue?logo=opera&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
+![Opera GX Support](https://img.shields.io/badge/Opera_GX-Támogatott-blue?logo=operagx&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
+![Brave Support](https://img.shields.io/badge/Brave-Támogatott-blue?logo=brave&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
+![Android Support](https://img.shields.io/badge/Android-Támogatott_(Kiwi_Browser)-blue?logo=android&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
+![Microsoft Edge Support](https://img.shields.io/badge/Microsoft_Edge-Támogatott-blue?logo=microsoftedge&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
 
 
 
