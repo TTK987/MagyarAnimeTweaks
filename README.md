@@ -157,7 +157,6 @@ Részletes leírás a beállításokról:
 
 ## Fejlesztők
 - [ttk987](https://discord.com/users/537718439586955285)  - Tulajdonos, fejlesztő
-- *Ha szeretnél hozzájárulni a kiegészítő fejlesztéséhez, akkor nyugodtan írj nekem Discordon.*
 
 
 ## Támogatás
