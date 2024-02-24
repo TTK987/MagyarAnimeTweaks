@@ -1,0 +1,170 @@
+.MATweaks-settings-window-body-content-item-feature {
+    display: flex;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    align-content: center;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.MATweaks-settings-window-body-content-item-feature input[type=checkbox] {
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+    background: none;
+    min-width: 0;
+    max-width: 0;
+}
+.MATweaks-settings-window-body-content-item-feature input {
+    cursor: pointer;
+    height: 30px;
+    min-width: 133px;
+}
+.MATweaks-settings-window-body-content-item-feature-checkbox-custom {
+    height: 30px;
+    width: 30px;
+    background-color: var(--black);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+.MATweaks-settings-window-body-content-item-feature input ~ .MATweaks-settings-window-body-content-item-feature-checkbox-custom {
+    background-color: #222222;
+    min-width: 20px;
+}
+
+.MATweaks-settings-window-body-content-item-feature input:checked ~ .MATweaks-settings-window-body-content-item-feature-checkbox-custom {
+    background-color: #2b2d30;
+    min-width: 20px;
+}
+
+.MATweaks-settings-window-body-content-item-feature-checkbox-custom:after {
+    content: "";
+}
+
+.MATweaks-settings-window-body-content-item-feature input:checked ~ .MATweaks-settings-window-body-content-item-feature-checkbox-custom:after {
+    display: block;
+}
+
+.MATweaks-settings-window-body-content-item-feature .MATweaks-settings-window-body-content-item-feature-checkbox-custom:after {
+    content: "✔";
+    display: none;
+}
+.MA-Tweaks-settings-popup {
+    position: absolute;
+    top: 80%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--black-color);
+    border: 4px solid #000000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    padding: 10px;
+    z-index: 1000000;
+    font-family: Arial, sans-serif;
+    color: #fff;
+    max-width: fit-content;
+    max-height: fit-content;
+    min-width: 90%;
+    min-height: 90%;
+    overflow: auto;
+}
+.MA-Tweaks-settings-popup-body-content-features {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+    flex-direction: row;
+}
+.MATweaks-settings-window-body-content-item {
+    width: 48%;
+    margin-bottom: 10px;
+    background: var(--primary-color);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 3px 3px 6px 0 rgba(0, 0, 0, 0.2);
+}
+.MATweaks-settings-window-body-content-item p {
+    margin: 0;
+    font-size: larger;
+    font-weight: 600;
+}
+.MATweaks-settings-window-body-content-item-feature-input {
+    width: 47%;
+    border-radius: 5px;
+    padding: 10px;
+    height: 10px;
+}
+.MATweaks-settings-window-body {
+    padding: 10px;
+}
+.MATweaks-settings-window-body-content {
+    padding: 10px;
+}
+.MATweaks-settings-window-header {
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+}
+.MATweaks-settings-window-header h2 {
+    margin: 0;
+    display: inline-block;
+}
+.MATweaks-settings-window-header .MATweaks-settings-window-close {
+    float: right;
+    cursor: pointer;
+    background: var(--black);
+    padding: 10px;
+    width: 50px;
+    height: 50px;
+    align-self: center;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    font-size: xxx-large;
+    border-radius: 5px;
+    color: var(--white);
+    transition: 0.3s;
+}
+.MATweaks-settings-window-body-content-credits p {
+    margin: 0;
+}
+.MATweaks-settings-window-body-content-credits {
+    margin-top: 10px;
+    font-size: small;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+.MATweaks-settings-window-header .MATweaks-settings-window-close:hover {
+    color: var(--red);
+}
+.MATweaks-settings-window-body-content-buttons-button {
+    background: var(--primary-color);
+    border-radius: 5px;
+    color: white;
+    border: 0;
+    box-shadow: 3px 3px 3px 2px rgb(0 0 0 / 20%);
+    height: 50px;
+    width: 100px;
+}
+.MATweaks-settings-window-body-content-buttons {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}

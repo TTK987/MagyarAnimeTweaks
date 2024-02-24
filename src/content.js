@@ -1,6 +1,6 @@
-let LastUpdate = "2024.02.16";
+let LastUpdate = "2024.02.23"; // The last time I updated the code (YYYY.MM.DD)
 // ---------------------------------------------------------------------------------------------------------------------
-let settings = {}
+let settings = {} // The settings of the extension (Will be loaded from the storage)
 let downloadInProgress = false; // Download in progress (User can't download the video while this is true)
 let IsSettingsWindowOpen = false; // Is the settings window open (Used for disabling the key events)
 let lastLogTime = 0; // Last log time (Used for the download progress log)
@@ -22,7 +22,8 @@ class ConsoleLogger { // Console logger (Used for disabling the logs easily)
     }
 }
 class Player {
-    /* This is the player class, that I will use to create the players according to the user's settings. (Potentially "hot swappable" players, to minimize the page reloads.)*/
+    /* This is the player class, that I will create the players depending on the user's settings.*/
+    // (Potentially "hot swappable" players, to minimize the page reloads.) (already in V.0.1.5)
     constructor() {
         this.querrySelector = "#indavideoframe";
         this.sourceUrl720p = "";
@@ -50,6 +51,11 @@ class Player {
         /* Replace the player with the default player */
         // Create the default iframe
         try {
+            let video = document.querySelector(this.querrySelector);
+            if (video.src === this.IframeUrl && this.isMegaLink === false) {
+                logger.log("The iframe is already the default player.");
+                return false;
+            }
             let iframe = document.createElement("iframe");
             iframe.setAttribute("id", "indavideoframe");
             iframe.setAttribute("style", "float: none;");
@@ -58,11 +64,6 @@ class Player {
             iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
             iframe.setAttribute("allowfullscreen", "");
             // Replace the player
-            let video = document.querySelector(this.querrySelector);
-            if (video.src === this.IframeUrl) {
-                logger.log("The iframe is already the default player.");
-                return false;
-            }
             video.parentNode.replaceChild(iframe, video);
             this.querrySelector = "#indavideoframe";
             return true;
@@ -80,7 +81,8 @@ class Player {
                 }
                 // Create the plyr player
                 let videoElement = document.createElement("video");
-                videoElement.setAttribute("autoplay", "autoplay");
+                // V.0.1.5 - Settings for autoplay.
+                if (settings.autoplay.enabled) {videoElement.setAttribute("autoplay", "autoplay");}
                 videoElement.setAttribute("src", this.sourceUrl720p || this.sourceUrl360p); // Set the source url to the 720p or 360p source url
                 videoElement.setAttribute("type", 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"');
                 videoElement.setAttribute("playsinline", "");
@@ -116,7 +118,7 @@ class Player {
                 // Replace the player
                 const video = document.querySelector(this.querrySelector);
                 video.parentNode.replaceChild(videoElement, video);
-                let plyr = new Plyr("#video", {
+                new Plyr("#video", {
                     controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "download", "fullscreen"],
                     keyboard: {
                         focused: true,
@@ -161,7 +163,7 @@ class Player {
                         reset: "Visszaállítás",
                         disabled: "Letiltva",
                         enabled: "Engedélyezve",
-                        advertisement: "Hirdetés",
+                        advertisement: "Hirdetés", // That's funny because one of main reasons to use this extension is to block ads
                         qualityBadge: {
                             2160: "4K",
                             1440: "HD",
@@ -212,7 +214,7 @@ class Player {
                     event.preventDefault(); // Prevent the default action
                     logger.log("Download requested."); // Log the download request
                     let sourceUrl = player.getSourceUrl720p() || player.getSourceUrl360p(); // Get the source url
-                    downloadFile(sourceUrl, document.title + ".mp4"); // Download the file with the source url and the title of the page as the filename
+                    downloadFile(sourceUrl, document.title + " (MATweaks).mp4"); // Download the file with the source url and the title of the page as the filename
                 });
                 // Create the download progress bar
                 let downloadProgressBarContainer = document.querySelector(".download-progress-bar-container");
@@ -222,6 +224,10 @@ class Player {
         <progress id="download-progress-bar" value="0" max="100"></progress>
         <p id="download-progress-bar-text">0% (0 MB / 0 MB)</p>
     `;
+                const cancelDownloadButton = document.createElement("button");
+                cancelDownloadButton.setAttribute("id", "download-progress-bar-cancel");
+                cancelDownloadButton.innerHTML = "Mégse";
+                downloadProgressBarContainer.appendChild(cancelDownloadButton);
                 // Add css to the download progress bar
                 const css = `
 .download-progress-bar-container {
@@ -231,7 +237,7 @@ class Player {
     left: 0;
     width: 100%;
     height: 100%;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
     align-content: center;
@@ -267,12 +273,22 @@ class Player {
 #download-progress-bar-text {
     width: 100%;
     position: absolute;
-    top: 35%; /* I don't know why, but it's not centered without this. */
+    top: 47%; /* I don't know why, but it's not centered without this. */
     left: 50%;
     transform: translate(-50%, -50%);
     margin: 0;
     color: #ffffff;
     font-size: 20px;
+}
+#download-progress-bar-cancel {
+    z-index: 100;
+    background-color: var(--primary-color);
+    color: var(--light);
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
 }
     `;
                 let style = document.createElement("style");
@@ -283,14 +299,18 @@ class Player {
                 const videoPlayer = document.querySelector(".plyr");
                 // Add the download progress bar below the video player
                 videoPlayer.parentNode.insertBefore(downloadProgressBarContainer, videoPlayer.nextSibling);
+                // Set a normal height for the video player, so it won't be too big
+                videoPlayer.style.display = "inline-block";
+                videoPlayer.style.height = "70vh";
+                videoPlayer.style.border = "none";
                 // fixes the plyr buffer position
                 const plyrbuffer = document.querySelector(".plyr__progress__buffer");
                 if (plyrbuffer) plyrbuffer.style.top = "9.5px"; // (Could be solved with css)
                 this.querrySelector = ".plyr";
                 return true;
         } else {
-            // If the user watches a Mega.nz video, then we will absolutely do nothing with it, because we aren't at V.0.1.5 yet. :D
-            logger.log("Mega.nz video detected. (Not supported yet.)");
+            // If the user watches a Mega.nz video, remake the player iframe
+            this.replacePlayerDefault();
             return false;
         }
     }
@@ -332,10 +352,11 @@ class Player {
                 logger.error("Error while replacing the player with the html5 player.");
                 return false;
             }
+        } else {
+            // If the user watches a Mega.nz video, remake the player iframe
+            this.replacePlayerDefault();
+            return false;
         }
-    }
-    setQuerrySelector(querrySelector) {
-        this.querrySelector = querrySelector;
     }
     setSourceUrl720p(sourceUrl720p) {
         this.sourceUrl720p = sourceUrl720p;
@@ -393,23 +414,11 @@ class Player {
         iframe.parentNode.replaceChild(error, iframe);
         return false;
     }
-    getQuerrySelector() {
-        return this.querrySelector;
-    }
     getSourceUrl720p() {
         return this.sourceUrl720p;
     }
     getSourceUrl360p() {
         return this.sourceUrl360p;
-    }
-    getIframeUrl() {
-        return this.IframeUrl;
-    }
-    getIsMegaLink() {
-        return this.isMegaLink;
-    }
-    getCurrentQuality() {
-        return this.currentQuality;
     }
 }
 // ---------------------------------------------------------------------------------------------------------------------
@@ -417,6 +426,26 @@ const logger = new ConsoleLogger(); // Create a new console logger
 const player = new Player(); // Create a new player
 // ---------------------------------------------------------------------------------------------------------------------
 // All the functions for the extension
+let isAutoNextEpisodeTriggered = false; // Is the auto next episode triggered
+function loadSettings() {
+    /* Load the settings */
+    // We use here console instead of logger, because the logger is not always loaded when the settings are loaded
+    // Send a message to the background script to get the settings
+    chrome.runtime.sendMessage({plugin: "MATweaks", type: "loadSettings"}, function (response) {
+        if (response) {
+            try {
+                settings = response; // If the settings are loaded, save them
+                logger.log("Settings loaded");
+                logger.log(JSON.stringify(settings));
+            } catch (error) {
+                // If the settings are not loaded, log it as an error
+                logger.error("Error loading settings");
+            }
+        } else {
+            logger.error("Error loading settings");
+        }
+    });
+}
 async function downloadFile(url, filename) {
     /* Download a file */
     if (downloadInProgress) {
@@ -429,17 +458,26 @@ async function downloadFile(url, filename) {
         logger.error("Download failed: URL or filename is empty or undefined.");
         return false;
     }
+    let abortController = new AbortController(); // Initialize an AbortController
+    let signal = abortController.signal; // Get the signal for aborting the request
     // Try to download the file
+    let downloadProgressBarContainer = document.querySelector(".download-progress-bar-container"); // Get the download progress bar container
+    // Add event listener to cancel button
+    document.querySelector("#download-progress-bar-cancel").addEventListener("click", function(event) {
+        event.preventDefault();
+        abortController.abort();
+        downloadProgressBarContainer.style.display = "none";
+        downloadInProgress = false;
+    });
     try {
         // Get the file
-        const response = await fetch(url);
+        const response = await fetch(url,{ signal });
         const contentLength = response.headers.get('content-length'); // Get the content length
         const total = parseInt(contentLength, 10); // Parse the content length to an integer
         let loaded = 0; // Set the loaded to 0
         let downloadProgressBar = document.querySelector("#download-progress-bar"); // Get the download progress bar
-        let downloadProgressBarcontainer = document.querySelector(".download-progress-bar-container"); // Get the download progress bar container
         downloadProgressBar.setAttribute("max", total); // Set the max value of the download progress bar to the content length
-        downloadProgressBarcontainer.style.display = "block"; // Show the download progress bar
+        downloadProgressBarContainer.style.display = "flex"; // Show the download progress bar
         downloadInProgress = true; // Set the download in progress to true
         const reader = response.body.getReader(); // Get the reader
         const stream = new ReadableStream({ // Create a readable stream
@@ -474,20 +512,26 @@ async function downloadFile(url, filename) {
         // Append the link to the body
         document.body.appendChild(link);
         link.click(); // Click the link
-        // Remove the link and revoke the object url
-        downloadProgressBarcontainer.style.display = "none";
         document.body.removeChild(link);
         URL.revokeObjectURL(objectUrl);
         // Log the download finished
         logger.log(`Download finished: "${filename}"`);
         downloadInProgress = false; // Set the download in progress to false
     } catch (error) {
-        // If the download fails, log it as an error
-        logger.error(`Download failed: ${error}`);
-        downloadInProgress = false;
+        if (error.name === 'TypeError') {
+            // If the download is aborted, log it
+            logger.log("Download aborted by the user. (Probably)");
+            downloadInProgress = false;
+        } else {
+            // If the download fails, log it as an error
+            logger.error(`Download failed: ${error}`);
+            downloadInProgress = false;
+        }
+    }  finally {
+        downloadProgressBarContainer.style.display = "none"; // Ensure progress bar is hidden after cancellation or completion
     }
-}
 
+}
 function LogDownloadProgress(max, loaded) {
     /* Log the download progress */
     if (Date.now() - lastLogTime < 1000) /* Update every second */ {
@@ -503,46 +547,6 @@ function LogDownloadProgress(max, loaded) {
     logger.log(`Downloaded ${(loaded / 1000000).toPrecision(5)} MB of ${(max / 1000000).toPrecision(5)} MB`);
 
 }
-
-function addSettingsButton() {
-    /* Add the settings button to the account menu */
-    let accountMenu = document.querySelector("#gen-header > div > div > div > div > nav > div.gen-header-info-box > div.gen-account-holder > div > ul");
-    if (accountMenu) {
-        // Create the settings button
-        let settingsButton = document.createElement("li");
-        settingsButton.setAttribute("class", "gen-account-menu-item");
-        settingsButton.innerHTML = `
-            <a class="gen-account-menu-link" id="MATweaks-settings-button">
-                <i class="fas fa-cog"></i>
-                MATweaks beállítások
-            </a>
-        `;
-        // Add the settings button to the account menu
-        accountMenu.insertBefore(settingsButton, accountMenu.children[4]);
-        // Add the event listener to the settings button
-        document.querySelector("#MATweaks-settings-button").addEventListener("click", openSettings);
-        // Log the action
-        logger.log("Settings button added.");
-    }
-}
-
-function openSettings() {
-    /* Open the settings window */
-    // Get the settings window
-    let settingsWindow = document.querySelector("#MATweaks-settings-window");
-    if (settingsWindow) {
-        // If the settings window is already open, display it
-        settingsWindow.style.display = "block";
-        IsSettingsWindowOpen = true;
-        logger.log("Settings window opened.");
-    } else {
-        // If the settings window is not open, create it
-        createSettingsWindow();
-        IsSettingsWindowOpen = true;
-        logger.log("Settings window opened.");
-    }
-}
-
 function createSettingsWindow() {
     /* Create the settings window */
     // Note: This is the longest function in the code. Mainly because of the html+css code. (Maybe I should move it to a separate file...)
@@ -560,7 +564,7 @@ function createSettingsWindow() {
     const nextEpisode = `${settings.nextEpisode.altKey ? 'Alt + ' : ''}${settings.nextEpisode.ctrlKey ? 'Ctrl + ' : ''}${settings.nextEpisode.shiftKey ? 'Shift + ' : ''}${settings.nextEpisode.key}`;
     const previousEpisode = `${settings.previousEpisode.altKey ? 'Alt + ' : ''}${settings.previousEpisode.ctrlKey ? 'Ctrl + ' : ''}${settings.previousEpisode.shiftKey ? 'Shift + ' : ''}${settings.previousEpisode.key}`;
     // --------------------------
-    // And here is the html+css code... (It supports custom themes) ( 284 lines of html+css code... in a js file... in one block... )
+    // And here is the html code... (It supports custom themes) ( 284 lines of html+css code... in a js file... in one block... )
     settingsWindow.innerHTML = `
         <div class="MA-Tweaks-settings-popup-content">
             <div class="MATweaks-settings-window-header">
@@ -627,10 +631,10 @@ function createSettingsWindow() {
                             </div>
                         </div>
                         <div class="MATweaks-settings-window-body-content-item">
-                            <p>Javítások</p>
-                            <div class="MATweaks-settings-window-body-content-item-feature" id="MATweaks-fixes">
-                                <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-fixes-enabled">Engedélyezve</label>
-                                <input class="MATweaks-settings-window-body-content-item-feature-checkbox" type="checkbox" id="MATweaks-fixes-enabled" name="MATweaks-fixes-enabled" ${settings.fixes.enabled ? "checked" : ""}>
+                            <p>Automatikus lejátszás</p>
+                            <div class="MATweaks-settings-window-body-content-item-feature" id="MATweaks-autoPlay">
+                                <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-autoPlay-enabled">Engedélyezve</label>
+                                <input class="MATweaks-settings-window-body-content-item-feature-checkbox" type="checkbox" id="MATweaks-autoPlay-enabled" name="MATweaks-autoPlay-enabled" ${settings.autoplay.enabled ? "checked" : ""}>
                                 <span class="MATweaks-settings-window-body-content-item-feature-checkbox-custom"></span>
                             </div>
                         </div>
@@ -653,6 +657,7 @@ function createSettingsWindow() {
                                 <input class="MATweaks-settings-window-body-content-item-feature-checkbox" type="checkbox" id="MATweaks-devSettings-enabled" name="MATweaks-devSettings-enabled" ${settings.devSettings.enabled ? "checked" : ""}>
                                 <span class="MATweaks-settings-window-body-content-item-feature-checkbox-custom"></span>
                             </div>
+                            <p style="font-size: 15px; font-weight: unset;">Mega.nz esetén csak az Alap (nincs csere) és a plyr.io elérhető!</p>
                             <div class="MATweaks-settings-window-body-content-item-feature">
                                 <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-devSettings-DefaultPlayer-player">Alapértelmezett lejátszó</label>
                                 <select class="MATweaks-settings-window-body-content-item-feature-input" id="MATweaks-devSettings-DefaultPlayer-player" name="MATweaks-devSettings-DefaultPlayer-player">
@@ -684,237 +689,15 @@ function createSettingsWindow() {
                     </div>
                     <div class="MATweaks-settings-window-body-content-credits-item">
                         <p>Weblap: < Fejlesztés alatt... ></p>
-                        <p>Discord: < Fejlesztés alatt... ></p>
+                        <p>Discord: <a href="https://discord.gg/dJX4tVGZhY" target="_blank">MagyarAnimeTweaks</a></p>
                     </div>
                 </div>
             </div>
         </div>
-        <style>
-        .MATweaks-settings-window-body-content-item-feature {
-                display: flex;
-                cursor: pointer;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                user-select: none;
-                align-content: center;
-                align-items: center;
-                justify-content: space-between;
-        }
-        
-        .MATweaks-settings-window-body-content-item-feature input[type=checkbox] {
-          opacity: 0;
-          cursor: pointer;
-          height: 0;
-          width: 0;
-          background: none;
-          min-width: 0;
-          max-width: 0;
-        }
-        .MATweaks-settings-window-body-content-item-feature input {
-            cursor: pointer;
-            height: 30px;
-            min-width: 133px;
-        }
-        .MATweaks-settings-window-body-content-item-feature-checkbox-custom {
-            height: 30px;
-            width: 30px;
-            background-color: var(--black);
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            align-content: center;
-            flex-direction: row;
-            flex-wrap: nowrap;
-        }
-        .MATweaks-settings-window-body-content-item-feature input ~ .MATweaks-settings-window-body-content-item-feature-checkbox-custom {
-            background-color: #222222;
-            min-width: 20px;
-        }
-        
-        .MATweaks-settings-window-body-content-item-feature input:checked ~ .MATweaks-settings-window-body-content-item-feature-checkbox-custom {
-          background-color: #2b2d30;
-          min-width: 20px;
-        }
-        
-        .MATweaks-settings-window-body-content-item-feature-checkbox-custom:after {
-          content: "";
-        }
-        
-        .MATweaks-settings-window-body-content-item-feature input:checked ~ .MATweaks-settings-window-body-content-item-feature-checkbox-custom:after {
-          display: block;
-        }
-        
-        .MATweaks-settings-window-body-content-item-feature .MATweaks-settings-window-body-content-item-feature-checkbox-custom:after {
-          content: "✔";
-          display: none;
-        }
-        .MA-Tweaks-settings-popup {
-            position: absolute;
-            top: 80%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: var(--black-color);
-            border: 4px solid #000000;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-            padding: 10px;
-            z-index: 1000000;
-            font-family: Arial, sans-serif;
-            color: #fff;
-            max-width: fit-content;
-            max-height: fit-content;
-            min-width: 90%;
-            min-height: 90%;
-            overflow: auto;
-        }
-        .MA-Tweaks-settings-popup-body-content-features {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            align-content: center;
-            flex-direction: row;
-        }
-        .MATweaks-settings-window-body-content-item {
-                width: 48%;
-                margin-bottom: 10px;
-                background: var(--primary-color);
-                padding: 10px;
-                border-radius: 5px;
-                box-shadow: 3px 3px 6px 0 rgba(0, 0, 0, 0.2);
-        }
-        .MATweaks-settings-window-body-content-item p {
-                margin: 0;
-                font-size: larger;
-                font-weight: 600;
-        }
-        .MATweaks-settings-window-body-content-item-feature-input {
-            width: 47%;
-            border-radius: 5px;
-            padding: 10px;
-            height: 10px;
-        }
-        .MATweaks-settings-window-body {
-            padding: 10px;
-        }
-        .MATweaks-settings-window-body-content {
-            padding: 10px;
-        }
-        .MATweaks-settings-window-header {
-            background-color: var(--primary-color);
-            color: white;
-            display: flex;
-            flex-direction: row-reverse;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .MATweaks-settings-window-header h2 {
-            margin: 0;
-            display: inline-block;
-        }
-        .MATweaks-settings-window-header .MATweaks-settings-window-close {
-            float: right;
-            cursor: pointer;
-            background: var(--black);
-            padding: 10px;
-            width: 50px;
-            height: 50px;
-            align-self: center;
-            display: flex;
-            align-content: center;
-            justify-content: center;
-            align-items: center;
-            font-size: xxx-large;
-            border-radius: 5px;
-            color: var(--white);
-            transition: 0.3s;
-        }
-        .MATweaks-settings-window-body-content-credits p {
-            margin: 0;
-        }
-        .MATweaks-settings-window-body-content-credits {
-            margin-top: 10px;
-            font-size: small;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-        .MATweaks-settings-window-header .MATweaks-settings-window-close:hover {
-            color: var(--red);
-        }
-        .MATweaks-settings-window-body-content-buttons-button {
-            background: var(--primary-color);
-            border-radius: 5px;
-            color: white;
-            border: 0;
-            box-shadow: 3px 3px 3px 2px rgb(0 0 0 / 20%);
-            height: 50px;
-            width: 100px;
-        }
-        .MATweaks-settings-window-body-content-buttons {
-            display: flex;
-            justify-content: space-evenly;
-            align-items: center;
-        }
-        </style>
     `;
     // --------------------------
     // Create a new settings object with the new settings
-    let newSettings = {
-        forwardSkip: {
-            enabled: settings.forwardSkip.enabled,
-            duration: settings.forwardSkip.duration,
-            ctrlKey: settings.forwardSkip.ctrlKey,
-            altKey: settings.forwardSkip.altKey,
-            shiftKey: settings.forwardSkip.shiftKey,
-            key: settings.forwardSkip.key,
-        },
-        backwardSkip: {
-            enabled: settings.backwardSkip.enabled,
-            duration: settings.backwardSkip.duration,
-            ctrlKey: settings.backwardSkip.ctrlKey,
-            altKey: settings.backwardSkip.altKey,
-            shiftKey: settings.backwardSkip.shiftKey,
-            key: settings.backwardSkip.key,
-        },
-        nextEpisode: {
-            enabled: settings.nextEpisode.enabled,
-            ctrlKey: settings.nextEpisode.ctrlKey,
-            altKey: settings.nextEpisode.altKey,
-            shiftKey: settings.nextEpisode.shiftKey,
-            key: settings.nextEpisode.key,
-        },
-        previousEpisode: {
-            enabled: settings.previousEpisode.enabled,
-            ctrlKey: settings.previousEpisode.ctrlKey,
-            altKey: settings.previousEpisode.altKey,
-            shiftKey: settings.previousEpisode.shiftKey,
-            key: settings.previousEpisode.key,
-        },
-        fixes: {
-            enabled: settings.fixes.enabled,
-        },
-        devSettings: {
-            enabled: settings.devSettings.enabled,
-            settings: {
-                ConsoleLog: {
-                    enabled: settings.devSettings.settings.ConsoleLog.enabled,
-                },
-                DefaultPlayer: {
-                    player: settings.devSettings.settings.DefaultPlayer.player,
-                },
-            }
-        },
-        autoNextEpisode: {
-            enabled: settings.autoNextEpisode.enabled,
-            time: settings.autoNextEpisode.time,
-        },
-        version: settings.version,
-    };
+    let newSettings = settings;
     // add the settings window to the body
     document.querySelector("body").appendChild(settingsWindow);
     // --------------------------
@@ -926,45 +709,45 @@ function createSettingsWindow() {
     });
     // --------------------------
     // Add the event listeners for each setting
-    document.querySelector("#MATweaks-forwardSkip").addEventListener("click", (event) => {
+    document.querySelector("#MATweaks-forwardSkip").addEventListener("click", () => {
         newSettings.forwardSkip.enabled = !newSettings.forwardSkip.enabled;
         document.querySelector("#MATweaks-forwardSkip-enabled").checked = newSettings.forwardSkip.enabled;
         if (settings.devSettings.enabled) logger.log("forwardSkip.enabled: " + newSettings.forwardSkip.enabled);
     });
-    document.querySelector("#MATweaks-backwardSkip").addEventListener("click", (event) => {
+    document.querySelector("#MATweaks-backwardSkip").addEventListener("click", () => {
         newSettings.backwardSkip.enabled = !newSettings.backwardSkip.enabled;
         document.querySelector("#MATweaks-backwardSkip-enabled").checked = newSettings.backwardSkip.enabled;
         if (settings.devSettings.enabled) logger.log("backwardSkip.enabled: " + newSettings.backwardSkip.enabled);
     });
-    document.querySelector("#MATweaks-nextEpisode").addEventListener("click", (event) => {
+    document.querySelector("#MATweaks-nextEpisode").addEventListener("click", () => {
         newSettings.nextEpisode.enabled = !newSettings.nextEpisode.enabled;
         document.querySelector("#MATweaks-nextEpisode-enabled").checked = newSettings.nextEpisode.enabled;
         if (settings.devSettings.enabled) logger.log("nextEpisode.enabled: " + newSettings.nextEpisode.enabled);
     });
-    document.querySelector("#MATweaks-previousEpisode").addEventListener("click", (event) => {
+    document.querySelector("#MATweaks-previousEpisode").addEventListener("click", () => {
         newSettings.previousEpisode.enabled = !newSettings.previousEpisode.enabled;
         document.querySelector("#MATweaks-previousEpisode-enabled").checked = newSettings.previousEpisode.enabled;
         if (settings.devSettings.enabled) logger.log("previousEpisode.enabled: " + newSettings.previousEpisode.enabled);
     });
-    document.querySelector("#MATweaks-fixes").addEventListener("click", (event) => {
-        newSettings.fixes.enabled = !newSettings.fixes.enabled;
-        document.querySelector("#MATweaks-fixes-enabled").checked = newSettings.fixes.enabled;
-        if (settings.devSettings.enabled) logger.log("fixes.enabled: " + newSettings.fixes.enabled);
-    });
-    document.querySelector("#MATweaks-devSettings").addEventListener("click", (event) => {
+    document.querySelector("#MATweaks-devSettings").addEventListener("click", () => {
         newSettings.devSettings.enabled = !newSettings.devSettings.enabled;
         document.querySelector("#MATweaks-devSettings-enabled").checked = newSettings.devSettings.enabled;
         if (settings.devSettings.enabled) logger.log("devSettings.enabled: " + newSettings.devSettings.enabled);
     });
-    document.querySelector("#MATweaks-devSettings-ConsoleLog").addEventListener("click", (event) => {
+    document.querySelector("#MATweaks-devSettings-ConsoleLog").addEventListener("click", () => {
         newSettings.devSettings.settings.ConsoleLog.enabled = !newSettings.devSettings.settings.ConsoleLog.enabled;
         document.querySelector("#MATweaks-devSettings-ConsoleLog-enabled").checked = newSettings.devSettings.settings.ConsoleLog.enabled;
         if (settings.devSettings.enabled) logger.log("devSettings.settings.ConsoleLog.enabled: " + newSettings.devSettings.settings.ConsoleLog.enabled);
     });
-    document.querySelector("#MATweaks-autoNextEpisode").addEventListener("click", (event) => {
+    document.querySelector("#MATweaks-autoNextEpisode").addEventListener("click", () => {
         newSettings.autoNextEpisode.enabled = !newSettings.autoNextEpisode.enabled;
         document.querySelector("#MATweaks-autoNextEpisode-enabled").checked = newSettings.autoNextEpisode.enabled;
         if (settings.devSettings.enabled) logger.log("autoNextEpisode.enabled: " + newSettings.autoNextEpisode.enabled);
+    });
+    document.querySelector("#MATweaks-autoPlay").addEventListener("click", () => {
+        newSettings.autoplay.enabled = !newSettings.autoplay.enabled;
+        document.querySelector("#MATweaks-autoPlay-enabled").checked = newSettings.autoplay.enabled;
+        if (settings.devSettings.enabled) logger.log("autoplay.enabled: " + newSettings.autoplay.enabled);
     });
     document.querySelector("#MATweaks-forwardSkip-duration").addEventListener("change", (event) => {
         newSettings.forwardSkip.duration = event.target.value;
@@ -1065,7 +848,44 @@ function createSettingsWindow() {
     // And finally, log the action.
     logger.log("Settings window created.");
 }
-
+function openSettings() {
+    /* Open the settings window */
+    // Get the settings window
+    let settingsWindow = document.querySelector("#MATweaks-settings-window");
+    if (settingsWindow) {
+        // If the settings window is already open, display it
+        settingsWindow.remove();
+        createSettingsWindow();
+        IsSettingsWindowOpen = true;
+        logger.log("Settings window opened.");
+    } else {
+        // If the settings window is not open, create it
+        createSettingsWindow();
+        IsSettingsWindowOpen = true;
+        logger.log("Settings window opened.");
+    }
+}
+function addSettingsButton() {
+    /* Add the settings button to the account menu */
+    let accountMenu = document.querySelector("#gen-header > div > div > div > div > nav > div.gen-header-info-box > div.gen-account-holder > div > ul");
+    if (accountMenu) {
+        // Create the settings button
+        let settingsButton = document.createElement("li");
+        settingsButton.setAttribute("class", "gen-account-menu-item");
+        settingsButton.innerHTML = `
+            <a class="gen-account-menu-link" id="MATweaks-settings-button">
+                <i class="fas fa-cog"></i>
+                MATweaks beállítások
+            </a>
+        `;
+        // Add the settings button to the account menu
+        accountMenu.insertBefore(settingsButton, accountMenu.children[4]);
+        // Add the event listener to the settings button
+        document.querySelector("#MATweaks-settings-button").addEventListener("click", openSettings);
+        // Log the action
+        logger.log("Settings button added.");
+    }
+}
 function saveSettings() {
     /* Save the settings. */
     // Send the settings to the background script
@@ -1081,7 +901,6 @@ function saveSettings() {
         }
     });
 }
-
 function closeSettings(newSettings) {
     /* Close the settings window */
     // Get the settings window
@@ -1098,7 +917,6 @@ function closeSettings(newSettings) {
         IsSettingsWindowOpen = false;
         // Reload the iframe to apply the changes
         player.replacePlayer(settings.devSettings.settings.DefaultPlayer.player);
-        if (settings.fixes.enabled) {fixURLs();} else {UnFixURLs();}
         settingsWindow.remove(); // Remove the settings window from the DOM
     } else {
         logger.error("Settings window not found, cannot close it.");
@@ -1116,7 +934,6 @@ function closeSettingsWithoutSaving() {
         logger.log("Settings window closed without saving.");
     }
 }
-
 function receiveMessage(event) {
     /* Receive the messages from the indavideo iframe */
     // Check if the message is from the extension
@@ -1140,26 +957,51 @@ function receiveMessage(event) {
             if (settings.devSettings.enabled && settings.devSettings.settings.DefaultPlayer.player === "default") {
                 // If the default player is the default player, replace the player with the default player <- This is a good sentence :D
                 player.replacePlayer("default");
-            } else if (settings.devSettings.enabled && settings.devSettings.settings.DefaultPlayer.player === "plyr" || !settings.devSettings.enabled) {
+            } else if ((settings.devSettings.enabled && settings.devSettings.settings.DefaultPlayer.player === "plyr") || !settings.devSettings.enabled) {
                 // If the default player is plyr, or the dev settings are not enabled, replace the player with the plyr player
                 player.replacePlayer("plyr");
             } else if (settings.devSettings.enabled && settings.devSettings.settings.DefaultPlayer.player === "html5") {
                 // If the default player is html5, replace the player with the html5 player
-                // Note: If the user wants to use the html5 player, for idk what reason (Maybe to user their own player, or to use the browser's player...??), then the user has the option.
+                // Note: If the user wants to use the html5 player, for IDK what reason (Maybe to user their own player, or to use the browser's player...??), then the user has the option.
                 player.replacePlayer("html5");
             } else {
                 // In case of a miracle, show an error message.
                 // Should never happen, but just in case...
                 player.showErrorMessage("Hát, valami hiba történt...<br>Próbáld újra.");
             }
+        } else if (event.data.type === "megaIframeLoaded") {
+            // If the message is that the mega iframe is loaded, send a message to the iframe to replace the player
+            let iframe = document.querySelector('iframe[src*="mega.nz"]');
+            addShortcutsToPage();  // Add the shortcuts for next and previous episode
+            player.setIsMegaLink(true);
+            player.setIframeUrl(iframe.src);
+            logger.log("Mega iframe loaded.");
+            addShortcutsToPageMega(); // Add the shortcuts for forward and backward skip
+            if (settings.devSettings.enabled && settings.devSettings.settings.DefaultPlayer.player === "default") {
+                return;
+            }
+            // Replace the player
+            iframe.contentWindow.postMessage({"plugin": "MATweaks", "type": "replacePlayer"}, "*");
+            logger.log("Mega player replaced.");
+        } else if (event.data.type === "nextEpisode") {
+            // Triggers when the autoNextEpisode is enabled and the time is up
+            // If the message is to move to the next episode, move to the next episode
+            nextEpisodeMega();
+        } else if (event.data.type === "previousEpisode") {
+            // Triggers when the user wants to go back to the previous episode, but the shortcut is in the iframe
+            // If the message is to move to the previous episode, move to the previous episode
+            previousEpisode();
+        } else if (event.data.type === "nextEpisodeForce") {
+            // Triggers when the user wants to go to the next episode by shortcut, but the shortcut is in the iframe
+            // If the message is to move to the next episode, move to the next episode
+            nextEpisode();
         }
     }
 }
-
 function nextEpisode() {
     /* Move to the next episode */
     // Get the next episode button
-    let nextEpisodeButton = document.querySelector(".gomb.bg-green");
+    let nextEpisodeButton = document.getElementById("epkovetkezo")
     // If the next episode button is found, click it
 
     // V.0.1.4 - On last episode it will go to the data sheet of the series
@@ -1174,16 +1016,14 @@ function nextEpisode() {
     }
     logger.log("Moved to the next episode.");
 }
-
 function previousEpisode() {
     /* Move to the previous episode */
     // Get the previous episode button
-    let previousEpisodeButton = document.querySelector(".gomb.bg-orange");
+    let previousEpisodeButton = document.getElementById("epelozo");
     // If the previous episode button is found, click it
     if (previousEpisodeButton) previousEpisodeButton.click();
     logger.log("Moved to the previous episode.");
 }
-
 function addShortcutsToPage() {
     /* Add the shortcuts to the page */
     // Add the event listener to the page
@@ -1210,66 +1050,6 @@ function addShortcutsToPage() {
     });
     logger.log("Shortcuts added to the page.");
 }
-
-function fixURLs() {
-    /* Fix the URLs */
-    // Check if the current location is a 1080p episode
-    let currentLocation = window.location.href;
-    if (currentLocation.includes("/resz-1080p/")) {
-        // If the current location is a 1080p episode, fix the next and previous episode buttons, and the episode links
-        let nextEpisodeButton = document.querySelector(".gomb.bg-green");
-        let previousEpisodeButton = document.querySelector(".gomb.bg-orange");
-        // Fix the next and previous episode buttons
-        if (nextEpisodeButton) {
-            // If the next episode button is found, fix it's URL
-            let nextEpisodeUrl = nextEpisodeButton.href;
-            nextEpisodeUrl = nextEpisodeUrl.replace("/resz/", "/resz-1080p/");
-            nextEpisodeButton.href = nextEpisodeUrl;
-            logger.log("Next episode button fixed.");
-        } else {
-            logger.log("Next episode button not found.");
-        }
-        if (previousEpisodeButton) {
-            // If the previous episode button is found, fix it's URL
-            let previousEpisodeUrl = previousEpisodeButton.href;
-            previousEpisodeUrl = previousEpisodeUrl.replace("/resz/", "/resz-1080p/");
-            previousEpisodeButton.href = previousEpisodeUrl;
-            logger.log("Previous episode button fixed.");
-        } else {
-            logger.log("Previous episode button not found.");
-        }
-        // Fix the episode links
-        let episodeLinks = document.querySelectorAll(".epizod_link_normal");
-        episodeLinks.forEach((episodeLink) => {
-            // For each episode link, fix it's URL
-            let episodeUrl = episodeLink.href;
-            episodeUrl = episodeUrl.replace("/resz/", "/resz-1080p/");
-            episodeLink.href = episodeUrl;
-        });
-    } else {
-        // If the current location is not a 1080p episode, no need to fix the URLs
-        logger.log("Next and previous episode buttons are already redirecting to the correct URL.");
-    }
-}
-function loadSettings() {
-    /* Load the settings */
-    // We use here console instead of logger, because the logger is not always loaded when the settings are loaded
-    // Send a message to the background script to get the settings
-    chrome.runtime.sendMessage({plugin: "MATweaks", type: "loadSettings"}, function (response) {
-        if (response) {
-            try {
-                settings = response; // If the settings are loaded, save them
-                console.log("Settings loaded.");
-            } catch (error) {
-                // If the settings are not loaded, log it as an error
-                console.error("Error while loading settings.");
-            }
-        } else {
-            console.error("Error while loading settings.");
-        }
-    });
-}
-
 // V.0.1.4 - Auto next episode
 function autoNextEpisode() {
     /* Move to the next episode */
@@ -1279,46 +1059,91 @@ function autoNextEpisode() {
     if (nextEpisodeButton) nextEpisodeButton.click();
     logger.log("Moved to the next episode automatically.");
 }
-
-// V.0.1.4 - Removed page reload on settings change
-function UnFixURLs() {
-    /* Unfix the URLs (yes, really) */
-    // Inverse of fixURLs function
-    // Check if the current location is a 1080p episode
-    let currentLocation = window.location.href;
-    if (currentLocation.includes("/resz-1080p/")) {
-        let nextEpisodeButton = document.querySelector(".gomb.bg-green");
-        let previousEpisodeButton = document.querySelector(".gomb.bg-orange");
+// V.0.1.5 - Mega.nz player handler
+function addShortcutsToPageMega() {
+    /* Add the shortcuts to the page */
+    // Add the event listener to the page
+    let iframe = document.querySelector("iframe[src*='mega.nz']")
+    document.addEventListener("keydown", (event) => {
+        // Check if the event is a shortcut
+        // Spaghetti code incoming... Yey!
+        if (settings.forwardSkip.enabled &&
+            IsSettingsWindowOpen === false &&
+            event.ctrlKey === settings.forwardSkip.ctrlKey &&
+            event.altKey === settings.forwardSkip.altKey &&
+            event.shiftKey === settings.forwardSkip.shiftKey &&
+            event.key === settings.forwardSkip.key) {
+            // If the event is forward skip, skip forward
+            iframe.contentWindow.postMessage({
+                "plugin": "MATweaks",
+                "type": "forwardSkip",
+                "seconds": settings.forwardSkip.duration
+            }, "*");
+        } else if (settings.backwardSkip.enabled &&
+            IsSettingsWindowOpen === false &&
+            event.ctrlKey === settings.backwardSkip.ctrlKey &&
+            event.altKey === settings.backwardSkip.altKey &&
+            event.shiftKey === settings.backwardSkip.shiftKey &&
+            event.key === settings.backwardSkip.key) {
+            // If the event is backward skip, skip backward
+            iframe.contentWindow.postMessage({
+                "plugin": "MATweaks",
+                "type": "backwardSkip",
+                "seconds": settings.backwardSkip.duration
+            }, "*");
+        }
+        else if (IsSettingsWindowOpen === false && event.key === "ArrowRight") {
+            event.preventDefault();
+            iframe.contentWindow.postMessage({"plugin": "MATweaks", "type": "forwardSkip", "seconds": 5}, "*");
+        } else if (IsSettingsWindowOpen === false && event.key === "ArrowLeft") {
+            event.preventDefault();
+            iframe.contentWindow.postMessage({"plugin": "MATweaks", "type": "backwardSkip", "seconds": 5}, "*");
+        } else if (IsSettingsWindowOpen === false && event.key === " ") {
+            event.preventDefault();
+            iframe.contentWindow.postMessage({"plugin": "MATweaks", "type": "togglePlay"}, "*");
+        } else if (IsSettingsWindowOpen === false && event.key === "ArrowUp") {
+            event.preventDefault();
+            iframe.contentWindow.postMessage({"plugin": "MATweaks", "type": "volumeUp"}, "*");
+        } else if (IsSettingsWindowOpen === false && event.key === "ArrowDown") {
+            event.preventDefault();
+            iframe.contentWindow.postMessage({"plugin": "MATweaks", "type": "volumeDown"}, "*");
+        } else if (IsSettingsWindowOpen === false && event.key === "M" || event.key === "m") {
+            event.preventDefault();
+            iframe.contentWindow.postMessage({"plugin": "MATweaks", "type": "toggleMute"}, "*");
+        } else if (IsSettingsWindowOpen === false && event.key === "F" || event.key === "f") {
+            event.preventDefault();
+            iframe.contentWindow.postMessage({"plugin": "MATweaks", "type": "toggleFullscreen"}, "*");
+        } else if (IsSettingsWindowOpen === false && event.key === "C" || event.key === "c") {
+            event.preventDefault();
+        } /* Check if the key is a number */ else if (IsSettingsWindowOpen === false && event.key >= 0 && event.key <= 9) {
+            event.preventDefault();
+            iframe.contentWindow.postMessage({"plugin": "MATweaks", "type": "seekTo", "percent": event.key * 10}, "*");
+        }
+    });
+    logger.log("Shortcuts added to the page.");
+}
+function nextEpisodeMega() {
+    /* Move to the next episode */
+    if (!isAutoNextEpisodeTriggered) /* <- This prevents the "infinite" loop */ {
+        // Get the next episode button
+        let nextEpisodeButton = document.getElementById("epkovetkezo")
+        // If the next episode button is found, click it
         if (nextEpisodeButton) {
-            let nextEpisodeUrl = nextEpisodeButton.href;
-            nextEpisodeUrl = nextEpisodeUrl.replace("/resz-1080p/", "/resz/");
-            nextEpisodeButton.href = nextEpisodeUrl;
+            nextEpisodeButton.click();
+            logger.log("Moved to the next episode. (If you can read this message, then you are a wizard.)");
         }
-        if (previousEpisodeButton) {
-            let previousEpisodeUrl = previousEpisodeButton.href;
-            previousEpisodeUrl = previousEpisodeUrl.replace("/resz-1080p/", "/resz/");
-            previousEpisodeButton.href = previousEpisodeUrl;
-        }
-        let episodeLinks = document.querySelectorAll(".epizod_link_normal");
-        episodeLinks.forEach((episodeLink) => {
-            let episodeUrl = episodeLink.href;
-            episodeUrl = episodeUrl.replace("/resz-1080p/", "/resz/");
-            episodeLink.href = episodeUrl;
-        });
-        logger.log("Unfixed the URLs according to the settings.");
+        isAutoNextEpisodeTriggered = true;
     }
 }
-
 // ---------------------------------------------------------------------------------------------------------------------
 // Here we go!
-// first, load the settings
+// First, load the settings
 loadSettings();
-// then, add the event listeners to listen for messages from the extension
+// Then, add the event listeners to listen for messages from the extension
 window.addEventListener("message", receiveMessage, false);
 // then, add the event listener to listen for the page load
-window.addEventListener("load", (event) => {
+window.addEventListener("load", () => {
+    loadSettings(); // load the settings ( again, just in case... )
     addSettingsButton(); // add the settings button
     addShortcutsToPage(); // add the shortcuts to the page
-    if (settings.fixes.enabled) fixURLs(); // fix the URLs
-
 });
