@@ -161,7 +161,7 @@ Részletes leírás a beállításokról:
 
 ## Támogatás
 - [Ko-fi](https://ko-fi.com/ttk987) - Ko-fi (Hatalmas segítség, hogy motivált maradjak.) **(Ha van "felesleges" pénzed, akkor inkább támogasd a Magyar Anime-t.) ([ITT](https://magyaranime.eu/web/tamogatas/))**
-- GitHub csillag: ez is nagyon sokat segít, ha adsz egy csillagot a projektnek. :)
+- GitHub csillag: ez is nagyon sokat segít, ha adsz egy csillagot a projektnek. :) (ez ingyenes)
 
 ## Köszönet
 - **[MagyarAnime](https://magyaranime.eu/) - A munkájukért és az oldalért.**
