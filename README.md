@@ -58,7 +58,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 ## Telepítés
 ### Telepítés a böngészőboltból
-1. Telepítsd a kiégészítőt a [Chrome](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) böngésződbe. ([INNEN](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia))
+1. Telepítsd a kiégészítőt a [Chrome](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) vagy [Firefox](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/) alapú böngésződbe. _**[INNEN (CHROME)](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) VAGY [INNEN (FIREFOX)](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)**_
 2. Látogass el a [magyaranime.eu](https://magyaranime.eu/) oldalra.
 3. És kész is, most már használhatod a kiegészítőt.
 
