@@ -130,7 +130,7 @@ Részletes leírás a beállításokról:
 
 ## Hibajelentés
 - Ha hibát találsz a kiegészítőben, akkor azt a [GitHub](https://github.com/TTK987/MagyarAnimeTweaks/issues/) oldalon tudod jelenteni.
-- Opcionálisan nekem is küldhetsz üzenetet Discordon: *ttk987*  [Discord](https://discord.com/users/537718439586955285)
+- Vagy a [Discord](https://discord.gg/dJX4tVGZhY) szerveren is tudsz hibát jelenteni.
 
 
 ## Nyilatkozat
