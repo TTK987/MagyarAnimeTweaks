@@ -84,9 +84,8 @@ Részletes leírás a beállításokról:
 - **Következő / Előző epizód**:
   - **Engedélyezve** - Ha be van kapcsolva, akkor a videólejátszóban lehetőséged van a következő és az előző epizódra ugrani.
   - **Gomb** - Itt tudod beállítani, hogy milyen gombot kell lenyomnod, hogy a következő vagy az előző epizódra ugorj.
-- **Javítások**:
-  - **Engedélyezve** - Ha be van kapcsolva, akkor a fixálja a hibákat az oldalon.
-  - **Leírás**: A részek linkjeinek fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
+- **Automatikus indítás**:
+  - Engedélyezve: Az oldal betöltése után azonnal elindítja a videót.
 - **Automatikus következő epizód**:
   - **Engedélyezve** - Ha be van kapcsolva, akkor automatikusan átugrik a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
   - **Ugrás időtartama** - Itt tudod beállítani, hogy mennyi legyen az időtartam, amikor átugrik a következő részre. (Másodpercben) (Negatív érték esetén az érték 0 lesz (azaz közvetlenül a rész vége után ugrunk a következő részre))
