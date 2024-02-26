@@ -162,8 +162,8 @@ Részletes leírás a beállításokról:
 - By using the extension you accept the above.
 
 ## Fejlesztők
-- [ttk987](https://discord.com/users/537718439586955285)  - Tulajdonos, fejlesztő
-
+- [ttk987](https://discord.com/users/537718439586955285)  - Tulajdonos, főfejlesztő
+- fwexy_hun_ Fejlesztő
 
 ## Támogatás
 - [Ko-fi](https://ko-fi.com/ttk987) - Ko-fi (Hatalmas segítség, hogy motivált maradjak.) **(Ha van "felesleges" pénzed, akkor inkább támogasd a Magyar Anime-t.) ([ITT](https://magyaranime.eu/web/tamogatas/))**
