@@ -163,7 +163,7 @@ Részletes leírás a beállításokról:
 
 ## Fejlesztők
 - [ttk987](https://discord.com/users/537718439586955285)  - Tulajdonos, főfejlesztő
-- fwexy_hun_ Fejlesztő
+- [fwexy_hun_](https://discord.com/users/1094691363146170500) Fejlesztő
 
 ## Támogatás
 - [Ko-fi](https://ko-fi.com/ttk987) - Ko-fi (Hatalmas segítség, hogy motivált maradjak.) **(Ha van "felesleges" pénzed, akkor inkább támogasd a Magyar Anime-t.) ([ITT](https://magyaranime.eu/web/tamogatas/))**
