@@ -172,7 +172,8 @@ window.addEventListener("message", (event) => {
                 plyr.decreaseVolume(0.1);
                 break;
             case "toggleMute":
-                plyr.toggleMute();
+                let muted = plyr.muted;
+                plyr.muted = !muted;
                 break;
             case "toggleFullscreen":
                 // We have to use this, because the browser API only accepts user gestures to enter fullscreen

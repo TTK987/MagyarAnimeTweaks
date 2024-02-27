@@ -2,8 +2,9 @@
     "name": "MagyarAnimeTweaks",
     "description": "Egy kis segítség a MagyarAnime.eu oldalhoz.",
     "manifest_version": 3,
-    "version": "0.1.5",
-    "permissions": ["storage"],
+    "version": "0.1.5.1",
+    "permissions": ["storage", "downloads", "tabs"],
+    "host_permissions": ["*://magyaranime.eu/*", "*://magyaranime.hu/*", "*://embed.indavideo.hu/*", "*://*.mega.nz/embed/*"],
     "icons": {
         "16": "logo/MATLogo-16.png",
         "32": "logo/MATLogo-32.png",
@@ -14,8 +15,7 @@
         {
             "resources": ["player.css", "plyr.svg"],
             "matches": ["https://*.mega.nz/*"],
-            "extension_ids": ["*"],
-            "use_dynamic_url": false
+            "extension_ids": ["*"]
         }
     ],
     "author": "TTK987",
@@ -25,7 +25,8 @@
     },
     "browser_specific_settings": {
         "gecko": {
-            "id": "{117c35ed-f291-42c5-bad3-d76621341c86}"
+            "id": "{7b0929ca-1c4a-4374-873e-8af3106c8b96}",
+            "strict_min_version": "60.0"
         }
     },
     "content_scripts": [
