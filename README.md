@@ -36,7 +36,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png "Előnézet")
 
-## Jelenlegi Verzió: 0.1.5
+## Jelenlegi Verzió: 0.1.5.1
 
 
 
