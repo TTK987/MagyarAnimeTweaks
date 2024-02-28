@@ -447,90 +447,64 @@ function loadSettings() {
     });
 }
 async function downloadFile(url, filename) {
-    /* Download a file */
     if (downloadInProgress) {
-        // If a download is already in progress, log it as an error and return false
         logger.error("Download already in progress.");
         return false;
     }
-    if (url === "" || filename === "" || url === undefined || filename === undefined) {
-        // If the url or the filename is empty or undefined, log it as an error and return false
+    if (!url || !filename) {
         logger.error("Download failed: URL or filename is empty or undefined.");
         return false;
     }
-    let abortController = new AbortController(); // Initialize an AbortController
-    let signal = abortController.signal; // Get the signal for aborting the request
-    // Try to download the file
-    let downloadProgressBarContainer = document.querySelector(".download-progress-bar-container"); // Get the download progress bar container
-    // Add event listener to cancel button
+    let abortController = new AbortController();
+    let signal = abortController.signal;
+    let downloadProgressBarContainer = document.querySelector(".download-progress-bar-container");
     document.querySelector("#download-progress-bar-cancel").addEventListener("click", function(event) {
         event.preventDefault();
         abortController.abort();
         downloadProgressBarContainer.style.display = "none";
         downloadInProgress = false;
+        logger.log("Download aborted by the user.");
     });
     try {
-        // Get the file
-        const response = await fetch(url,{ signal });
-        const contentLength = response.headers.get('content-length'); // Get the content length
-        const total = parseInt(contentLength, 10); // Parse the content length to an integer
-        let loaded = 0; // Set the loaded to 0
-        let downloadProgressBar = document.querySelector("#download-progress-bar"); // Get the download progress bar
-        downloadProgressBar.setAttribute("max", total); // Set the max value of the download progress bar to the content length
-        downloadProgressBarContainer.style.display = "flex"; // Show the download progress bar
-        downloadInProgress = true; // Set the download in progress to true
-        const reader = response.body.getReader(); // Get the reader
-        const stream = new ReadableStream({ // Create a readable stream
-            // Start the stream
-            start(controller) {
-                function pump() { // Pump the stream
-                    // Read the stream
-                    return reader.read().then(({done, value}) => {
-                        if (done) {
-                            // If the stream is done, close the controller and return
-                            controller.close();
-                            return;
-                        }
-                        loaded += value.byteLength; // Add the value's byte length to the loaded
-                        // Log the download progress
-                        LogDownloadProgress(total, loaded);
-                        controller.enqueue(value); // Enqueue the value
-                        return pump();
-                    });
-                }
-                return pump();
+        downloadInProgress = true;
+        downloadProgressBarContainer.style.display = "flex";
+        logger.log("Starting download...");
+        const response = await fetch(url, { signal });
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const reader = response.body.getReader();
+        let receivedLength = 0; // bytes received
+        let chunks = []; // array of received binary chunks (comprises the body)
+        let max = response.headers.get('content-length');
+        while(true) {
+            const {done, value} = await reader.read();
+            if (done) {
+                break;
             }
-        });
-        // Create a new response from the stream
-        const blob = await new Response(stream).blob();
-        // Create a new object url from the blob
+            chunks.push(value);
+            receivedLength += value.length;
+            LogDownloadProgress(max, receivedLength);
+        }
+        logger.log("Download complete, preparing for saving...");
+        const blob = new Blob(chunks);
         const objectUrl = URL.createObjectURL(blob);
-        // Create a new link
         const link = document.createElement('a');
         link.href = objectUrl;
         link.download = filename;
-        // Append the link to the body
         document.body.appendChild(link);
-        link.click(); // Click the link
+        link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(objectUrl);
-        // Log the download finished
         logger.log(`Download finished: "${filename}"`);
-        downloadInProgress = false; // Set the download in progress to false
     } catch (error) {
-        if (error.name === 'TypeError') {
-            // If the download is aborted, log it
-            logger.log("Download aborted by the user. (Probably)");
-            downloadInProgress = false;
+        if (error.name === 'AbortError') {
+            logger.log("Download aborted by the user.");
         } else {
-            // If the download fails, log it as an error
             logger.error(`Download failed: ${error}`);
-            downloadInProgress = false;
         }
-    }  finally {
-        downloadProgressBarContainer.style.display = "none"; // Ensure progress bar is hidden after cancellation or completion
+    } finally {
+        downloadInProgress = false;
+        downloadProgressBarContainer.style.display = "none";
     }
-
 }
 function LogDownloadProgress(max, loaded) {
     /* Log the download progress */
@@ -543,6 +517,7 @@ function LogDownloadProgress(max, loaded) {
     let downloadProgressBar = document.querySelector("#download-progress-bar");
     let downloadProgressBarText = document.querySelector("#download-progress-bar-text");
     downloadProgressBar.setAttribute("value", loaded);
+    downloadProgressBar.setAttribute("max", max);
     downloadProgressBarText.innerHTML = `${((loaded / max) * 100).toPrecision(5)}% (${(loaded / 1000000).toPrecision(5)} MB / ${(max / 1000000).toPrecision(5)} MB)`;
     logger.log(`Downloaded ${(loaded / 1000000).toPrecision(5)} MB of ${(max / 1000000).toPrecision(5)} MB`);
 
