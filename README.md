@@ -40,7 +40,7 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
 
 
 
-**V.0.1.5.2 Letölthető:** _**[INNEN (CHROME)](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) VAGY [INNEN (FIREFOX)](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)**_
+**v0.1.5.2 Letölthető:** _**[INNEN (CHROME)](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia) VAGY [INNEN (FIREFOX)](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)**_
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
