@@ -2,7 +2,7 @@
     "name": "MagyarAnimeTweaks",
     "description": "Egy kis segítség a MagyarAnime.eu oldalhoz.",
     "manifest_version": 3,
-    "version": "0.1.5.2",
+    "version": "0.1.5.3",
     "permissions": ["storage"],
     "host_permissions": ["*://magyaranime.eu/*", "*://magyaranime.hu/*", "*://embed.indavideo.hu/*", "*://*.mega.nz/embed/*"],
     "icons": {

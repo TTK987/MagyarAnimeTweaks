@@ -1,3 +1,19 @@
+// Firefox grant permission (Original Fix by: emburcke)
+chrome.runtime.onInstalled.addListener( () => {
+    // Check if the extension has been installed
+    chrome.permissions.contains({'origins': chrome.runtime.getManifest()['host_permissions']},(answer) => {
+        if (!answer){ // If the extension does not have the permissions yet
+            // Open a popup to ask for the permissions
+            chrome.windows.create({
+                url: chrome.runtime.getURL('permissions.html'),
+                type: 'popup',
+                width: 410, // To match the size of the firefox popup window
+                height: 450,
+                focused: true
+            });
+        }
+    });
+});
 const MATweaksVersion = chrome.runtime.getManifest().version;
 class Settings {
     constructor() {
