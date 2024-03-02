@@ -1,4 +1,4 @@
-let LastUpdate = "2024.02.27"; // The last time I updated the code (YYYY.MM.DD)
+let LastUpdate = "2024.03.02"; // The last time I updated the code (YYYY.MM.DD)
 // ---------------------------------------------------------------------------------------------------------------------
 let settings = {} // The settings of the extension (Will be loaded from the storage)
 let downloadInProgress = false; // Download in progress (User can't download the video while this is true)
