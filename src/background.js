@@ -1,3 +1,14 @@
+chrome.runtime.onInstalled.addListener((details) => { // run at install
+    //tartalmazza e ezeket a permissionoket
+    chrome.permissions.contains({'origins':
+        // az oszes manifestben levo premission ami vebhejre mutat
+        chrome.runtime.getManifest()['host_permissions']},(answer) => {
+            if (! answer){ // ha nem tartalmazza => open a new tab ahol premissionoket kerunk a usertol
+                chrome.tabs.create({"url":chrome.runtime.getURL("premissions.html")});
+            }
+    });
+});
+
 const MATweaksVersion = chrome.runtime.getManifest().version;
 class Settings {
     constructor() {
