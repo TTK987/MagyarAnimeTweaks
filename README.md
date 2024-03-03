@@ -117,8 +117,8 @@ Részletes leírás a beállításokról:
   
 
 - Mi várható a következő verzióban?
-  - Mega.nz alap lejátszója helyett a plyr.io lejátszó használata.
-  
+  - MyAnimeList oldalról jobb kattintással elérhető menüből magyaranime keresés.
+
 
 - Mik lesznek a kiegészítőben a jövőben?
   - Még nincs konkrét terv, de ha van ötleted, akkor nyugodtan írd meg nekem Discordon. :)
