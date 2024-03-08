@@ -1128,8 +1128,8 @@ function nextEpisodeMega() {
 function redirectBetterQuality() {
     /* Redirect to the better quality */
     if (!settings.autobetterQuality.enabled || location.href.includes("1080p")) return;
-    // Get the better quality button
-    let betterQualityButton = Array.from(document.querySelectorAll(".gomb.bg-red")).find(button => button.href.includes("1080p"));
+    // Get the better quality button (2160p or 1080p)
+    let betterQualityButton = Array.from(document.querySelectorAll(".gomb.bg-red")).find(button => button.href.includes("2160p") || button.href.includes("1080p"));
     // If the better quality button is found, click it
     if (betterQualityButton) {
         betterQualityButton.click();

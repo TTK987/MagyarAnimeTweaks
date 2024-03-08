@@ -89,6 +89,8 @@ Részletes leírás a beállításokról:
 - **Automatikus következő epizód**:
   - **Engedélyezve** - Ha be van kapcsolva, akkor automatikusan átugrik a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
   - **Ugrás időtartama** - Itt tudod beállítani, hogy mennyi legyen az időtartam, amikor átugrik a következő részre. (Másodpercben) (Negatív érték esetén az érték 0 lesz (azaz közvetlenül a rész vége után ugrunk a következő részre))
+- **Automatikus jobb minőség**:
+  - **Engedélyezve** - Ha be van kapcsolva, akkor az oldal automatikusan átirányít a legjobb minőségű videóra.
 - **Fejlesztői beállítások**:
   - **Engedélyezve** - Ha be van kapcsolva, akkor a fejlesztői beállítások szerint fog működni a kiegészítő.
   - **Alapértelmezett lejátszó** - Itt tudod beállítani, hogy melyik videólejátszót szeretnéd használni. (Alap (nincs csere) / plyr.io (híredetés mentes)  / HTML5 (sima video elem))
@@ -114,10 +116,10 @@ Részletes leírás a beállításokról:
 
 - Miért készítettem ezt a kiegészítőt?
   - Mert szeretem az animéket és az oldal használhatóságát szerettem volna növelni. (Habár az oldal már így is nagyon jó.)
-  
+
 
 - Mi várható a következő verzióban?
-  - MyAnimeList oldalról jobb kattintással elérhető menüből magyaranime keresés.
+  - Még nincs konkrét terv, de ha van ötleted, akkor nyugodtan írd meg nekem Discordon. :)
 
 
 - Mik lesznek a kiegészítőben a jövőben?
@@ -126,40 +128,12 @@ Részletes leírás a beállításokról:
 - Miért nem az animék fordításával segítek?
   - Mert ha kitalálok valami új dolgot (pl jelentkezek fordítónak / lektornak / formázónak), akkor abba nagyon bele tudok merülni, de viszont gyorsan kiégek. (Ez ennél a kiegészítőnél is megtörtént még a fejlesztés elején. :D) (Érdekel a fordítás / lektorálás / formázás, de szerintem sokkal jobb jelentkezők vannak, mint én.(De majd egyszer talán... ))
   - De viszont ha te értesz a fordításhoz / lektoráláshoz vagy formázáshoz, akkor például az [AkioFansub](https://akiofansub.hu/felvetel/) oldalon tudsz jelentkezni fordítónak / lektornak vagy formázónak. (Ez csak egy példa, de rengeteg fansub csoport van, akiknek szükségük van emberekre.)
-  
+
 
 ## Hibajelentés
 - Ha hibát találsz a kiegészítőben, akkor azt a [GitHub](https://github.com/TTK987/MagyarAnimeTweaks/issues/) oldalon tudod jelenteni.
 - Vagy a [Discord](https://discord.gg/dJX4tVGZhY) szerveren is tudsz hibát jelenteni.
 
-
-## Nyilatkozat
-- A kiegészítő NEM áll kapcsolatban sem a Mega.nz, sem a indavideo.hu oldallal.
-- A programot az MIT licensz védi.
-- A kiégészítő csak a magyaranime.eu oldalon használható.
-- A fejlesztők nem vállalnak felelősséget a kiegészítő használatából eredő károkért.
-- A kiegészítő a Magyar Anime oldalon található "Az oldalon található tartalom szabadon felhasználható" feltételeknek megfelelően készült.
-- A kiegészítő a Magyar Anime oldal DMCA szabályainak megfelelően készült. [MA DMCA](https://magyaranime.eu/web/dmca/)
-- A kiegészítő fejlesztője (/fejlesztői) fenntartják a jogot, hogy bármikor módosítsák a kiegészítőt.
-- A Magyar Anime fejlesztőjének (/fejlesztőinek) kérése esetén a kiegészítőt eltávolítom a GitHubról és minden más platformról.
-- A kiegészítőnek NEM célja a magyaranime.eu oldal szervereinek terhelése (!) vagy a magyaranime.eu oldal szervereinek károsítása (!).
-- A kiegészítő NEM használható a magyaranime.eu oldal szervereinek terhelésére (!) vagy a magyaranime.eu oldal szervereinek károsítására (!), ellenkező esetben a kiegészítő használata tilos és a fejlesztők nem vállalnak felelősséget a kiegészítő használatából eredő károkért (pl.: IP tiltás, stb.).
-- A kiegészítő csak magyar nyelven érhető el.
-- A kiegészítő használatával elfogadod a fentebb felsoroltakat.
-
-## Disclaimer
-- The extension is NOT related to the Mega.nz website or the indavideo.hu website.
-- The program is protected by the MIT licence.
-- The extension can only be used on the magyaranime.eu website.
-- The developers are not responsible for any damages caused by the use of the extension.
-- The extension was created in accordance with the "The content on the site is freely available" terms of the Magyar Anime website.
-- The extension was created in accordance with the DMCA rules of the Magyar Anime website. [MA DMCA](https://magyaranime.eu/web/dmca/)
-- The developers (/s) reserve the right to modify the extension at any time.
-- If the developer (/s) of Magyar Anime requests it, I will remove the extension from GitHub and any other platform.
-- The extension is NOT intended to overload the servers of the magyaranime.eu website (!) or to damage the servers of the magyaranime.eu website (!).
-- The extension CANNOT be used to overload the servers of the magyaranime.eu website (!) or to damage the servers of the magyaranime.eu website (!), otherwise the use of the extension is prohibited and the developers are not responsible for any damages caused by the use of the extension (e.g.: IP ban, etc.).
-- The extension is only available in Hungarian.
-- By using the extension you accept the above.
 
 ## Fejlesztők
 - [ttk987](https://discord.com/users/537718439586955285)  - Tulajdonos, főfejlesztő
