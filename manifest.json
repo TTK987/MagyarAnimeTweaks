@@ -1,0 +1,54 @@
+{
+    "name": "MagyarAnimeTweaks",
+    "description": "Egy kis segítség a MagyarAnime.eu oldalhoz.",
+    "manifest_version": 3,
+    "version": "0.1.6",
+    "permissions": ["storage", "contextMenus"],
+    "host_permissions": ["*://magyaranime.eu/*", "*://magyaranime.hu/*", "*://embed.indavideo.hu/*", "*://*.mega.nz/embed/*"],
+    "icons": {
+        "16": "logo/MATLogo-16.png",
+        "32": "logo/MATLogo-32.png",
+        "64": "logo/MATLogo-64.png",
+        "128": "logo/MATLogo-128.png"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": ["player.css", "plyr.svg", "MATSettings.css"],
+            "matches": ["https://*.mega.nz/*"],
+            "extension_ids": ["*"]
+        }
+    ],
+    "author": "TTK987",
+    "background": {
+        "service_worker": "background.js",
+        "scripts": ["background.js"]
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{7b0929ca-1c4a-4374-873e-8af3106c8b96}",
+            "strict_min_version": "60.0"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://magyaranime.eu/*", "*://magyaranime.hu/*"],
+            "js": ["content.js", "player.js"],
+            "css": ["player.css", "MATSettings.css"],
+            "all_frames": true,
+            "run_at": "document_start"
+        },
+        {
+            "matches": ["*://embed.indavideo.hu/*"],
+            "js": ["indavideo.js"],
+            "all_frames": true,
+            "run_at": "document_start"
+        },
+        {
+            "matches": ["*://*.mega.nz/embed/*"],
+            "js": ["player.js", "mega.js"],
+            "css": ["player.css"],
+            "all_frames": true,
+            "run_at": "document_end"
+        }
+    ]
+}
