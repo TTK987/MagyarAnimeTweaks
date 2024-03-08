@@ -1127,7 +1127,7 @@ function nextEpisodeMega() {
 // v0.1.6 - Redirect automatically to the better quality ( idea by: fwexy_hun_ )
 function redirectBetterQuality() {
     /* Redirect to the better quality */
-    if (!settings.autobetterQuality.enabled || location.href.includes("1080p")) return;
+    if (!settings.autobetterQuality.enabled || location.href.includes("1080p") || location.href.includes("2160p")) return;
     // Get the better quality button (2160p or 1080p)
     let betterQualityButton = Array.from(document.querySelectorAll(".gomb.bg-red")).find(button => button.href.includes("2160p") || button.href.includes("1080p"));
     // If the better quality button is found, click it
