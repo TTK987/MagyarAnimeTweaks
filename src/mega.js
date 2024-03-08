@@ -1,4 +1,3 @@
-let megaLink = ""
 let settings = {};
 function loadSettings() {
     /* Load the settings */
@@ -31,7 +30,6 @@ function replaceMega() {
             if (video) {
                 if (video.src) {
                     addPlyr();
-                    megaLink = "https://mega.nz/file/" + location.href.split("/")[4]
                     // Remove or hide the elements that we don't need
                     let style = document.createElement("style");
                     style.innerHTML = `.sharefile-block, .dropdown, .viewer-top-bl, .play-video-button, .viewer-pending, .logo-container, .viewer-vad-control, .video-progress-bar, .viewer-bottom-bl{display: none !important;}.transfer-limitation-block, .file-removed-block  {z-index: 1001 !important;}`;
@@ -185,7 +183,6 @@ window.addEventListener("message", (event) => {
                 fullscrnbtn.focus();
                 fullscrnbtn.click();
                 fullscrnbtn.blur();
-
                 break;
             case "seekTo":
                 let percentage = event.data.percent;

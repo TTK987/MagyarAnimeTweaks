@@ -1,4 +1,4 @@
-let LastUpdate = "2024.03.02"; // The last time I updated the code (YYYY.MM.DD)
+let LastUpdate = "2024.03.08"; // The last time I updated the code (YYYY.MM.DD)
 // ---------------------------------------------------------------------------------------------------------------------
 let settings = {} // The settings of the extension (Will be loaded from the storage)
 let downloadInProgress = false; // Download in progress (User can't download the video while this is true)
@@ -614,6 +614,14 @@ function createSettingsWindow() {
                             </div>
                         </div>
                         <div class="MATweaks-settings-window-body-content-item">
+                            <p>Automatikus jobb minőség</p>
+                            <div class="MATweaks-settings-window-body-content-item-feature" id="MATweaks-autoQuality">
+                                <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-autoQuality-enabled">Engedélyezve</label>
+                                <input class="MATweaks-settings-window-body-content-item-feature-checkbox" type="checkbox" id="MATweaks-autoQuality-enabled" name="MATweaks-autoQuality-enabled" ${settings.autobetterQuality.enabled ? "checked" : ""}>
+                                <span class="MATweaks-settings-window-body-content-item-feature-checkbox-custom"></span>
+                            </div>
+                        </div>
+                        <div class="MATweaks-settings-window-body-content-item">
                             <p>Automatikus következő epizód</p>
                             <div class="MATweaks-settings-window-body-content-item-feature" id="MATweaks-autoNextEpisode">
                                 <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-autoNextEpisode-enabled">Engedélyezve</label>
@@ -723,6 +731,11 @@ function createSettingsWindow() {
         newSettings.autoplay.enabled = !newSettings.autoplay.enabled;
         document.querySelector("#MATweaks-autoPlay-enabled").checked = newSettings.autoplay.enabled;
         if (settings.devSettings.enabled) logger.log("autoplay.enabled: " + newSettings.autoplay.enabled);
+    });
+    document.querySelector("#MATweaks-autoQuality").addEventListener("click", () => {
+        newSettings.autobetterQuality.enabled = !newSettings.autobetterQuality.enabled;
+        document.querySelector("#MATweaks-autoQuality-enabled").checked = newSettings.autobetterQuality.enabled;
+        if (settings.devSettings.enabled) logger.log("autobetterQuality.enabled: " + newSettings.autobetterQuality.enabled);
     });
     document.querySelector("#MATweaks-forwardSkip-duration").addEventListener("change", (event) => {
         newSettings.forwardSkip.duration = event.target.value;
@@ -892,6 +905,7 @@ function closeSettings(newSettings) {
         IsSettingsWindowOpen = false;
         // Reload the iframe to apply the changes
         player.replacePlayer(settings.devSettings.settings.DefaultPlayer.player);
+        redirectBetterQuality(); // Redirect to the better quality
         settingsWindow.remove(); // Remove the settings window from the DOM
     } else {
         logger.error("Settings window not found, cannot close it.");
@@ -1110,6 +1124,21 @@ function nextEpisodeMega() {
         isAutoNextEpisodeTriggered = true;
     }
 }
+// v0.1.6 - Redirect automatically to the better quality ( idea by: fwexy_hun_ )
+function redirectBetterQuality() {
+    /* Redirect to the better quality */
+    if (!settings.autobetterQuality.enabled || location.href.includes("1080p")) return;
+    // Get the better quality button
+    let betterQualityButton = Array.from(document.querySelectorAll(".gomb.bg-red")).find(button => button.href.includes("1080p"));
+    // If the better quality button is found, click it
+    if (betterQualityButton) {
+        betterQualityButton.click();
+        console.log("Redirected to the better quality.");
+    } else {
+        console.log("No better quality found.");
+    }
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Here we go!
 // First, load the settings
@@ -1121,4 +1150,5 @@ window.addEventListener("load", () => {
     loadSettings(); // load the settings ( again, just in case... )
     addSettingsButton(); // add the settings button
     addShortcutsToPage(); // add the shortcuts to the page
+    redirectBetterQuality(); // redirect to the better quality
 });

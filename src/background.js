@@ -14,6 +14,32 @@ chrome.runtime.onInstalled.addListener( () => {
         }
     });
 });
+chrome.contextMenus.removeAll(() => {
+    createContextMenu();
+});
+function createContextMenu() {
+    chrome.contextMenus.create({
+        id: "searchOnMagyarAnime",
+        title: "Keresés a MagyarAnime-én",
+        contexts: ["link", "page"],
+        documentUrlPatterns: ["*://*.myanimelist.net/*"]
+    });
+    chrome.contextMenus.onClicked.addListener((info, tab) => {
+        if (info.menuItemId === "searchOnMagyarAnime") {
+            let url;
+            if (info.linkUrl || info.pageUrl) {
+                const targetUrl = info.linkUrl || info.pageUrl;
+                const match = targetUrl.match(/myanimelist\.net\/anime\/(\d+)/);
+                if (match) {
+                    url = `https://magyaranime.eu/web/kereso-mal/${match[1]}/`;
+                }
+            }
+            if (url) {
+                chrome.tabs.create({url: url});
+            }
+        }
+    });
+}
 const MATweaksVersion = chrome.runtime.getManifest().version;
 class Settings {
     constructor() {
@@ -26,6 +52,7 @@ class Settings {
             devSettings: { /* Developer settings (default: false) */ enabled: false,settings: { /* Developer settings */ ConsoleLog: { /* Console log (default: false) */ enabled: false,},DefaultPlayer: { /* Default player (default: "plyr") */player: "plyr",},}},
             autoNextEpisode: { /* Auto next episode (default: false) (on last episode of the season it won't skip) */ enabled: false, time: 50, /* Time to skip to the next episode before the end of the episode (in seconds) */ },
             autoplay: { /* Autoplay (default: true) */ enabled: true, },
+            autobetterQuality: { /* Auto better quality (default: false) */ enabled: false, },
             version: MATweaksVersion, /* Version of the extension */
         };
     }
