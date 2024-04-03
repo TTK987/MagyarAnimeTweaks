@@ -168,3 +168,21 @@
     justify-content: space-evenly;
     align-items: center;
 }
+.MATweaks-error-popup {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px;
+    background: var(--red);
+    color: white;
+    border-radius: 5px;
+    z-index: 1000;
+    transition: opacity 1s;
+    width: 90%;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+}
+
+

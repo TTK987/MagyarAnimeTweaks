@@ -1,3 +1,9 @@
+/**
+ * Unmodified version of Plyr
+ *
+ * Copied from https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.js
+ */
+
 typeof navigator === "object" && (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
         typeof define === 'function' && define.amd ? define('Plyr', factory) :

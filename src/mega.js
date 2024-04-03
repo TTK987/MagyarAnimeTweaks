@@ -1,38 +1,74 @@
-let settings = {};
+/**
+ * Settings object to store the settings (Later loaded from the storage)
+ *
+ * Default settings for the extension (used if the settings are not loaded from the storage)
+ *
+ * @type {Object}
+ */
+let settings = {
+    forwardSkip: { /* Forward skip settings (default: ctrl + →) */ enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowRight",},
+    backwardSkip:{ /* Backward skip settings (default: ctrl + ←)*/ enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowLeft",},
+    nextEpisode: { /* Next episode settings (default: alt + →)  */ enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowRight",},
+    previousEpisode: { /* Previous episode settings (default: alt + ←) */ enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowLeft",},
+    devSettings: { /* Developer settings (default: false) */ enabled: false,settings: { /* Developer settings */ ConsoleLog: { /* Console log (default: false) */ enabled: false,},DefaultPlayer: { /* Default player (default: "plyr") */player: "plyr",},}},
+    autoNextEpisode: { /* Auto next episode (default: false) (on last episode of the season it won't skip) */ enabled: false, time: 50, /* Time to skip to the next episode before the end of the episode (in seconds) */ },
+    autoplay: { /* Autoplay (default: true) */ enabled: true, },
+    autobetterQuality: { /* Auto better quality (default: false) */ enabled: false, },
+    version: chrome.runtime.getManifest().version, /* Version of the extension */
+};
+
+/**
+ * Plyr player
+ * @type {Plyr}
+ */
+let plyr = Plyr;
+
+/**
+ * Function to load the settings from the storage and set the settings variable
+ */
 function loadSettings() {
-    /* Load the settings */
-    // We use here console instead of logger, because the logger is not always loaded when the settings are loaded
-    // Send a message to the background script to get the settings
-    chrome.runtime.sendMessage({plugin: "MATweaks", type: "loadSettings"}, function (response) {
-        if (response) {
-            try {
-                settings = response; // If the settings are loaded, save them
-                console.log("[MATweaks] [Mega.nz] Settings loaded");
-            } catch (error) {
-                // If the settings are not loaded, log it as an error
-                console.error("[MATweaks] [Mega.nz] Error loading settings");
-            }
+    chrome.runtime.sendMessage({ plugin: "MATweaks", type: "loadSettings" }, function (response) {
+        if (response && response !== {}) {
+            settings = response;
+            console.log("[MATweaks] [Mega.nz] Settings loaded");
         } else {
             console.error("[MATweaks] [Mega.nz] Error loading settings");
+            console.log(response);
         }
     });
 }
-loadSettings();
-let plyr = false;
+
+/**
+ * Function to initialize the mega.nz part of the extension
+ *
+ */
+function initMega() {
+    loadSettings();
+    // Send a message to the parent window that the iframe has been loaded and ready
+    window.parent.postMessage({plugin: "MATweaks", type: "megaIframeLoaded"}, "*");
+}
+
+/**
+ * Function to replace the mega.nz player with the custom player
+ *
+ * (Plyr)
+ */
 function replaceMega() {
     // wait for the video to load
     const load = setInterval(() => {
         // get the video source
         let playbtn = document.querySelector("div.play-video-button")
         if (playbtn) {
-            // wait for the video to load
             const video = document.querySelector("video");
             if (video) {
                 if (video.src) {
+                    // Add plyr to the video
                     addPlyr();
                     // Remove or hide the elements that we don't need
                     let style = document.createElement("style");
                     style.innerHTML = `.sharefile-block, .dropdown, .viewer-top-bl, .play-video-button, .viewer-pending, .logo-container, .viewer-vad-control, .video-progress-bar, .viewer-bottom-bl{display: none !important;}.transfer-limitation-block, .file-removed-block  {z-index: 1001 !important;}`;
+                    document.head.appendChild(style);
+                    // Remove the elements that we don't need
                     let sharefile = document.querySelector(".sharefile-block"); if (sharefile) {sharefile.remove();}
                     let dropdown = document.querySelector(".dropdown"); if (dropdown) {dropdown.remove();}
                     let viewerTopBl = document.querySelector(".viewer-top-bl");if (viewerTopBl) {viewerTopBl.remove();}
@@ -41,16 +77,22 @@ function replaceMega() {
                     let viewerVadControl = document.querySelector(".viewer-vad-control");if (viewerVadControl) {viewerVadControl.remove();}
                     let videoProgressBar = document.querySelector(".video-progress-bar");if (videoProgressBar) {videoProgressBar.remove();}
                     let viewerBottomBl = document.querySelector(".viewer-bottom-bl");if (viewerBottomBl) {viewerBottomBl.remove();}
-                    document.head.appendChild(style);
+                    // Clear the interval
                     clearInterval(load);
                 }
             }
         }
-    }, 10); // Check every second
+    }, 10);
 }
+
+/**
+ * Function to add the plyr player to the video
+ */
 function addPlyr() {
+    // Get the icon URL and the blank video URL
     chrome.runtime.sendMessage({ plugin: "MATweaks", type: "getIconUrl" }, (iconUrlResponse) => {
         chrome.runtime.sendMessage({ plugin: "MATweaks", type: "getBlankVideo" }, (blankVideoResponse) => {
+            // Add the plyr player to the video
             plyr = new Plyr("#video", {
                 controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "fullscreen"],
                 keyboard: {
@@ -97,7 +139,6 @@ function addPlyr() {
                     reset: "Visszaállítás",
                     disabled: "Letiltva",
                     enabled: "Engedélyezve",
-                    advertisement: "Hirdetés", // Still useless
                 },
                 speed: {
                     selected: 1,
@@ -111,21 +152,35 @@ function addPlyr() {
     // Add the shortcuts to the plyr
     addShortcutsToPlyr();
 }
+
+/**
+ * Function to skip forwards in the video
+ * @param {number} seconds The number of seconds to skip
+ */
 function goForwards(seconds) {
     const video = document.querySelector("video");
     video.currentTime = video.currentTime + seconds;
 }
+
+/**
+ * Function to skip backwards in the video
+ * @param {number} seconds The number of seconds to skip
+ */
 function goBackwards(seconds) {
     const video = document.querySelector("video");
     video.currentTime = video.currentTime - seconds;
 }
+
+/**
+ * Function to fix the plyr player
+ */
 function fixPlyr() {
     const interval = setInterval(() => {
         const plyr = document.querySelector(".plyr");
         if (plyr) {
             plyr.style.margin = "0"; // Remove the margin from the player, so when it is in embed mode, there won't be anything around it
             plyr.style.zIndex = "1000"; // Set the z-index to 1000, so it will be on top of everything
-            autoPlay(); // Autoplay the video (if it is enabled in the settings)
+            if (settings.autoplay.enabled) document.querySelector("video").play(); // Play the video if the autoplay is enabled in the settings
             if (settings.autoNextEpisode.enabled) setAutoNextEpisode(); // Set the auto next episode if it is enabled in the settings
             clearInterval(interval);
             console.log("[MATweaks] [Mega.nz] Plyr found, fixing it");
@@ -134,7 +189,10 @@ function fixPlyr() {
         }
     }, 10);
 }
-function autoPlay() {if (settings.autoplay.enabled) plyr.play();}
+
+/**
+ * Function to set the auto next episode
+ */
 function setAutoNextEpisode() {
     const video = document.querySelector("video");
     if (settings.autoNextEpisode.time < 0) settings.autoNextEpisode.time = 0;
@@ -147,8 +205,13 @@ function setAutoNextEpisode() {
         }
     });
 }
+
+/**
+ * Event listener to listen for messages from the parent window
+ */
 window.addEventListener("message", (event) => {
     if (event.data.plugin === "MATweaks") {
+        // Handle the messages from the parent window
         switch (event.data.type) {
             case "replacePlayer":
                 console.log("[MATweaks] [Mega.nz] Replace mega");
@@ -195,6 +258,10 @@ window.addEventListener("message", (event) => {
         }
     }
 });
+
+/**
+ * Function to add the shortcuts to the plyr player
+ */
 function addShortcutsToPlyr() {
     window.addEventListener("keydown", (event) => {
         if (settings.forwardSkip.enabled && event.ctrlKey === settings.forwardSkip.ctrlKey && event.altKey === settings.forwardSkip.altKey && event.shiftKey === settings.forwardSkip.shiftKey && event.key === settings.forwardSkip.key) {
@@ -208,4 +275,7 @@ function addShortcutsToPlyr() {
         }
     });
 }
-window.parent.postMessage({plugin: "MATweaks", type: "megaIframeLoaded"}, "*");
+
+// Initialize the mega.nz part of the extension
+initMega();
+
