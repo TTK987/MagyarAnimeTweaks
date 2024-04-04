@@ -110,4 +110,12 @@
 - Hiba javítások
   - Memória szivárgás javítása letöltésnél.
 
+## 0.1.6.1
+- Hiba javítások
+  - A gombok kattintás után focus-ban maradtak.
+  - Ha nem sikerült a beállításokat betölteni, akkor nem működött a kiegészítő.
+    - Jelenlegi megoldás: Ha nem sikerült a beállításokat betölteni, akkor a beállítások alapértelmezett értékei lesznek beállítva.
+
+- Egyéb változások
+  - A kód rendezettebb lett és több kommentet tartalmaz a könnyebb olvashatóság érdekében.
 
