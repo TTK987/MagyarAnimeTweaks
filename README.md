@@ -52,7 +52,6 @@ A kiegészítőt a [MagyarAnime](https://magyaranime.eu/) oldalhoz készítettem
   - 'Alt + Jobbra nyíl' - Következő rész.
   - 'Alt + Balra nyíl' - Előző rész.
 - Automatikus ugrás a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
-- A Következő / Előző rész gomb és az összes rész gomb linkjének fixálása. (Ez akkor hasznos, ha 1080p-ben (Mega.nz-ről) nézed az animét, mert alapból a 720p-s linkre mutat.)
 - Mindent be lehet állítani a kiegészítő beállításaiban. (A beállításokat a profilodra kattintva éred el, ami egy előugró ablakban jelenik meg.)
 
 
