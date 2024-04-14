@@ -29,6 +29,8 @@ class ConsoleLogger {
     }
 }
 
+plyr = undefined;
+
 /**
  * Player class for handling the player
  * @class
@@ -39,7 +41,6 @@ class Player {
      *
      * Since: v0.1.5
      */
-
     /**
      * Create a Player instance
      * @constructor
@@ -125,7 +126,6 @@ class Player {
         let playerElement = document.querySelector(this.selector);
         let videoElement = document.createElement("video");
         videoElement.setAttribute("id", "video");
-
         /**
          * Since: v0.1.5 - Option to autoplay the video
          */
@@ -168,7 +168,10 @@ class Player {
                 }
             });
         }
-        new Plyr("#video", {
+        if (plyr !== undefined) {
+            plyr.destroy();
+        }
+        plyr = new Plyr(videoElement, {
             controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "download", "fullscreen"],
             keyboard: {
                 focused: true,
@@ -530,7 +533,6 @@ function loadSettings() {
         } else {
             showErrorPopup("[MATweaks] Nem sikerült betölteni a beállításokat, az alapértelmezett beállítások lesznek használva.");
             console.error("[MATweaks] Settings not loaded.");
-            console.log(response);
         }
     });
 }
@@ -1321,7 +1323,7 @@ function closeSettings(newSettings) {
     logger.log("Settings saved and window closed.");
     if (settings.devSettings.enabled) {
         player.replacePlayer(settings.devSettings.settings.DefaultPlayer.player);
-    };
+    }
 }
 
 /**

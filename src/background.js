@@ -74,15 +74,23 @@ class Settings {
 
     /**
      * Load settings from the storage
+     * @returns {Promise} A promise that resolves with the settings
      */
     loadSettings() {
-        chrome.storage.local.get('settings', (data) => {
-            const newSettings = Object.assign({}, this.settings, data.settings);
-            newSettings.version = chrome.runtime.getManifest().version;
-            this.settings = newSettings;
-            this.saveSettings();
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.get('settings', (data) => {
+                if (data.settings) {
+                    console.log('Settings loaded ' + JSON.stringify(data.settings));
+                    this.settings = Object.assign(this.settings, data.settings);
+                    resolve(this.settings);
+                } else {
+                    console.log('No settings found');
+                    reject(new Error('Settings not found'));
+                }
+            });
         });
     }
+
 
     /**
      * Save settings to the storage
@@ -125,18 +133,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         // Handle the message type
         switch (request.type) {
             case 'loadSettings':
-                // Load the settings from the storage and send it as a response
-                settings.loadSettings();
-                data = settings.getSettings();
-                console.log("loaded:" + JSON.stringify(data));
-                sendResponse(data);
+                settings.loadSettings().then((settings) => {
+                    sendResponse(settings);
+                });
                 return true;
             case 'saveSettings':
                 // Save the settings to the storage and send the result as a response
                 data = request.settings;
                 settings.setSettings(data);
                 settings.saveSettings();
-                console.log("savde: " + JSON.stringify(data));
+                console.log("saved: " + JSON.stringify(data));
                 // Check if the settings are saved correctly
                 if (JSON.stringify(data) === JSON.stringify(settings.getSettings())) {
                     sendResponse(true);

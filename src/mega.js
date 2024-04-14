@@ -30,7 +30,7 @@ function loadSettings() {
     chrome.runtime.sendMessage({ plugin: "MATweaks", type: "loadSettings" }, function (response) {
         if (response && response !== {}) {
             settings = response;
-            console.log("[MATweaks] [Mega.nz] Settings loaded");
+            console.log("[MATweaks] [Mega.nz] Settings loaded" + JSON.stringify(settings));
         } else {
             console.error("[MATweaks] [Mega.nz] Error loading settings");
             console.log(response);
@@ -263,12 +263,17 @@ window.addEventListener("message", (event) => {
  * Function to add the shortcuts to the plyr player
  */
 function addShortcutsToPlyr() {
-    window.addEventListener("keydown", (event) => {
+    document.addEventListener("keydown", (event) => {
+        event.preventDefault();
+        console.log(event);
         if (settings.forwardSkip.enabled && event.ctrlKey === settings.forwardSkip.ctrlKey && event.altKey === settings.forwardSkip.altKey && event.shiftKey === settings.forwardSkip.shiftKey && event.key === settings.forwardSkip.key) {
             goForwards(settings.forwardSkip.duration);
         } else if (settings.backwardSkip.enabled && event.ctrlKey === settings.backwardSkip.ctrlKey && event.altKey === settings.backwardSkip.altKey && event.shiftKey === settings.backwardSkip.shiftKey && event.key === settings.backwardSkip.key) {
             goBackwards(settings.backwardSkip.duration);
-        } else if (settings.nextEpisode.enabled && event.ctrlKey === settings.nextEpisode.ctrlKey && event.altKey === settings.nextEpisode.altKey && event.shiftKey === settings.nextEpisode.shiftKey && event.key === settings.nextEpisode.key) {
+        }
+    });
+    document.addEventListener("keyup", (event) => {
+        if (settings.nextEpisode.enabled && event.ctrlKey === settings.nextEpisode.ctrlKey && event.altKey === settings.nextEpisode.altKey && event.shiftKey === settings.nextEpisode.shiftKey && event.key === settings.nextEpisode.key) {
             window.parent.postMessage({plugin: "MATweaks", type: "nextEpisodeForce"}, "*");
         } else if (settings.previousEpisode.enabled && event.ctrlKey === settings.previousEpisode.ctrlKey && event.altKey === settings.previousEpisode.altKey && event.shiftKey === settings.previousEpisode.shiftKey && event.key === settings.previousEpisode.key) {
             window.parent.postMessage({plugin: "MATweaks", type: "previousEpisode"}, "*");
