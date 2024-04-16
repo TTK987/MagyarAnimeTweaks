@@ -14,8 +14,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_info
-// @grant        GM_getResourceText
-// @grant        GM_XMLHttpRequest
+// @grant        GM_getResourceText
 // @require      https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js
 // @resource     settingsCSS https://raw.githubusercontent.com/TTK987/MagyarAnimeTweaks/main/src/MATSettings.css
 // @run-at       document-start
