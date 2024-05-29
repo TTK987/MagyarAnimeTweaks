@@ -50,7 +50,7 @@
         - `%0episode%`: A rész sorszáma 0-val kiegészítve. (Pl: 01)
         - `%MAT%`: "MATweaks" szöveg. (Ez a kiegészítő neve, ha nem tudtad volna :D)
         - `%quality%`: A videó minősége. (Pl: 1080p)
-        - `%group%`: A csapat neve, aki feliratozta az animét.
+        - `%fansub%`: A csapat neve, aki feliratozta az animét.
         - `%source%`: Az oldal neve, ahonnan az anime linkje származik.
     
 ### Plyr
