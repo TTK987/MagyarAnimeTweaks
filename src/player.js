@@ -8088,7 +8088,7 @@ typeof navigator === "object" && (function (global, factory) {
             this.fullscreen = new Fullscreen(this);
 
             // Setup interface
-            // If embed but not fully supported, build interface now to avoid flash of controls
+            // If embed but not fully supported, build.py interface now to avoid flash of controls
             if (this.isHTML5 || this.isEmbed && !this.supported.ui) {
                 ui.build.call(this);
             }

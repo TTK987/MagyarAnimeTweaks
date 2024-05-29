@@ -1,10 +1,19 @@
-/**
- * Check if the extension has the permissions and request if not granted
- *
- * Original Fix by: emburcke
- */
 chrome.runtime.onInstalled.addListener((details) => {
     checkAndRequestPermissions();
+    // Check if the extension was installed or updated
+    if (details.reason === "install" || details.reason === "update") {
+        // Get the version of the extension
+        const version = chrome.runtime.getManifest().version;
+        // Log the version
+        console.log(`[MATweaks]: Installed/Updated to version ${version}`);
+        // Check if the extension was updated
+        if (details.reason === "update") {
+            // Get the previous version of the extension
+            const previousVersion = details.previousVersion;
+            // Log the previous version
+            console.log(`[MATweaks]: Updated from version ${previousVersion}`);
+        }
+    }
 });
 
 /**
@@ -50,115 +59,23 @@ function createContextMenu() {
 }
 
 /**
- * Class to handle settings of the extension
- * @class
- * @property {Object} settings - The settings of the extension
- */
-class Settings {
-    /**
-     * Create a new settings object
-     */
-    constructor() {
-        this.settings = {
-            forwardSkip: { /* Forward skip settings (default: ctrl + →) */ enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowRight",},
-            backwardSkip:{ /* Backward skip settings (default: ctrl + ←)*/ enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowLeft",},
-            nextEpisode: { /* Next episode settings (default: alt + →)  */ enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowRight",},
-            previousEpisode: { /* Previous episode settings (default: alt + ←) */ enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowLeft",},
-            devSettings: { /* Developer settings (default: false) */ enabled: false,settings: { /* Developer settings */ ConsoleLog: { /* Console log (default: false) */ enabled: false,},DefaultPlayer: { /* Default player (default: "plyr") */player: "plyr",},}},
-            autoNextEpisode: { /* Auto next episode (default: false) (on last episode of the season it won't skip) */ enabled: false, time: 50, /* Time to skip to the next episode before the end of the episode (in seconds) */ },
-            autoplay: { /* Autoplay (default: true) */ enabled: true, },
-            autobetterQuality: { /* Auto better quality (default: false) */ enabled: false, },
-            version: chrome.runtime.getManifest().version, /* Version of the extension */
-        };
-    }
-
-    /**
-     * Load settings from the storage
-     * @returns {Promise} A promise that resolves with the settings
-     */
-    loadSettings() {
-        return new Promise((resolve, reject) => {
-            chrome.storage.local.get('settings', (data) => {
-                if (data.settings) {
-                    console.log('Settings loaded ' + JSON.stringify(data.settings));
-                    this.settings = Object.assign(this.settings, data.settings);
-                    resolve(this.settings);
-                } else {
-                    console.log('No settings found');
-                    reject(new Error('Settings not found'));
-                }
-            });
-        });
-    }
-
-
-    /**
-     * Save settings to the storage
-     */
-    saveSettings() {
-        chrome.storage.local.set({ settings: this.settings }, () => {
-            console.log('Settings saved ' + JSON.stringify(this.settings));
-        });
-    }
-
-    /**
-     * Get the settings of the extension
-     * @returns {Object} The settings of the extension
-     */
-    getSettings() {
-        return this.settings;
-    }
-
-    /**
-     * Set the settings of the extension
-     * @param {Object} settings - The settings to set
-     */
-    setSettings(settings) {
-        this.settings = Object.assign({}, this.settings, settings);
-    }
-}
-
-/**
- * The settings of the extension
- * @type {Settings} settings
- */
-const settings = new Settings();
-
-/**
  * Handle messages from the extension
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.plugin === 'MATweaks') {
-        let data;
-        // Handle the message type
         switch (request.type) {
-            case 'loadSettings':
-                settings.loadSettings().then((settings) => {
-                    sendResponse(settings);
+            case "downloadFile":
+                // Download the file
+                chrome.downloads.download({ url: request.url, filename: request.filename});
+                sendResponse(true);
+                return true;
+            case "openSettings":
+                // Open the settings page
+                chrome.tabs.create({
+                    url: chrome.runtime.getURL('options.html'),
+                    active: true,
                 });
-                return true;
-            case 'saveSettings':
-                // Save the settings to the storage and send the result as a response
-                data = request.settings;
-                settings.setSettings(data);
-                settings.saveSettings();
-                console.log("saved: " + JSON.stringify(data));
-                // Check if the settings are saved correctly
-                if (JSON.stringify(data) === JSON.stringify(settings.getSettings())) {
-                    sendResponse(true);
-                } else {
-                    console.log(JSON.stringify(data));
-                    console.log(JSON.stringify(settings.getSettings()));
-                    sendResponse(false);
-                }
-                return true;
-            case "getIconUrl":
-                // Send the URL of the icon as a response
-                sendResponse(chrome.runtime.getURL('plyr.svg'));
-                return true;
-            case "getBlankVideo":
-                // Send the URL of the blank video as a response
-                sendResponse(chrome.runtime.getURL('blank.mp4'));
+                sendResponse(true);
                 return true;
             default:
                 // Send null as a response
@@ -170,6 +87,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 /**
  * Check if the extension has the permissions and request if not granted
+ *
+ * Original fix by: emburcke
+ * @since v0.1.6.1
  */
 function checkAndRequestPermissions() {
     chrome.permissions.contains({ 'origins': chrome.runtime.getManifest()['host_permissions'] }, (answer) => {
@@ -191,3 +111,14 @@ function openPermissionPopup() {
         focused: true,
     });
 }
+
+importScripts(chrome.runtime.getURL('API.js'));
+
+const MAT = api;
+const MATLogger = mat_logger;
+chrome.runtime.onInstalled.addListener((details) => {
+    MAT.loadSettings().catch((error) => {
+        console.error(`Error loading settings: ${error}`);
+        MAT.saveSettings();
+    });
+});

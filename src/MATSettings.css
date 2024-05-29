@@ -185,4 +185,43 @@
     display: flex;
 }
 
+/* Fix the scrollbar's ugliness */
+::-webkit-scrollbar {
+    width: 0.5em;
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 0.5em;
+}
+::-webkit-scrollbar-track {
+    background-color: var(--dark-color);
+}
 
+.MATweaks-settings-window-body-content-credits-item {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+}
+
+.eap {
+    text-wrap: pretty;
+    color: var(--red);
+    font-weight: 700;
+    display: none;
+}
+
+button.MATweaks-settings-window-body-content-item-feature-button {
+    border-radius: 5px;
+    padding: 10px;
+    background: var(--dark-color);
+    color: white;
+    border: 0;
+    box-shadow: 3px 3px 3px 2px rgb(0 0 0 / 20%);
+    height: 50px;
+    width: 100%;
+    transition: ease-in-out 0.3s;
+}
+button.MATweaks-settings-window-body-content-item-feature-button:hover {
+    background: var(--primarydark-color);
+}

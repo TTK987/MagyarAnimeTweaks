@@ -2,9 +2,21 @@
   "name": "MagyarAnimeTweaks",
   "description": "Egy kis segítség a MagyarAnime oldalhoz.",
   "manifest_version": 3,
-  "version": "0.1.6.2",
-  "permissions": ["storage", "contextMenus"],
-  "host_permissions": ["*://magyaranime.eu/*", "*://magyaranime.hu/*", "*://embed.indavideo.hu/*", "*://*.mega.nz/embed/*"],
+  "version": "0.1.7",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "downloads"
+  ],
+  "host_permissions": [
+    "*://magyaranime.eu/*",
+    "*://magyaranime.hu/*",
+    "*://embed.indavideo.hu/*",
+    "*://*.mega.nz/embed/*",
+    "*://*.dailymotion.com/player.html*",
+    "*://*.rumble.com/embed/*",
+    "*://*.videa.hu/player*"
+  ],
   "icons": {
     "16": "logo/MATLogo-16.png",
     "32": "logo/MATLogo-32.png",
@@ -14,10 +26,28 @@
   "web_accessible_resources": [
     {
       "resources": ["player.css", "plyr.svg", "MATSettings.css"],
-      "matches": ["https://*.mega.nz/*"],
+      "matches": [
+        "https://*.mega.nz/*",
+        "https://*.dailymotion.com/*",
+        "https://*.rumble.com/*",
+        "https://*.videa.hu/*"
+      ],
       "extension_ids": ["*"]
     }
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "logo/MATLogo-16.png",
+      "32": "logo/MATLogo-32.png",
+      "64": "logo/MATLogo-64.png",
+      "128": "logo/MATLogo-128.png"
+    }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "browser_style": true
+  },
   "author": "TTK987",
   "background": {
     "service_worker": "background.js",
@@ -30,6 +60,12 @@
     }
   },
   "content_scripts": [
+    {
+      "matches": ["*://*.magyaranime.eu/*", "*://*.magyaranime.hu/*", "*://*.mega.nz/*"],
+      "js": ["API.js"],
+      "all_frames": true,
+      "run_at": "document_start"
+    },
     {
       "matches": ["*://magyaranime.eu/*", "*://magyaranime.hu/*"],
       "js": ["content.js", "player.js"],
@@ -49,6 +85,24 @@
       "css": ["player.css"],
       "all_frames": true,
       "run_at": "document_end"
+    },
+    {
+      "matches": ["*://*.dailymotion.com/player.html*"],
+        "js": ["dailymotion.js"],
+        "all_frames": true,
+        "run_at": "document_start"
+    },
+    {
+        "matches": ["*://*.rumble.com/embed/*"],
+        "js": ["rumble.js"],
+        "all_frames": true,
+        "run_at": "document_start"
+    },
+    {
+        "matches": ["*://*.videa.hu/player?*"],
+        "js": ["videa.js"],
+        "all_frames": true,
+        "run_at": "document_start"
     }
   ]
 }

@@ -88,3 +88,23 @@
   - A kiegészítő nem tudta megfelelően betölteni a beállításokat.
   - Mega.nz eseetén a részek közötti ugrás nem működött megfelelően.
 
+
+## 0.1.7
+- **Tovább bővült a támogatott források listája.**
+    - Új források: `dailymotion.com`, `rumble.com`, `videa.hu`
+- **Fontosabb változások**:
+    - **Automatikus jobb minőség** beállítás **Eltávolítva**.
+        - Ez azért történt, mert bugos volt és nem működött megfelelően, illetve nem sokan használták.
+    - **Új engedélyek**:
+        - `downloads` (Dalilymotion videók letöltéséhez)
+- **Új beállítások oldal**
+- **Új beállítások**
+  - **Letöltési név** (Alapértelmezett: `%title% - %episode% - %MAT%`)
+    - A letöltött fájl neve.
+    - [További információk](SETTINGS.md#letöltési-név)
+  - **Plyr** (Alapértelmezett: Kikapcsolva)
+    - Egyedi kinézet
+    - [További információk](SETTINGS.md#plyr)
+
+
+

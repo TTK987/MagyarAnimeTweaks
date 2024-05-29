@@ -14,7 +14,8 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_info
-// @grant        GM_getResourceText
+// @grant        GM_getResourceText
+
 // @require      https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js
 // @resource     settingsCSS https://raw.githubusercontent.com/TTK987/MagyarAnimeTweaks/main/src/MATSettings.css
 // @run-at       document-start
@@ -26,6 +27,9 @@
 // You can do all of this without giving credit to the original author. (But it would be nice if you did. :D)
 // --------------------------------------------------------------------
 
+/*
+ * Ez egy régebbi verziója a MagyarAnimeTweaks-nek. (v0.1.6.2 és a főverzió pedig v0.1.7)
+ */
 
 /*
  * Figyelem! Ez a script csak egy teszt!

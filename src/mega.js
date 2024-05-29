@@ -1,3 +1,6 @@
+const MAT = window.MAT;
+const logger = window.MATLogger;
+
 /**
  * Settings object to store the settings (Later loaded from the storage)
  *
@@ -5,42 +8,37 @@
  *
  * @type {Object}
  */
-let settings = {
-    forwardSkip: { /* Forward skip settings (default: ctrl + →) */ enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowRight",},
-    backwardSkip:{ /* Backward skip settings (default: ctrl + ←)*/ enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowLeft",},
-    nextEpisode: { /* Next episode settings (default: alt + →)  */ enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowRight",},
-    previousEpisode: { /* Previous episode settings (default: alt + ←) */ enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowLeft",},
-    devSettings: { /* Developer settings (default: false) */ enabled: false,settings: { /* Developer settings */ ConsoleLog: { /* Console log (default: false) */ enabled: false,},DefaultPlayer: { /* Default player (default: "plyr") */player: "plyr",},}},
-    autoNextEpisode: { /* Auto next episode (default: false) (on last episode of the season it won't skip) */ enabled: false, time: 50, /* Time to skip to the next episode before the end of the episode (in seconds) */ },
-    autoplay: { /* Autoplay (default: true) */ enabled: true, },
-    autobetterQuality: { /* Auto better quality (default: false) */ enabled: false, },
-    version: chrome.runtime.getManifest().version, /* Version of the extension */
-};
+let settings = MAT.getSettings();
+
 
 /**
  * Plyr player
  * @type {Plyr}
  */
-let plyr = Plyr;
+let plyr = undefined;
 
 /**
  * Function to load the settings from the storage and set the settings variable
  */
 function loadSettings() {
-    chrome.runtime.sendMessage({ plugin: "MATweaks", type: "loadSettings" }, function (response) {
-        if (response && response !== {}) {
-            settings = response;
-            console.log("[MATweaks] [Mega.nz] Settings loaded" + JSON.stringify(settings));
-        } else {
-            console.error("[MATweaks] [Mega.nz] Error loading settings");
-            console.log(response);
-        }
+    MAT.loadSettings().then((data) => {
+        settings = data;
+        logger.log("[MATweaks] [Mega.nz] Settings loaded");
+    }).catch(() => {
+        logger.error("[MATweaks] [Mega.nz] Settings not loaded");
     });
 }
 
 /**
+ * Function that checks if the advanced settings are enabled
+ * @returns {boolean} Returns true if the advanced settings are enabled, otherwise false
+ */
+function checkAdvancedSettings() {
+    return settings.advanced.enabled;
+}
+
+/**
  * Function to initialize the mega.nz part of the extension
- *
  */
 function initMega() {
     loadSettings();
@@ -90,66 +88,63 @@ function replaceMega() {
  */
 function addPlyr() {
     // Get the icon URL and the blank video URL
-    chrome.runtime.sendMessage({ plugin: "MATweaks", type: "getIconUrl" }, (iconUrlResponse) => {
-        chrome.runtime.sendMessage({ plugin: "MATweaks", type: "getBlankVideo" }, (blankVideoResponse) => {
-            // Add the plyr player to the video
-            plyr = new Plyr("#video", {
-                controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "fullscreen"],
-                keyboard: {
-                    focused: true,
-                    global: true,
-                },
-                settings: ["quality", "speed"],
-                tooltips: {
-                    controls: true,
-                    seek: true,
-                },
-                iconUrl: iconUrlResponse,
-                blankVideo: blankVideoResponse,
-                i18n: {
-                    restart: "Újraindítás",
-                    rewind: "10 másodperccel visszább",
-                    play: "Lejátszás",
-                    pause: "Megállítás",
-                    fastForward: "10 másodperccel előre",
-                    seek: "Keresés",
-                    seekLabel: "{currentTime} másodpercnél",
-                    played: "Lejátszott",
-                    buffered: "Pufferelt",
-                    currentTime: "Jelenlegi idő",
-                    duration: "Teljes idő",
-                    volume: "Hangerő",
-                    mute: "Némítás",
-                    unmute: "Némítás kikapcsolása",
-                    enableCaptions: "Felirat engedélyezése",
-                    disableCaptions: "Felirat letiltása",
-                    enterFullscreen: "Teljes képernyő",
-                    exitFullscreen: "Kilépés a teljes képernyőből",
-                    frameTitle: "A(z) {title} videó lejátszó",
-                    captions: "Feliratok",
-                    settings: "Beállítások",
-                    menuBack: "Vissza",
-                    speed: "Sebesség",
-                    normal: "Normál",
-                    quality: "Minőség",
-                    loop: "Ismétlés",
-                    start: "Kezdés",
-                    end: "Befejezés",
-                    all: "Összes",
-                    reset: "Visszaállítás",
-                    disabled: "Letiltva",
-                    enabled: "Engedélyezve",
-                },
-                speed: {
-                    selected: 1,
-                    options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
-                }
-            });
-        });
+    if (plyr) plyr.destroy();
+    plyr = new Plyr("#video", {
+        controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "fullscreen"],
+        keyboard: {
+            focused: true,
+            global: true,
+        },
+        settings: ["quality", "speed"],
+        tooltips: {
+            controls: true,
+            seek: true,
+        },
+        iconUrl: chrome.runtime.getURL("plyr.svg"),
+        blankVideo: chrome.runtime.getURL("blank.mp4"),
+        i18n: {
+            restart: "Újraindítás",
+            rewind: "10 másodperccel visszább",
+            play: "Lejátszás",
+            pause: "Megállítás",
+            fastForward: "10 másodperccel előre",
+            seek: "Keresés",
+            seekLabel: "{currentTime} másodpercnél",
+            played: "Lejátszott",
+            buffered: "Pufferelt",
+            currentTime: "Jelenlegi idő",
+            duration: "Teljes idő",
+            volume: "Hangerő",
+            mute: "Némítás",
+            unmute: "Némítás kikapcsolása",
+            enableCaptions: "Felirat engedélyezése",
+            disableCaptions: "Felirat letiltása",
+            enterFullscreen: "Teljes képernyő",
+            exitFullscreen: "Kilépés a teljes képernyőből",
+            frameTitle: "A(z) {title} videó lejátszó",
+            captions: "Feliratok",
+            settings: "Beállítások",
+            menuBack: "Vissza",
+            speed: "Sebesség",
+            normal: "Normál",
+            quality: "Minőség",
+            loop: "Ismétlés",
+            start: "Kezdés",
+            end: "Befejezés",
+            all: "Összes",
+            reset: "Visszaállítás",
+            disabled: "Letiltva",
+            enabled: "Engedélyezve",
+        },
+        speed: {
+            selected: 1,
+            options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+        }
     });
     // Fix the plyr
     fixPlyr();
-    // Add the shortcuts to the plyr
+    // Add the settings to the plyr
+    loadCustomCss();
     addShortcutsToPlyr();
 }
 
@@ -158,8 +153,8 @@ function addPlyr() {
  * @param {number} seconds The number of seconds to skip
  */
 function goForwards(seconds) {
-    const video = document.querySelector("video");
-    video.currentTime = video.currentTime + seconds;
+    plyr.currentTime = plyr.currentTime + Number(seconds);
+    logger.log("[Mega.nz] Skipping " + seconds + " seconds forwards");
 }
 
 /**
@@ -167,8 +162,8 @@ function goForwards(seconds) {
  * @param {number} seconds The number of seconds to skip
  */
 function goBackwards(seconds) {
-    const video = document.querySelector("video");
-    video.currentTime = video.currentTime - seconds;
+    plyr.currentTime = plyr.currentTime - Number(seconds);
+    logger.log("[Mega.nz] Skipping " + seconds + " seconds backwards");
 }
 
 /**
@@ -183,9 +178,9 @@ function fixPlyr() {
             if (settings.autoplay.enabled) document.querySelector("video").play(); // Play the video if the autoplay is enabled in the settings
             if (settings.autoNextEpisode.enabled) setAutoNextEpisode(); // Set the auto next episode if it is enabled in the settings
             clearInterval(interval);
-            console.log("[MATweaks] [Mega.nz] Plyr found, fixing it");
+            logger.log("[MATweaks] [Mega.nz] Plyr found, fixing it");
         } else {
-            console.log("[MATweaks] [Mega.nz] Plyr not found");
+            logger.log("[MATweaks] [Mega.nz] Plyr not found");
         }
     }, 10);
 }
@@ -196,7 +191,7 @@ function fixPlyr() {
 function setAutoNextEpisode() {
     const video = document.querySelector("video");
     if (settings.autoNextEpisode.time < 0) settings.autoNextEpisode.time = 0;
-    console.log("[MATweaks] [Mega.nz] Auto next episode set to " + settings.autoNextEpisode.time + " seconds");
+    logger.log("[MATweaks] [Mega.nz] Auto next episode set to " + settings.autoNextEpisode.time + " seconds");
     let isAutoNextEpisodeTriggered = false;
     video.addEventListener("timeupdate", () => {
         if (video.currentTime >= video.duration - settings.autoNextEpisode.time && !isAutoNextEpisodeTriggered) {
@@ -214,8 +209,8 @@ window.addEventListener("message", (event) => {
         // Handle the messages from the parent window
         switch (event.data.type) {
             case "replacePlayer":
-                console.log("[MATweaks] [Mega.nz] Replace mega");
-                replaceMega();
+                logger.log("[MATweaks] [Mega.nz] Replace mega");
+                handleMegaReplace();
                 break;
             case "backwardSkip":
                 goBackwards(event.data.seconds);
@@ -260,25 +255,81 @@ window.addEventListener("message", (event) => {
 });
 
 /**
+ * Function to handle the mega player replace
+ */
+function handleMegaReplace() {
+    if (checkAdvancedSettings()) {
+        if (settings.advanced.settings.DefaultPlayer.player === "plyr") {
+            replaceMega();
+            logger.log("[MATweaks] [Mega.nz] Replacing mega player");
+        } else {
+            logger.log("[MATweaks] [Mega.nz] Default player is not plyr");
+        }
+    } else {
+        replaceMega();
+        logger.log("[MATweaks] [Mega.nz] Replacing mega player");
+    }
+}
+
+/**
  * Function to add the shortcuts to the plyr player
  */
 function addShortcutsToPlyr() {
     document.addEventListener("keydown", (event) => {
-        event.preventDefault();
-        console.log(event);
-        if (settings.forwardSkip.enabled && event.ctrlKey === settings.forwardSkip.ctrlKey && event.altKey === settings.forwardSkip.altKey && event.shiftKey === settings.forwardSkip.shiftKey && event.key === settings.forwardSkip.key) {
-            goForwards(settings.forwardSkip.duration);
-        } else if (settings.backwardSkip.enabled && event.ctrlKey === settings.backwardSkip.ctrlKey && event.altKey === settings.backwardSkip.altKey && event.shiftKey === settings.backwardSkip.shiftKey && event.key === settings.backwardSkip.key) {
-            goBackwards(settings.backwardSkip.duration);
-        }
+        handleShortcutEvent(event, settings.forwardSkip, goForwards);
+        handleShortcutEvent(event, settings.backwardSkip, goBackwards);
     });
+
     document.addEventListener("keyup", (event) => {
-        if (settings.nextEpisode.enabled && event.ctrlKey === settings.nextEpisode.ctrlKey && event.altKey === settings.nextEpisode.altKey && event.shiftKey === settings.nextEpisode.shiftKey && event.key === settings.nextEpisode.key) {
-            window.parent.postMessage({plugin: "MATweaks", type: "nextEpisodeForce"}, "*");
-        } else if (settings.previousEpisode.enabled && event.ctrlKey === settings.previousEpisode.ctrlKey && event.altKey === settings.previousEpisode.altKey && event.shiftKey === settings.previousEpisode.shiftKey && event.key === settings.previousEpisode.key) {
-            window.parent.postMessage({plugin: "MATweaks", type: "previousEpisode"}, "*");
-        }
+        handleShortcutEvent(event, settings.nextEpisode, () => {
+            window.parent.postMessage({ plugin: "MATweaks", type: "nextEpisodeForce" }, "*");
+        });
+        handleShortcutEvent(event, settings.previousEpisode, () => {
+            window.parent.postMessage({ plugin: "MATweaks", type: "previousEpisode" }, "*");
+        });
     });
+}
+
+
+/**
+ * Function to handle the shortcut event
+ * @param {KeyboardEvent} event The keyboard event
+ * @param {Object} shortcut The shortcut object
+ * @param {Function} action The action to do when the shortcut is triggered
+ */
+function handleShortcutEvent(event, shortcut, action) {
+    if (shortcut.enabled && checkShortcut(event, shortcut)) {
+        event.preventDefault();
+        action(shortcut.time);
+    }
+}
+
+/**
+ * Function to check if the shortcut is valid
+ * @param {KeyboardEvent} event The keyboard event
+ * @param {Object} shortcut The shortcut object
+ * @returns {boolean} Returns true if the shortcut is valid, otherwise false
+ */
+function checkShortcut(event, shortcut) {
+    return event.ctrlKey === shortcut.ctrlKey && event.altKey === shortcut.altKey && event.shiftKey === shortcut.shiftKey && event.key === shortcut.key;
+}
+
+/**
+ * Function to load the custom css for the plyr
+ */
+function loadCustomCss() {
+    if (settings.advanced.plyr.design.enabled) {
+        let css = `
+        :root {
+            --plyr-video-control-color: ${settings.advanced.plyr.design.settings.svgColor};
+            --plyr-video-control-background-hover: ${settings.advanced.plyr.design.settings.hoverBGColor};
+            --plyr-color-main: ${settings.advanced.plyr.design.settings.mainColor};
+            --plyr-video-control-color-hover: ${settings.advanced.plyr.design.settings.hoverColor};
+        }
+        `;
+        document.head.insertAdjacentHTML("beforeend", `<style>${css}</style>`);
+        logger.log("Custom CSS loaded.");
+    }
 }
 
 // Initialize the mega.nz part of the extension

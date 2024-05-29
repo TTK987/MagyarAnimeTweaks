@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <script src="API.js"></script>
+    <meta charset="UTF-8">
+    <title>MagyarAnimeTweaks | Beállítások</title>
+    <link rel="stylesheet" href="options.css">
+    <script src="player.js"></script>
+    <link rel="stylesheet" href="player.css">
+    <script src="options.js"></script>
+</head>
+<body>
+    <header>
+        <h1>MagyarAnimeTweaks <span class="eap">EAP</span></h1>
+        <p>Beállítások</p>
+    </header>
+    <h2>Általános</h2>
+    <section id="general">
+        <div class="setting frwdskp">
+            <h3>Előre ugrás</h3>
+            <div class="checkbox">
+                <label for="forward-skip-enabled">Engedélyezve</label>
+                <input type="checkbox" id="forward-skip-enabled">
+                <span class="checkmark"></span>
+            </div>
+            <div class="duration">
+                <label for="forward-skip-duration">Ugrás hossza (másodpercben)</label>
+                <input type="number" id="forward-skip-duration">
+            </div>
+            <div class="key">
+                <label for="forward-skip-key">Billentyűkombináció</label>
+                <input type="text" id="forward-skip-key">
+            </div>
+        </div>
+        <div class="setting bckwrdskp">
+            <h3>Hátra ugrás</h3>
+            <div class="checkbox">
+                <label for="backward-skip-enabled">Engedélyezve</label>
+                <input type="checkbox" id="backward-skip-enabled">
+                <span class="checkmark"></span>
+            </div>
+            <div class="duration">
+                <label for="backward-skip-duration">Ugrás hossza (másodpercben)</label>
+                <input type="number" id="backward-skip-duration">
+            </div>
+            <div class="key">
+                <label for="backward-skip-key">Billentyűkombináció</label>
+                <input type="text" id="backward-skip-key">
+            </div>
+        </div>
+        <div class="setting nxtep">
+            <h3>Következő rész</h3>
+            <div class="checkbox">
+                <label for="next-episode-enabled">Engedélyezve</label>
+                <input type="checkbox" id="next-episode-enabled">
+                <span class="checkmark"></span>
+            </div>
+            <div class="key">
+                <label for="next-episode-key">Billentyűkombináció</label>
+                <input type="text" id="next-episode-key">
+            </div>
+        </div>
+        <div class="setting prvsep">
+            <h3>Előző rész</h3>
+            <div class="checkbox">
+                <label for="previous-episode-enabled">Engedélyezve</label>
+                <input type="checkbox" id="previous-episode-enabled">
+                <span class="checkmark"></span>
+            </div>
+            <div class="key">
+                <label for="previous-episode-key">Billentyűkombináció</label>
+                <input type="text" id="previous-episode-key">
+            </div>
+        </div>
+        <div class="setting autoep">
+            <h3>Automatikus következő rész</h3>
+            <div class="checkbox">
+                <label for="auto-next-episode-enabled">Engedélyezve</label>
+                <input type="checkbox" id="auto-next-episode-enabled">
+                <span class="checkmark"></span>
+            </div>
+            <div class="duration">
+                <label for="auto-next-episode-time">Idő (másodpercben)</label>
+                <input type="number" id="auto-next-episode-time">
+            </div>
+        </div>
+        <div class="setting autoplay">
+            <h3>Automatikus lejátszás</h3>
+            <div class="checkbox">
+                <label for="autoplay-enabled">Engedélyezve</label>
+                <input type="checkbox" id="autoplay-enabled">
+                <span class="checkmark"></span>
+            </div>
+        </div>
+    </section>
+    <h2>Haladó</h2>
+     <section id="advanced">
+         <div class="setting dev">
+             <h3>Fejlesztői beállítások</h3>
+             <div class="checkbox">
+                 <label for="advanced-enabled">Engedélyezve</label>
+                 <input type="checkbox" id="advanced-enabled">
+                 <span class="checkmark"></span>
+             </div>
+             <div class="setting console-log">
+                 <h3>Console log</h3>
+                 <div class="checkbox">
+                     <label for="console-log-enabled">Engedélyezve</label>
+                     <input type="checkbox" id="console-log-enabled">
+                     <span class="checkmark"></span>
+                 </div>
+             </div>
+             <div class="setting default-player">
+                 <h3>Alapértelmezett lejátszó</h3>
+                 <div class="player">
+                     <label for="default-player">Lejátszó</label>
+                     <select id="default-player">
+                         <option value="plyr">Plyr</option>
+                         <option value="default">Alapértelmezett</option>
+                         <option value="html5">HTML5</option>
+                     </select>
+                 </div>
+                 <p>A "HTML5" lejátszó nem elérhető a Mega.nz-ről linkelt videók esetén.</p>
+                 <p>Ha "HTML5" lejátszót választasz, akkor Mega.nz-ről linkelt videók esetén a "Plyr" lejátszó lesz használva.</p>
+             </div>
+         </div>
+         <div class="setting dlname">
+             <h3>Letöltési név</h3>
+             <div class="download-name">
+                 <label for="download-name">Fájlnév sablon</label>
+                 <textarea id="download-name" rows="1" cols="30" maxlength="100" placeholder="%title% - %episode%.rész (%MAT%)"></textarea>
+                 <p>Az alábbi változókat használhatod:</p>
+                    <ul>
+                        <li>%title% - Az anime címe</li>
+                        <li>%episode% - Az epizód sorszáma</li>
+                        <li>%0episode% - Az epizód sorszáma vezető nullával (pl. "1" helyett "01")</li>
+                        <li>%MAT% - "MATweaks" szöveg</li>
+                        <li>%source% - Forrás neve (pl. "indavideo")</li>
+                        <li>%quality% - A videó minősége (pl. "720p")</li>
+                        <li>%fansub% - Fansub csoport neve</li>
+                    </ul>
+             </div>
+         </div>
+         <div class="setting plyr-setting">
+             <h3>Plyr</h3>
+             <div class="stuff">
+                 <div class="settings">
+                     <div class="checkbox">
+                         <label for="plyr-design-enabled">Engedélyezve</label>
+                         <input type="checkbox" id="plyr-design-enabled">
+                         <span class="checkmark"></span>
+                     </div>
+                     <div class="color">
+                         <label for="plyr-design-svg-color">SVG szín</label>
+                         <input type="color" id="plyr-design-svg-color">
+                         <input type="range" id="plyr-design-svg-opacity" min="0" max="1" step="0.1" value="1">
+                     </div>
+                     <div class="color">
+                         <label for="plyr-design-hover-bg-color">Háttérszín</label>
+                         <input type="color" id="plyr-design-hover-bg-color">
+                         <input type="range" id="plyr-design-hover-bg-opacity" min="0" max="1" step="0.1" value="1">
+                     </div>
+                     <div class="color">
+                         <label for="plyr-design-main-color">Főszín</label>
+                         <input type="color" id="plyr-design-main-color">
+                         <input type="range" id="plyr-design-main-opacity" min="0" max="1" step="0.1" value="1">
+                     </div>
+                     <div class="color">
+                         <label for="plyr-design-hover-color">Szín</label>
+                         <input type="color" id="plyr-design-hover-color">
+                         <input type="range" id="plyr-design-hover-opacity" min="0" max="1" step="0.1" value="1">
+                     </div>
+                 </div>
+                 <div id="plyr-design-test">
+                     <video src="blank.mp4"></video>
+                 </div>
+             </div>
+         </div>
+    </section>
+    <footer>
+        <button id="save">Mentés</button>
+        <button id="cancel">Mégse</button>
+        <button id="reset">Vissza az alapértelmezettre</button>
+    </footer>
+    <div id="result"></div>
+    <section id="credits">
+        <div class="logo">
+            <img src="logo/MATLogo-128.png" alt="MATweaks logo" width="128" height="128">
+        </div>
+        <div class="credits-part">
+            <p>Készítette: <a href="https://discord.com/users/537718439586955285" target="_blank">TTK987</a>
+            <p>GitHub: <a href="https://github.com/TTK987/MagyarAnimeTweaks/" target="_blank">MagyarAnimeTweaks</a></p>
+        </div>
+        <div class="credits-part">
+            <p>Verzió: <span id="version">Ismeretlen</span> <span class="eap">EAP</span></p>
+            <p class="eap">Jelenleg egy EAP verziót használsz, ami még fejlesztés alatt áll.</p>
+        </div>
+        <div class="credits-part">
+            <p>Weblap: &lt; Fejlesztés alatt... ></p>
+            <p>Discord: <a href="https://discord.gg/dJX4tVGZhY" target="_blank">MagyarAnimeTweaks</a></p>
+        </div>
+    </section>
+</body>
+</html>

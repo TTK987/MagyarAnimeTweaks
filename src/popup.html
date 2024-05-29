@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MagyarAnime Kereső | MATweaks</title>
+    <script src="popup.js"></script>
+    <style>
+        :root {
+            --primary-color: #3F9FFF;
+            --primarydark-color: #182031;
+            --bg-color: #263143;
+            --dark-color: #0a0e17;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1em;
+            margin: 0;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1em;
+        }
+        label {
+            margin: 0.5em 0;
+        }
+        input[type="text"] {
+            padding: 0.5em;
+            margin: 0.5em 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        select {
+            padding: 0.5em;
+            margin: 0.5em 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            padding: 0.5em;
+            margin: 0.5em 0;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: var(--primarydark-color);
+        }
+        #results {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 1em;
+            width: 20em !important;
+        }
+        .card {
+            width: 18rem;
+            margin: 1em;
+            background-color: var(--dark-color);
+            color: white;
+            border-radius: 0.5em;
+            overflow: hidden;
+        }
+        .card img {
+            width: 100%;
+            height: 10rem;
+            object-fit: cover;
+        }
+        .card-body {
+            padding: 1em;
+        }
+        .card-title {
+            font-size: 1.5em;
+            margin: 0;
+        }
+        .card-text {
+            margin: 0.5em 0;
+        }
+        .btn {
+            padding: 0.5em;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 0.5em;
+            text-align: center;
+            display: block;
+            width: 94%;
+            transition: background-color 0.3s;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background-color: var(--primarydark-color);
+        }
+        ::-webkit-scrollbar {
+            width: 0.5em;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color);
+            border-radius: 0.5em;
+        }
+        ::-webkit-scrollbar-track {
+            background-color: var(--dark-color);
+        }
+    </style>
+</head>
+<body>
+    <h1>MagyarAnime Kereső</h1>
+    <form>
+        <label for="search_text">Keresési szöveg:</label>
+        <input type="text" id="search_text" name="search_text" required>
+        <label for="tipus">Típus:</label>
+        <select name="tipus" id="tipus">
+            <option value="1" selected="">Keresés mindenhol</option>
+            <option value="2">Futó szériák</option>
+            <option value="3">Befejezett szériák</option>
+            <option value="4">Várható szériák</option>
+            <option value="5">Linkelés alatt lévők</option>
+        </select>
+        <label for="sorrend">Sorrend:</label>
+        <select name="sorrend" id="sorrend">
+            <option value="1" selected="">A-Z</option>
+            <option value="2">Z-A</option>
+            <option value="3">Megtekintések Átlag</option>
+            <option value="4">Megtekintések Összesen</option>
+            <option value="5">Legújabb frissítés</option>
+            <option value="6">Legrégebbi frissítés</option>
+            <option value="7">Értékelés csökkenő</option>
+            <option value="8">Értékelés növekvő</option>
+        </select>
+        <input type="submit" value="Keresés">
+    </form>
+    <div id="results"></div>
+</body>
+</html>
