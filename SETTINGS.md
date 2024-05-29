@@ -56,12 +56,26 @@
 ### Plyr
 - **Engeedélyezve**: Ki/be kapcsolja az egyedi kinézetet a plyr lejátszónál.
 - **SVG szín**: Az ikonok színe a plyr lejátszónál. (képen pirossal jelölve)
+
+
 ![SVG szín](./img/svgcolor.png)
+
+
 - **Háttérszín**: Az ikonok háttérszíne amikor rávisszük az egeret. (képen pirossal jelölve)
+
+
 ![Háttérszín](./img/bgcolor.png)
+
+
 - **Főszín**: A hang és a progress bar színe. (képen pirossal jelölve)
+
+
 ![Főszín](./img/maincolor.png)
+
+
 - **Szín**: Az ikonok színe, amikor rávisszük az egeret. (képen pirossal jelölve)
+
+
 ![Szín](./img/color.png)
       
 
