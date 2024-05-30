@@ -2,7 +2,7 @@
   "name": "MagyarAnimeTweaks",
   "description": "Egy kis segítség a MagyarAnime oldalhoz.",
   "manifest_version": 3,
-  "version": "0.1.7",
+  "version": "0.1.7.1",
   "permissions": [
     "storage",
     "contextMenus",

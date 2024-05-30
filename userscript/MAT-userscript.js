@@ -28,7 +28,7 @@
 // --------------------------------------------------------------------
 
 /*
- * Ez egy régebbi verziója a MagyarAnimeTweaks-nek. (v0.1.6.2 és a főverzió pedig v0.1.7)
+ * Ez egy régebbi verziója a MagyarAnimeTweaks-nek.
  */
 
 /*

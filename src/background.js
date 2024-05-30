@@ -1,3 +1,5 @@
+importScripts(chrome.runtime.getURL('API.js'));
+const MAT = window.MAT;
 chrome.runtime.onInstalled.addListener((details) => {
     checkAndRequestPermissions();
     // Check if the extension was installed or updated
@@ -6,14 +8,26 @@ chrome.runtime.onInstalled.addListener((details) => {
         const version = chrome.runtime.getManifest().version;
         // Log the version
         console.log(`[MATweaks]: Installed/Updated to version ${version}`);
+        // Create the settings
+        MAT.saveSettings();
         // Check if the extension was updated
         if (details.reason === "update") {
             // Get the previous version of the extension
             const previousVersion = details.previousVersion;
             // Log the previous version
             console.log(`[MATweaks]: Updated from version ${previousVersion}`);
+            // Check if the previous settings version is less than the current settings version
+            migrateSettings(previousVersion);
         }
     }
+    MAT.loadSettings().then(() => {
+        if (MAT.getSettings().version !== MAT.getVersion()) {
+            MAT.setSettings(MAT.getDefaultSettings());
+        }
+    }).catch(() => {
+        MAT.setSettings(MAT.getDefaultSettings());
+    });
+
 });
 
 /**
@@ -100,6 +114,26 @@ function checkAndRequestPermissions() {
 }
 
 /**
+ * Migrate the settings from the previous version to the current version
+ * @param {String} previousVersion The previous version of the extension
+ *
+ */
+function migrateSettings(previousVersion) {
+    const currentVersion = chrome.runtime.getManifest().version;
+    MAT.loadSettings().then(data => {
+        if (MAT.getSettings().version !== MAT.getVersion()) {
+            MAT.setSettings(Object.assign({}, MAT.getDefaultSettings(), data));
+            console.log(`[MATweaks]: Migrated settings from version ${previousVersion} to version ${currentVersion}`);
+            console.log(`[MATweaks]: Settings:`, JSON.stringify(MAT.getSettings()));
+            MAT.saveSettings();
+        }
+    }).catch(() => {
+        MAT.setSettings(MAT.getDefaultSettings());
+        MAT.saveSettings();
+    });
+}
+
+/**
  * Open the permission popup
  */
 function openPermissionPopup() {
@@ -111,14 +145,3 @@ function openPermissionPopup() {
         focused: true,
     });
 }
-
-importScripts(chrome.runtime.getURL('API.js'));
-
-const MAT = api;
-const MATLogger = mat_logger;
-chrome.runtime.onInstalled.addListener((details) => {
-    MAT.loadSettings().catch((error) => {
-        console.error(`Error loading settings: ${error}`);
-        MAT.saveSettings();
-    });
-});
