@@ -106,8 +106,7 @@
     - Egyedi kinézet
     - [További információk](SETTINGS.md#plyr)
 
-## 0.1.7
+## 0.1.7.1
 - **Bugfixes**
   - A kiegészítő nem tudta megfelelően betölteni a beállításokat frissítés után.
-
 
