@@ -1,4 +1,10 @@
 chrome.runtime.onInstalled.addListener((details) => {
+    MAT.loadSettings().catch((error) => {
+        console.error(`Error loading settings: ${error}`);
+        MAT.saveSettings();
+    });
+});
+chrome.runtime.onInstalled.addListener((details) => {
     checkAndRequestPermissions();
     // Check if the extension was installed or updated
     if (details.reason === "install" || details.reason === "update") {
@@ -116,9 +122,4 @@ importScripts(chrome.runtime.getURL('API.js'));
 
 const MAT = api;
 const MATLogger = mat_logger;
-chrome.runtime.onInstalled.addListener((details) => {
-    MAT.loadSettings().catch((error) => {
-        console.error(`Error loading settings: ${error}`);
-        MAT.saveSettings();
-    });
-});
+
