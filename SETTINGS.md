@@ -50,18 +50,32 @@
         - `%0episode%`: A rész sorszáma 0-val kiegészítve. (Pl: 01)
         - `%MAT%`: "MATweaks" szöveg. (Ez a kiegészítő neve, ha nem tudtad volna :D)
         - `%quality%`: A videó minősége. (Pl: 1080p)
-        - `%group%`: A csapat neve, aki feliratozta az animét.
+        - `%fansub%`: A csapat neve, aki feliratozta az animét.
         - `%source%`: Az oldal neve, ahonnan az anime linkje származik.
     
 ### Plyr
 - **Engeedélyezve**: Ki/be kapcsolja az egyedi kinézetet a plyr lejátszónál.
 - **SVG szín**: Az ikonok színe a plyr lejátszónál. (képen pirossal jelölve)
+
+
 ![SVG szín](./img/svgcolor.png)
+
+
 - **Háttérszín**: Az ikonok háttérszíne amikor rávisszük az egeret. (képen pirossal jelölve)
+
+
 ![Háttérszín](./img/bgcolor.png)
+
+
 - **Főszín**: A hang és a progress bar színe. (képen pirossal jelölve)
+
+
 ![Főszín](./img/maincolor.png)
+
+
 - **Szín**: Az ikonok színe, amikor rávisszük az egeret. (képen pirossal jelölve)
+
+
 ![Szín](./img/color.png)
       
 

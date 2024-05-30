@@ -1,5 +1,3 @@
-importScripts(chrome.runtime.getURL('API.js'));
-const MAT = window.MAT;
 chrome.runtime.onInstalled.addListener((details) => {
     checkAndRequestPermissions();
     // Check if the extension was installed or updated
