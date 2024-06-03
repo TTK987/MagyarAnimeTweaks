@@ -36,11 +36,11 @@ A kiegészítőt a [MagyarAnime.eu](https://magyaranime.eu/) / [MagyarAnime.hu](
 
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png "Előnézet")
 
-## Jelenlegi Verzió: 0.1.7.1
+## Jelenlegi Verzió: 0.1.7.5
 
-**v0.1.7 Letölthető:**
-- **Firefox: _[v0.1.7.1](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)_** (firefox addons)
-- **Minden más: _[v0.1.7.1](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (chrome web store)
+**v0.1.7.5 Letölthető:**
+- **Firefox: _[v0.1.7.5](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)_** (firefox addons)
+- **Minden más: _[v0.1.7.5](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (chrome web store)
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
