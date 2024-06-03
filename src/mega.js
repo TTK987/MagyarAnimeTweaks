@@ -1,5 +1,5 @@
-const MAT = window.MAT;
-const logger = window.MATLogger;
+let MAT = window.MAT;
+let logger = window.MATLogger;
 
 /**
  * Settings object to store the settings (Later loaded from the storage)

@@ -1,5 +1,16 @@
+if ("undefined" === typeof browser) {
+    importScripts(chrome.runtime.getURL("API.js"));
+}
+let MAT = api;
 chrome.runtime.onInstalled.addListener((details) => {
     checkAndRequestPermissions();
+    MAT.loadSettings().then(() => {
+        if (MAT.getSettings().version !== MAT.getVersion()) {
+            MAT.setSettings(MAT.getDefaultSettings());
+        }
+    }).catch(() => {
+        MAT.setSettings(MAT.getDefaultSettings());
+    });
     // Check if the extension was installed or updated
     if (details.reason === "install" || details.reason === "update") {
         // Get the version of the extension
@@ -18,14 +29,6 @@ chrome.runtime.onInstalled.addListener((details) => {
             migrateSettings(previousVersion);
         }
     }
-    MAT.loadSettings().then(() => {
-        if (MAT.getSettings().version !== MAT.getVersion()) {
-            MAT.setSettings(MAT.getDefaultSettings());
-        }
-    }).catch(() => {
-        MAT.setSettings(MAT.getDefaultSettings());
-    });
-
 });
 
 /**

@@ -152,7 +152,7 @@
     align-items: center;
 }
 .MATweaks-settings-window-header .MATweaks-settings-window-close:hover {
-    color: var(--red);
+    color: #ff0000;
 }
 .MATweaks-settings-window-body-content-buttons-button {
     background: var(--primary-color);
@@ -174,7 +174,7 @@
     left: 50%;
     transform: translateX(-50%);
     padding: 10px;
-    background: var(--red);
+    background: #ff0000;
     color: white;
     border-radius: 5px;
     z-index: 1000;
@@ -206,7 +206,7 @@
 
 .eap {
     text-wrap: pretty;
-    color: var(--red);
+    color: #ff0000;
     font-weight: 700;
     display: none;
 }

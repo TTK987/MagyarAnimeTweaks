@@ -1,5 +1,5 @@
 let MAT = window.MAT;
-let settings =  MAT.getDefaultSettings();
+let settings =  MAT.getSettings();
 let logger = window.MATLogger;
 
 /**

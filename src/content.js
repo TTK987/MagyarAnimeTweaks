@@ -20,13 +20,12 @@ let MAT = window.MAT;
  */
 let logger = window.MATLogger;
 
-
 /**
  * Settings object to store the settings (Later loaded from the storage)
  * Default settings for the extension (used if the settings are not loaded from the storage)
  * @type {Object}
  */
-let settings = MAT.getSettings();
+let settings = MAT.getDefaultSettings();
 
 /**
  * Player class for handling the player
@@ -495,6 +494,7 @@ function loadSettings() {
         }
         logger.log("Settings loaded.");
     }).catch((error) => {
+        settings = MAT.getDefaultSettings();
         console.log(error);
         showErrorPopup("Hiba történt a beállítások betöltése közben. Alapértelmezett beállítások lesznek használva."); // Should never happen (hopefully)
         logger.error("Error while loading settings: " + error);

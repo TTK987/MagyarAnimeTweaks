@@ -107,6 +107,10 @@
     - [További információk](SETTINGS.md#plyr)
 
 ## 0.1.7.1
-- **Bugfixes**
+- Hibajavítások
   - A kiegészítő nem tudta megfelelően betölteni a beállításokat frissítés után.
 
+## 0.1.7.5
+- Hibajavítások
+  - A kiegészítő nem tudta megfelelően betölteni a beállításokat frissítés után.
+  > Remélem most már tényleg megoldódott a probléma.

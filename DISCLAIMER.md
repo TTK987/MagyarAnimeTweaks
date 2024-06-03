@@ -1,7 +1,6 @@
 ## Nyilatkozat
 
-- A kiegészítő NEM áll kapcsolatban sem a Mega.nz, sem az indavideo.hu, sem a dailymotion.com, sem a videa.hu, sem a
-  youtube.com, sem a rumble.com oldalakkal.
+- A kiegészítő NEM áll kapcsolatban sem a Mega.nz, sem az indavideo.hu, sem a dailymotion.com, sem a videa.hu, sem a rumble.com oldalakkal.
 - A programot az MIT licensz védi.
 - A kiégészítő csak a magyaranime.eu oldalon használható.
 - A fejlesztők nem vállalnak felelősséget a kiegészítő használatából eredő károkért.
@@ -20,7 +19,7 @@
 - A kiegészítő használatával elfogadod a fentebb felsoroltakat.
 
 ## Disclaimer
-- The add-on is NOT affiliated with Mega.nz, indavideo.hu, dailymotion.com, videa.hu, youtube.com, rumble.com.
+- The add-on is NOT affiliated with Mega.nz, indavideo.hu, dailymotion.com, videa.hu, rumble.com.
 - The program is protected by the MIT license.
 - The add-on can only be used on the magyaranime.eu website.
 - The developers are not responsible for any damages caused by the use of the add-on.
