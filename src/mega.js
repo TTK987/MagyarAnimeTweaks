@@ -1,5 +1,31 @@
 let MAT = window.MAT;
-let logger = window.MATLogger;
+let logger = {
+    enabled: false,
+    log(message) {
+        if (this.enabled) {
+            log(message);
+        }
+    },
+    warn(message) {
+        if (this.enabled) {
+            warn(message);
+        }
+    },
+    error(message) {
+        if (this.enabled) {
+            error(message)
+        }
+    },
+    enable() {
+        this.enabled = true;
+    },
+    disable() {
+        this.enabled = false;
+    },
+    isEnabled() {
+        return this.enabled;
+    }
+};
 
 /**
  * Settings object to store the settings (Later loaded from the storage)
@@ -23,9 +49,9 @@ let plyr = undefined;
 function loadSettings() {
     MAT.loadSettings().then((data) => {
         settings = data;
-        logger.log("[MATweaks] [Mega.nz] Settings loaded");
+        console.log("[Mega.nz] Settings loaded");
     }).catch(() => {
-        logger.error("[MATweaks] [Mega.nz] Settings not loaded");
+        console.error("[Mega.nz] Settings not loaded");
     });
 }
 
@@ -42,6 +68,11 @@ function checkAdvancedSettings() {
  */
 function initMega() {
     loadSettings();
+    if (checkAdvancedSettings() && settings.advanced.settings.ConsoleLog.enabled) {
+        logger.enable();
+    } else {
+        console.log(settings);
+    }
     // Send a message to the parent window that the iframe has been loaded and ready
     window.parent.postMessage({plugin: "MATweaks", type: "megaIframeLoaded"}, "*");
 }
@@ -57,6 +88,7 @@ function replaceMega() {
         // get the video source
         let playbtn = document.querySelector("div.play-video-button")
         if (playbtn) {
+            playbtn.click();
             const video = document.querySelector("video");
             if (video) {
                 if (video.src) {
@@ -88,7 +120,7 @@ function replaceMega() {
  */
 function addPlyr() {
     // Get the icon URL and the blank video URL
-    if (plyr) plyr.destroy();
+    if (plyr !== undefined) { plyr.destroy(); }
     plyr = new Plyr("#video", {
         controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "fullscreen"],
         keyboard: {
@@ -175,12 +207,15 @@ function fixPlyr() {
         if (plyr) {
             plyr.style.margin = "0"; // Remove the margin from the player, so when it is in embed mode, there won't be anything around it
             plyr.style.zIndex = "1000"; // Set the z-index to 1000, so it will be on top of everything
+            let style = document.createElement("style");
+            style.innerHTML = ".plyr__control--overlaid {background: #00b2ff;background: var(--plyr-video-control-background-hover, var(--plyr-color-main, var(--plyr-color-main, #00b2ff))) !important;}";
+            document.head.appendChild(style);
             if (settings.autoplay.enabled) document.querySelector("video").play(); // Play the video if the autoplay is enabled in the settings
             if (settings.autoNextEpisode.enabled) setAutoNextEpisode(); // Set the auto next episode if it is enabled in the settings
             clearInterval(interval);
-            logger.log("[MATweaks] [Mega.nz] Plyr found, fixing it");
+            logger.log("[Mega.nz] Plyr found, fixing it");
         } else {
-            logger.log("[MATweaks] [Mega.nz] Plyr not found");
+            logger.log("[Mega.nz] Plyr not found");
         }
     }, 10);
 }
@@ -191,7 +226,7 @@ function fixPlyr() {
 function setAutoNextEpisode() {
     const video = document.querySelector("video");
     if (settings.autoNextEpisode.time < 0) settings.autoNextEpisode.time = 0;
-    logger.log("[MATweaks] [Mega.nz] Auto next episode set to " + settings.autoNextEpisode.time + " seconds");
+    logger.log("[Mega.nz] Auto next episode set to " + settings.autoNextEpisode.time + " seconds");
     let isAutoNextEpisodeTriggered = false;
     video.addEventListener("timeupdate", () => {
         if (video.currentTime >= video.duration - settings.autoNextEpisode.time && !isAutoNextEpisodeTriggered) {
@@ -209,7 +244,7 @@ window.addEventListener("message", (event) => {
         // Handle the messages from the parent window
         switch (event.data.type) {
             case "replacePlayer":
-                logger.log("[MATweaks] [Mega.nz] Replace mega");
+                logger.log("[Mega.nz] Replace mega");
                 handleMegaReplace();
                 break;
             case "backwardSkip":
@@ -260,14 +295,14 @@ window.addEventListener("message", (event) => {
 function handleMegaReplace() {
     if (checkAdvancedSettings()) {
         if (settings.advanced.settings.DefaultPlayer.player === "plyr") {
+            logger.log("[Mega.nz] Replacing mega player");
             replaceMega();
-            logger.log("[MATweaks] [Mega.nz] Replacing mega player");
         } else {
-            logger.log("[MATweaks] [Mega.nz] Default player is not plyr");
+            logger.log("[Mega.nz] Default player is not plyr");
         }
     } else {
+        logger.log("[Mega.nz] Replacing mega player");
         replaceMega();
-        logger.log("[MATweaks] [Mega.nz] Replacing mega player");
     }
 }
 

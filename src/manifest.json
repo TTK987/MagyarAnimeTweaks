@@ -9,13 +9,13 @@
     "downloads"
   ],
   "host_permissions": [
-    "*://magyaranime.eu/*",
-    "*://magyaranime.hu/*",
-    "*://embed.indavideo.hu/*",
-    "*://mega.nz/embed/*",
-    "*://dailymotion.com/player.html*",
-    "*://rumble.com/embed/*",
-    "*://videa.hu/player*"
+    "*://*.magyaranime.eu/*",
+    "*://*.magyaranime.hu/*",
+    "*://*.embed.indavideo.hu/*",
+    "*://*.mega.nz/embed/*",
+    "*://*.dailymotion.com/player.html*",
+    "*://*.rumble.com/embed/*",
+    "*://*.videa.hu/player*"
   ],
   "icons": {
     "16": "logo/MATLogo-16.png",
@@ -26,12 +26,7 @@
   "web_accessible_resources": [
     {
       "resources": ["player.css", "plyr.svg", "MATSettings.css"],
-      "matches": [
-        "*://mega.nz/embed/*",
-        "*://dailymotion.com/player.html*",
-        "*://rumble.com/embed/*",
-        "*://videa.hu/player*"
-      ],
+      "matches": ["https://*.mega.nz/*"],
       "extension_ids": ["*"]
     }
   ],
@@ -55,12 +50,12 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "{7b0929ca-1c4a-4374-873e-8af3106c8b96}",
-      "strict_min_version": "60.0"
+      "strict_min_version": "109.0"
     }
   },
   "content_scripts": [
     {
-      "matches": ["*://*.magyaranime.eu/*", "*://*.magyaranime.hu/*", "*://mega.nz/embed/*"],
+      "matches": ["*://*.magyaranime.eu/*", "*://*.magyaranime.hu/*", "*://*.mega.nz/embed/*"],
       "js": ["API.js"],
       "all_frames": true,
       "run_at": "document_start"
@@ -79,26 +74,26 @@
       "run_at": "document_start"
     },
     {
-      "matches": ["*://mega.nz/embed/*"],
+      "matches": ["*://*.mega.nz/embed/*"],
       "js": ["player.js", "mega.js"],
       "css": ["player.css"],
       "all_frames": true,
       "run_at": "document_end"
     },
     {
-      "matches": ["*://dailymotion.com/player.html*"],
+      "matches": ["*://*.dailymotion.com/player.html*"],
         "js": ["dailymotion.js"],
         "all_frames": true,
         "run_at": "document_start"
     },
     {
-        "matches": ["*://rumble.com/embed/*"],
+        "matches": ["*://*.rumble.com/embed/*"],
         "js": ["rumble.js"],
         "all_frames": true,
         "run_at": "document_start"
     },
     {
-        "matches": ["*://videa.hu/player?*"],
+        "matches": ["*://*.videa.hu/player?*"],
         "js": ["videa.js"],
         "all_frames": true,
         "run_at": "document_start"

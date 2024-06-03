@@ -60,9 +60,8 @@
 }
 .MA-Tweaks-settings-popup {
     position: absolute;
-    top: 80%;
-    left: 50%;
     transform: translate(-50%, -50%);
+    transition: 0.3s;
     background-color: var(--black-color);
     border: 4px solid #000000;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -76,6 +75,8 @@
     min-width: 90%;
     min-height: 90%;
     overflow: auto;
+    top: 65%;
+    left: 50%;
 }
 .MA-Tweaks-settings-popup-body-content-features {
     display: flex;
@@ -224,4 +225,22 @@ button.MATweaks-settings-window-body-content-item-feature-button {
 }
 button.MATweaks-settings-window-body-content-item-feature-button:hover {
     background: var(--primarydark-color);
+}
+
+@media (max-width: 768px) {
+    .MATweaks-settings-window-body-content-item {
+        width: 100%;
+    }
+    .MA-Tweaks-settings-popup-body-content-features {
+        flex-direction: column;
+    }
+    .MATweaks-settings-window-body-content-item-feature {
+        width: 100%;
+    }
+    .MATweaks-settings-window-body-content-credits {
+        flex-direction: column;
+    }
+    .MA-Tweaks-settings-popup {
+        top: 105%;
+    }
 }

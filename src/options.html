@@ -8,6 +8,8 @@
     <script src="player.js"></script>
     <link rel="stylesheet" href="player.css">
     <script src="options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="logo/MATLogo-128.png" type="image/png">
 </head>
 <body>
     <header>
@@ -91,6 +93,8 @@
                 <input type="checkbox" id="autoplay-enabled">
                 <span class="checkmark"></span>
             </div>
+            <p>Ez a funkció nem működik minden esetben.
+            <br>Ha egymás után több részt nézel, <br> akkor többnyire működik.</p>
         </div>
     </section>
     <h2>Haladó</h2>
@@ -129,17 +133,17 @@
              <div class="download-name">
                  <label for="download-name">Fájlnév sablon</label>
                  <textarea id="download-name" rows="1" cols="30" maxlength="100" placeholder="%title% - %episode%.rész (%MAT%)"></textarea>
-                 <p>Az alábbi változókat használhatod:</p>
-                    <ul>
-                        <li>%title% - Az anime címe</li>
-                        <li>%episode% - Az epizód sorszáma</li>
-                        <li>%0episode% - Az epizód sorszáma vezető nullával (pl. "1" helyett "01")</li>
-                        <li>%MAT% - "MATweaks" szöveg</li>
-                        <li>%source% - Forrás neve (pl. "indavideo")</li>
-                        <li>%quality% - A videó minősége (pl. "720p")</li>
-                        <li>%fansub% - Fansub csoport neve</li>
-                    </ul>
              </div>
+             <p>Az alábbi változókat használhatod:</p>
+             <ul>
+                 <li>%title% - Az anime címe</li>
+                 <li>%episode% - Az epizód sorszáma</li>
+                 <li>%0episode% - Az epizód sorszáma vezető nullával (pl. "1" helyett "01")</li>
+                 <li>%MAT% - "MATweaks" szöveg</li>
+                 <li>%source% - Forrás neve (pl. "indavideo")</li>
+                 <li>%quality% - A videó minősége (pl. "720p")</li>
+                 <li>%fansub% - Fansub csoport neve</li>
+             </ul>
          </div>
          <div class="setting plyr-setting">
              <h3>Plyr</h3>
