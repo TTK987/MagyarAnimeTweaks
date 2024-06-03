@@ -127,3 +127,4 @@ Részletes leírás a beállításokról: **[ITT](SETTINGS.md)**
 
 
 # További jó animézést!
+
