@@ -908,6 +908,7 @@ async function downloadFile(filename) {
 function addShortcutsToPageMega() {
     let iframe = document.querySelector("iframe[src*='mega.nz']")
     document.addEventListener("keydown", (event) => {
+        if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
         // Check if the event is a shortcut
         // Spaghetti code incoming... Yey!
         if (settings.forwardSkip.enabled &&
