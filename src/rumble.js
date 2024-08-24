@@ -1,16 +1,18 @@
+import {MAT} from "./API";
+
 window.addEventListener('message', async function (event) {
-    // A message has been received from the parent window
-    if (event.data && event.data.plugin === 'MATweaks') {
-        // The message is from the "MATweaks" extension
-        if (event.data.type === 'getSourceUrl') {
-            // The parent window requested the source URL of the video
-            window.parent.postMessage({plugin: 'MATweaks', type: 'sourceUrl', data: getQualityData(document.body.innerHTML)}, '*');
+    if (event.data && event.data.plugin === MAT.__NAME) {
+        if (event.data.type === MAT.__ACTIONS.GET_SOURCE_URL) {
+            window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.SOURCE_URL, data: getQualityData(document.body.innerHTML)}, '*');
         }
     }
 });
 
 /**
  * Function to get the quality data
+ * @param html The HTML content of the page
+ * @returns {Array} The quality data array
+ * @since v0.1.7
  */
 function getQualityData(html) {
     const regexp = /"(\d{3,4})":{"url":"([^"]+)"/g;
@@ -18,16 +20,13 @@ function getQualityData(html) {
     for (const match of html.matchAll(regexp)) {
         data[match[1]] = match[2];
     }
-    // Return a sorted array of objects
     data = Object.keys(data).map(key => ({ quality: key, url: data[key] })).sort((a, b) => b.quality - a.quality);
-    // Remove 180 quality
     data = data.filter(item => item.quality !== '180');
     return data;
 }
 
-// Send a message to the parent window that the iframe has been loaded and ready
 document.addEventListener('DOMContentLoaded', function () {
-    window.parent.postMessage({ plugin: 'MATweaks', type: 'iframeLoaded' }, '*');
+    window.parent.postMessage({ plugin: MAT.__NAME, type: MAT.__ACTIONS.FRAME_LOADED }, '*');
 });
 
 

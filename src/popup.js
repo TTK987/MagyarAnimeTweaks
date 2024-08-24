@@ -1,6 +1,7 @@
 /**
  * Handles the popup window
  */
+import { MAT, logger, bookmarks, Bookmark} from "./API";
 window.onload = function () {
     const form = document.querySelector('form');
     form.onsubmit = function (event) {
@@ -21,34 +22,27 @@ window.onload = function () {
                 return response.text();
             }
             throw new Error('Network response was not ok.');
-        }).then(text => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, 'text/html');
-            const search_results = doc.querySelector('body > section > div > div > div:nth-child(2) > div');
+        }).then(async text => {
+            const search_results = (new DOMParser()).parseFromString(await text, 'text/html').querySelector('body > section > div > div > div:nth-child(2) > div');
             if (search_results) {
                 const results = search_results.querySelectorAll('.gen-movie-contain');
                 if (results.length > 0) {
                     let html = '';
                     for (const result of results) {
                         const title = result.querySelector('.gen-movie-info h3 a').textContent;
-                        const link = "https://magyaranime.eu" + result.querySelector('.gen-movie-info h3 a').href.match(/\/leiras\/\d+\//)[0];
-                        const episodes = result.querySelector('.gen-movie-meta-holder li:first-child').textContent;
-                        const season = result.querySelector('.gen-movie-meta-holder li:nth-child(2)').textContent;
-                        const image = result.querySelector('.gen-movie-img img').src;
                         html += `
                         <div class="card" style="width: 18rem;">
-                            <img src="${image}" class="card-img-top" alt="${title}">
+                            <img src="${result.querySelector('.gen-movie-img img')?.src || ""}" class="card-img-top" alt="${title}">
                             <div class="card-body">
                                 <h5 class="card-title">${title}</h5>
-                                <p class="card-text">${episodes}</p>
-                                <p class="card-text">${season}</p>
-                                <a href="${link}" class="btn btn-primary" target="_blank">Leírás megtekintése</a>
+                                <p class="card-text">${result.querySelector('.gen-movie-meta-holder li:first-child')?.textContent || ''}</p>
+                                <p class="card-text">${result.querySelector('.gen-movie-meta-holder li:nth-child(2)')?.textContent || ''}</p>
+                                <a href="${`https://magyaranime.eu` + result.querySelector('.gen-movie-info h3 a').href.match(/\/leiras\/\d+\//)[0] || ''}" class="btn btn-primary" target="_blank">Leírás megtekintése</a>
                             </div>
                         </div>
                         `;
-
                     }
-                    document.querySelector('#results').innerHTML = html;
+                    document.querySelector('#results').innerHTML = html.replace(/>[\r\n ]+</g, "><").replace(/(<.*?>)|\s+/g, (m, $1) => $1 ? $1 : ' ').trim();
                 } else {
                     alert('Nincs találat.');
                 }
@@ -59,5 +53,8 @@ window.onload = function () {
             console.error('Error:', error);
             alert('Hiba történt a keresés során.');
         });
+    };
+    document.getElementById('bookmarks').onclick = function () {
+        chrome.tabs.create({ url: chrome.runtime.getURL('bookmarks.html') });
     };
 }

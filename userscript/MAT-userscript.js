@@ -2,7 +2,7 @@
 // @name         MagyarAnimeTweaks (Tampermonkey version)
 // @namespace    TTK987/MagyarAnimeTweaks
 // @version      0.1.6.2
-// @description  Egyéni beállításokkal bővíti a MagyarAnime oldalait. (Ez a Tampermonkey verzió)
+// @description  Egyéni beállításokkal bővíti a MagyarAnime oldalait. (Tampermonkey verzió)
 // @author       TTK987
 // @license      MIT
 // @match        https://*.magyaranime.eu/*
@@ -15,7 +15,8 @@
 // @grant        GM_getValue
 // @grant        GM_info
 // @grant        GM_getResourceText
-
+// @updateURL    https://raw.githubusercontent.com/TTK987/MagyarAnimeTweaks/main/userscript/MAT-userscript.js
+// @downloadURL  https://raw.githubusercontent.com/TTK987/MagyarAnimeTweaks/main/userscript/MAT-userscript.js
 // @require      https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js
 // @resource     settingsCSS https://raw.githubusercontent.com/TTK987/MagyarAnimeTweaks/main/src/MATSettings.css
 // @run-at       document-start

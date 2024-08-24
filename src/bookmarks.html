@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATweaks | Könyvjelzők</title>
+    <script src="bookmarks.js"></script>
+    <style>
+        :root {
+            --primary-color: #3F9FFF;
+            --primarydark-color: #182031;
+            --bg-color: #263143;
+            --dark-color: #0a0e17;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            align-items: stretch;
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1em;
+            margin: 0;
+        }
+        #container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 1em;
+            flex-direction: column;
+            align-items: center;
+            background: var(--primarydark-color);
+            margin: 1em;
+        }
+        #loading {
+            display: block;
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1em;
+            margin: 0.5em;
+            border-radius: 0.5em;
+
+        }
+
+        #bookmarkName {
+            padding: 0.5em;
+            margin: 2em 0.5em 0.5em 0.5em;
+            width: calc(100% - 1em);
+            box-sizing: border-box;
+            background-color: var(--dark-color);
+            color: white;
+            border: none;
+            border-radius: 0.5em;
+            align-self: center;
+            justify-self: center;
+        }
+
+        .loader {
+            width: 50px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background:
+                    radial-gradient(farthest-side,var(--primary-color) 94%,#0000) top/8px 8px no-repeat,
+                    conic-gradient(#0000 30%, var(--primary-color));
+            -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
+            animation: l13 1s infinite linear;
+        }
+        @keyframes l13{
+            100%{transform: rotate(1turn)}
+        }
+    </style>
+</head>
+<body>
+    <h1>Könyvjelzők</h1>
+    <input type="text" id="bookmarkName" placeholder="Keresés...">
+
+    <div id="container">
+        <div id="loading">Betöltés...</div>
+        <div class="loader"></div>
+    </div>
+</body>
+</html>

@@ -1,48 +1,32 @@
-if ("undefined" === typeof browser) {
-    importScripts(chrome.runtime.getURL("API.js"));
-}
-let MAT = api;
+import {MAT, logger, bookmarks} from "./API.js";
 chrome.runtime.onInstalled.addListener((details) => {
     checkAndRequestPermissions();
-    MAT.loadSettings().then(() => {
-        if (MAT.getSettings().version !== MAT.getVersion()) {
-            MAT.setSettings(MAT.getDefaultSettings());
-        }
-    }).catch(() => {
-        MAT.setSettings(MAT.getDefaultSettings());
-    });
-    // Check if the extension was installed or updated
     if (details.reason === "install" || details.reason === "update") {
-        // Get the version of the extension
         const version = chrome.runtime.getManifest().version;
-        // Log the version
-        console.log(`[MATweaks]: Installed/Updated to version ${version}`);
-        // Create the settings
+        logger.log(`[background.js]: Installed/Updated to version ${version}`, true);
         MAT.saveSettings();
-        // Check if the extension was updated
         if (details.reason === "update") {
-            // Get the previous version of the extension
             const previousVersion = details.previousVersion;
-            // Log the previous version
-            console.log(`[MATweaks]: Updated from version ${previousVersion}`);
-            // Check if the previous settings version is less than the current settings version
-            migrateSettings(previousVersion);
+            logger.log(`[background.js]: Updated from version ${previousVersion}`, true);
+            migrateLocalSettings(previousVersion, version);
+            migrateSyncSettings(previousVersion, version);
+            MAT.saveSettings();
         }
     }
+    MAT.loadSettings().then(() => {
+        MAT.saveSettings();
+    });
 });
-
 /**
  * Remove all context menus and create a new one
  */
 chrome.contextMenus.removeAll(() => {
     createContextMenu();
 });
-
 /**
  * Create a context menu to search on MagyarAnime from MyAnimeList.net
  */
 function createContextMenu() {
-    // Create the context menu
     chrome.contextMenus.create({
         id: "searchOnMagyarAnime",
         title: "Keresés a MagyarAnime-én",
@@ -50,56 +34,108 @@ function createContextMenu() {
         documentUrlPatterns: ["*://*.myanimelist.net/*"]
     });
 
-    // Handle click on context menu item
     chrome.contextMenus.onClicked.addListener((info, tab) => {
         if (info.menuItemId === "searchOnMagyarAnime") {
             let url;
-            // Check if the context menu was clicked on a link or page
             if (info.linkUrl || info.pageUrl) {
-                // Get the target URL
                 const targetUrl = info.linkUrl || info.pageUrl;
-                // Check if the target URL is an anime page on MyAnimeList
                 const match = targetUrl.match(/myanimelist\.net\/anime\/(\d+)/);
                 if (match) {
-                    // Create the URL to search on MagyarAnime
                     url = `https://magyaranime.eu/web/kereso-mal/${match[1]}/`;
                 }
             }
             if (url) {
-                // Open the URL in a new tab
                 chrome.tabs.create({ url: url });
             }
         }
     });
 }
 
+
+/**
+ *  Temporary storage for bookmarks that are currently being opened and loaded
+ *  @type {[{id: number, url: string}]}
+ */
+let openBookmarks = [];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * Handle messages from the extension
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.plugin === 'MATweaks') {
+    console.log(request);
+    if (request.plugin === MAT.__NAME) {
         switch (request.type) {
             case "downloadFile":
                 // Download the file
-                chrome.downloads.download({ url: request.url, filename: request.filename});
-                sendResponse(true);
-                return true;
+                chrome.downloads.download({url: request.url, filename: request.filename}).then(r => {
+                    logger.log(`[background.js]: Downloading file: ${request.filename}`, true);
+                    sendResponse(true);
+                }).catch(e => {
+                    logger.log(`[background.js]: Failed to download file: ${e}`, true);
+                    sendResponse(false);
+                })
+                break;
             case "openSettings":
-                // Open the settings page
                 chrome.tabs.create({
                     url: chrome.runtime.getURL('options.html'),
                     active: true,
+                }).then(r => {
+                    sendResponse(true);
+                }).catch(e => {
+                    sendResponse(false);
+                });
+                break;
+            case "openBookmark":
+                logger.log(`[background.js]: Opening bookmark: ${request.id}`, true);
+                if (openBookmarks.find(id => id === request.id)) {
+                    logger.log(`[background.js]: Bookmark ${request.id} is already being opened`, true);
+                    sendResponse(false);
+                    return;
+                } else {
+                    logger.log(`[background.js]: Bookmark ${request.id} is being opened`, true);
+                    openBookmarks.push({id: request.id, url: request.url});
+                }
+                logger.log(`[background.js]: Opening bookmark: ${request.url}`, true);
+                chrome.tabs.create({
+                    url: request.url,
+                    active: true,
                 });
                 sendResponse(true);
-                return true;
+                break;
+            case "removeOpenBookmark":
+                logger.log(`[background.js]: Bookmark ${request.id} opened`, true);
+                openBookmarks = openBookmarks.filter(b => Number(b.id) !== Number(request.id));
+                console.log(openBookmarks);
+                sendResponse(true);
+                break;
+            case "getOpenBookmarks":
+                sendResponse(openBookmarks);
+                break;
             default:
-                // Send null as a response
-                sendResponse(null);
-                return false;
-        }
+                break;
+        }    
     }
 });
-
 /**
  * Check if the extension has the permissions and request if not granted
  *
@@ -107,33 +143,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @since v0.1.6.1
  */
 function checkAndRequestPermissions() {
-    chrome.permissions.contains({ 'origins': chrome.runtime.getManifest()['host_permissions'] }, (answer) => {
-        if (!answer) {
-            openPermissionPopup();
-        }
+    chrome.permissions.contains({origins: chrome.runtime.getManifest()['host_permissions'] }, (answer) => {
+        if (!answer) openPermissionPopup(); else logger.log(`[background.js]: Permissions already granted`, true);
     });
 }
-
-/**
- * Migrate the settings from the previous version to the current version
- * @param {String} previousVersion The previous version of the extension
- *
- */
-function migrateSettings(previousVersion) {
-    const currentVersion = chrome.runtime.getManifest().version;
-    MAT.loadSettings().then(data => {
-        if (MAT.getSettings().version !== MAT.getVersion()) {
-            MAT.setSettings(Object.assign({}, MAT.getDefaultSettings(), data));
-            console.log(`[MATweaks]: Migrated settings from version ${previousVersion} to version ${currentVersion}`);
-            console.log(`[MATweaks]: Settings:`, JSON.stringify(MAT.getSettings()));
-            MAT.saveSettings();
-        }
-    }).catch(() => {
-        MAT.setSettings(MAT.getDefaultSettings());
-        MAT.saveSettings();
-    });
-}
-
 /**
  * Open the permission popup
  */
@@ -146,3 +159,169 @@ function openPermissionPopup() {
         focused: true,
     });
 }
+
+
+// |=================================================================================================
+// | CURRENTLY ALL THE CODE BELOW IS BROKEN AND NEEDS TO BE FIXED
+// |=================================================================================================
+
+// TODO: Fix settings migration
+/**
+ * Helper function to migrate settings
+ * @param {String} previousVersion The previous version of the extension
+ * @param {String} currentVersion The current version of the extension
+ * @param {Function} getSettings Function to get settings (local or sync)
+ * @param {Function} saveSettings Function to save settings (local or sync)
+ */
+function migrateSettings(previousVersion, currentVersion, getSettings, saveSettings) {
+    if (previousVersion !== currentVersion) {
+        const migrateFn = getMigrationFunction(previousVersion);
+        if (migrateFn) {
+            getSettings().then(data => {
+                MAT.setSettings(migrateFn(data));
+                saveSettings();
+            });
+        } else {
+            logger.error(`[background.js]: Failed to migrate settings from version ${previousVersion} to version ${currentVersion}`, true);
+            MAT.setSettings(MAT.getDefaultSettings());
+            saveSettings();
+        }
+    }
+}
+
+/**
+ * Get the appropriate migration function based on the version
+ * @param {String} version The version of the extension
+ * @returns {Function} The migration function
+ */
+function getMigrationFunction(version) {
+    if (/0.1.8.[0-9]/.test(version)) return migrateSettings_0_1_8;
+    if (/0.1.7.[0-9]/.test(version)) return migrateSettings_0_1_7;
+    if (/0.1.6.[0-9]/.test(version)) return migrateSettings_0_1_6;
+    if (/0.1.5.[0-9]/.test(version)) return migrateSettings_0_1_5;
+    return null;
+}
+
+/**
+ * Migrate local settings
+ * @param {String} previousVersion The previous version of the extension
+ * @param {String} currentVersion The current version of the extension
+ */
+function migrateLocalSettings(previousVersion, currentVersion) {
+    migrateSettings(previousVersion, currentVersion, MAT.getLocalSettings, MAT.saveLocalSettings);
+}
+
+/**
+ * Migrate sync settings
+ * @param {String} previousVersion The previous version of the extension
+ * @param {String} currentVersion The current version of the extension
+ */
+function migrateSyncSettings(previousVersion, currentVersion) {
+    migrateSettings(previousVersion, currentVersion, MAT.getSyncSettings, MAT.saveSyncSettings);
+}
+/**
+ * Migrate the settings from version 0.1.8 to the current version
+ * @param {Object} previousSettings The previous settings
+ * @returns {Object} The migrated settings from version 0.1.8 to the current version
+ * @since v0.1.8
+ */
+function migrateSettings_0_1_8(previousSettings) {
+    logger.log(`[background.js]: Migrating settings from version 0.1.8 to version ${MAT.getVersion()}`, true);
+    try {
+        if (!/0.1.8.[0-9]/.test(previousSettings.version)) return previousSettings
+        previousSettings.version = MAT.getVersion();
+        return previousSettings;
+    } catch (error) {
+        logger.error(`[background.js]: Failed to migrate settings from version 0.1.8 to version ${MAT.getVersion()}`, true);
+        console.error(error);
+        return MAT.getDefaultSettings();
+    } finally {
+        logger.log(`[background.js]: Migrated settings from version 0.1.8 to version ${MAT.getVersion()}`, true);
+    }
+}
+/**
+ * Migrate the settings from version 0.1.7.x to 0.1.8.x
+ * @param {Object} previousSettings The previous settings
+ * @returns {Object} The migrated settings from version 0.1.7.x to 0.1.8.x
+ * @since v0.1.8
+ */
+function migrateSettings_0_1_7(previousSettings) {
+    logger.log(`[background.js]: Migrating settings from version 0.1.7.x to version ${MAT.getVersion()}`, true);
+    try {
+        if (!/0.1.7.[0-9]/.test(previousSettings.version)) {
+            logger.log(`[background.js]: Settings are already up to date`, true);
+            return previousSettings
+        }
+        let data = MAT.getDefaultSettings();
+        data.version = MAT.getVersion();
+        data.private.eap = previousSettings.eap || false;
+        data = Object.assign(data, previousSettings);
+        if (data.advanced.settings.DefaultPlayer.player === 'html5') data.advanced.settings.DefaultPlayer.player = 'plyr';
+        return data;
+    } catch (error) {
+        logger.error(`[background.js]: Failed to migrate settings from version 0.1.7.x to version ${MAT.getVersion()}`, true);
+        console.error(error);
+        return MAT.getDefaultSettings();
+    } finally {
+        logger.log(`[background.js]: Migrated settings from version 0.1.7.x to version ${MAT.getVersion()}`, true);
+    }
+}
+/**
+ * Migrate the settings from version 0.1.6.x to 0.1.7.x
+ * @param {Object} previousSettings The previous settings
+ * @returns {Object} The migrated settings from version 0.1.6.x to 0.1.7.x
+ * @since v0.1.8
+ */
+function migrateSettings_0_1_6(previousSettings) {
+    logger.log(`[background.js]: Migrating settings from version 0.1.6.x to version ${MAT.getVersion()}`, true);
+
+    try {
+        if (!/0.1.6.[0-9]/.test(previousSettings.version)) return previousSettings
+        let data = MAT.getDefaultSettings();
+        data.version = MAT.getVersion();
+        data.advanced.enabled = previousSettings.devSettings.enabled || false;
+        data.advanced.settings.ConsoleLog.enabled = previousSettings.devSettings.settings.ConsoleLog.enabled || false;
+        data.advanced.settings.DefaultPlayer.player = previousSettings.devSettings.settings.DefaultPlayer.player || 'plyr';
+        data.forwardSkip.time = previousSettings.forwardSkip.duration || 85;
+        data.backwardSkip.time = previousSettings.backwardSkip.duration || 85;
+        data = Object.assign(data, previousSettings);
+        if (data.advanced.settings.DefaultPlayer.player === 'html5') data.advanced.settings.DefaultPlayer.player = 'plyr';
+        return data;
+    } catch (error) {
+        logger.error(`[background.js]: Failed to migrate settings from version 0.1.6.x to version ${MAT.getVersion()}`, true);
+        console.error(error);
+        return MAT.getDefaultSettings();
+    } finally {
+        logger.log(`[background.js]: Migrated settings from version 0.1.6.x to version ${MAT.getVersion()}`, true);
+    }
+}
+/**
+ * Migrate the settings from version 0.1.5.x to 0.1.6.x
+ * @param {Object} previousSettings The previous settings
+ * @returns {Object} The migrated settings from version 0.1.5.x to 0.1.6.x
+ * @since v0.1.8
+ */
+function migrateSettings_0_1_5(previousSettings) {
+    logger.log(`[background.js]: Migrating settings from version 0.1.5.x to version ${MAT.getVersion()}`, true);
+
+    try {
+        if (!/0.1.5.[0-9]/.test(previousSettings.version)) return previousSettings
+        let data = MAT.getDefaultSettings();
+        data.version = MAT.getVersion();
+        data.advanced.enabled = previousSettings.devSettings.enabled || false;
+        data.advanced.settings.ConsoleLog.enabled = previousSettings.devSettings.settings.ConsoleLog.enabled || false;
+        data.advanced.settings.DefaultPlayer.player = previousSettings.devSettings.settings.DefaultPlayer.player || 'plyr';
+        data.forwardSkip.time = previousSettings.forwardSkip.duration || 85;
+        data.backwardSkip.time = previousSettings.backwardSkip.duration || 85;
+        data = Object.assign(data, previousSettings);
+        if (data.advanced.settings.DefaultPlayer.player === 'html5') data.advanced.settings.DefaultPlayer.player = 'plyr';
+        return data;
+    } catch (error) {
+        logger.error(`[background.js]: Failed to migrate settings from version 0.1.5.x to version ${MAT.getVersion()}`, true);
+        console.error(error);
+        return MAT.getDefaultSettings();
+    } finally {
+        logger.log(`[background.js]: Migrated settings from version 0.1.5.x to version ${MAT.getVersion()}`, true);
+    }
+}
+

@@ -106,11 +106,38 @@
     - Egyedi kinézet
     - [További információk](SETTINGS.md#plyr)
 
-## 0.1.7.1
+## 0.1.7.1 - 0.1.7.5
 - Hibajavítások
   - A kiegészítő nem tudta megfelelően betölteni a beállításokat frissítés után.
+  
 
-## 0.1.7.5
-- Hibajavítások
-  - A kiegészítő nem tudta megfelelően betölteni a beállításokat frissítés után.
-  > Remélem most már tényleg megoldódott a probléma.
+## 0.1.8
+- **Új funkciók**
+  - **Könyvjelzők**
+    - A animékhez hozzáadható könyvjelző, amivel könnyen visszatérhetsz az adott részhez.
+    - [További információk](BOOKMARKS.md)
+  - **Folytatás ahol abbahagytad**
+    - Ezzel a funkcióval a kiegészítő megjegyzi, hogy hol hagytad abba az adott animét és részt.
+    - [További információk](SETTINGS.md#folytatás-ahol-abbahagytad)
+- **Új beállítások**
+  - **Könyvjelzők** (Alapértelmezett: Engedélyezve)
+    - [További információk](SETTINGS.md#könyvjelzők)
+  - **Folytatás ahol abbahagytad** (Alapértelmezett: Engedélyezve)
+    - [További információk](SETTINGS.md#folytatás-ahol-abbahagytad)
+  - **Beállítások szinkronizálása** (Alapértelmezett: Engedélyezve)
+    - [További információk](SETTINGS.md#beállítások-szinkronizálása)
+- Egyéb változások
+  - A "HTML5" lejátszó megszűntetésre került.
+    - Ha valaki használta, akkor innentől kezdve a "Plyr" lejátszó lesz használva.
+  - Kód átszervezés és optimalizálás.
+  - `webpack` használata a kód generálásához.
+  - `terser-webpack-plugin` használata a kód tömörítéséhez.
+- **Hiba javítások**
+  -  a 
+### Teljes telefon támogatás
+  - Mostantól a kiegészítő teljesen használható telefonon is. (Android)
+    - [További információk](PHONE_SUPPORT.md)
+
+
+
+

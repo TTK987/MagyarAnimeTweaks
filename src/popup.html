@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MagyarAnime Kereső | MATweaks</title>
+    <title>MATweaks | MagyarAnime bővítmény</title>
+    <!-- We are the only* extension for MagyarAnime! -->
+    <!-- *The only one that is working and maintained -->
     <script src="popup.js"></script>
     <style>
         :root {
@@ -24,6 +26,7 @@
             text-align: center;
             padding: 1em;
             margin: 0;
+            width: 100%;
         }
         form {
             display: flex;
@@ -115,34 +118,60 @@
         ::-webkit-scrollbar-track {
             background-color: var(--dark-color);
         }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 20em;
+        }
+
+        #bookmarks {
+            padding: 0.5em;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 0.5em;
+            text-align: center;
+            display: block;
+            width: 94%;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            margin: 1em;
+        }
+        #bookmarks:hover {
+            background-color: var(--primarydark-color);
+        }
     </style>
 </head>
 <body>
-    <h1>MagyarAnime Kereső</h1>
-    <form>
-        <label for="search_text">Keresési szöveg:</label>
-        <input type="text" id="search_text" name="search_text" required>
-        <label for="tipus">Típus:</label>
-        <select name="tipus" id="tipus">
-            <option value="1" selected="">Keresés mindenhol</option>
-            <option value="2">Futó szériák</option>
-            <option value="3">Befejezett szériák</option>
-            <option value="4">Várható szériák</option>
-            <option value="5">Linkelés alatt lévők</option>
-        </select>
-        <label for="sorrend">Sorrend:</label>
-        <select name="sorrend" id="sorrend">
-            <option value="1" selected="">A-Z</option>
-            <option value="2">Z-A</option>
-            <option value="3">Megtekintések Átlag</option>
-            <option value="4">Megtekintések Összesen</option>
-            <option value="5">Legújabb frissítés</option>
-            <option value="6">Legrégebbi frissítés</option>
-            <option value="7">Értékelés csökkenő</option>
-            <option value="8">Értékelés növekvő</option>
-        </select>
-        <input type="submit" value="Keresés">
-    </form>
-    <div id="results"></div>
+<h1>MagyarAnime Kereső</h1>
+<button id="bookmarks">Könyvjelzők</button>
+<form>
+    <label for="search_text">Keresési szöveg:</label>
+    <input type="text" id="search_text" name="search_text" required>
+    <label for="tipus">Típus:</label>
+    <select name="tipus" id="tipus">
+        <option value="1" selected>Keresés mindenhol</option>
+        <option value="2">Futó szériák</option>
+        <option value="3">Befejezett szériák</option>
+        <option value="4">Várható szériák</option>
+        <option value="5">Linkelés alatt lévők</option>
+    </select>
+    <label for="sorrend">Sorrend:</label>
+    <select name="sorrend" id="sorrend">
+        <option value="1" selected>A-Z</option>
+        <option value="2">Z-A</option>
+        <option value="3">Megtekintések Átlag</option>
+        <option value="4">Megtekintések Összesen</option>
+        <option value="5">Legújabb frissítés</option>
+        <option value="6">Legrégebbi frissítés</option>
+        <option value="7">Értékelés csökkenő</option>
+        <option value="8">Értékelés növekvő</option>
+    </select>
+    <input type="submit" value="Keresés">
+</form>
+<div id="results"></div>
 </body>
 </html>

@@ -37,9 +37,8 @@
 - **Console log**
     - **Engeedélyezve**: Ki/be kapcsolja a konzol logolást.
 - **Alapértelmezett lejátszó**
-    - **< legördülő lista >**: A lejátszó, amit alapértelmezetten használ a kiegészítő. (Ezek: `plyr`, `Alapértelmezett`, `HTML5`)
+    - **< legördülő lista >**: A lejátszó, amit alapértelmezetten használ a kiegészítő. (Ezek: `plyr`, `Alapértelmezett`)
 > - `Alapértelmezett`: Nem cseréli le a lejátszót. (Pl: indavideonál marad az indavideo lejátszó)
-> - `HTML5`: HTML5 lejátszóra cseréli le a lejátszót. (Ez a sima böngésző lejátszója) (Mega.nz-nél nem működik, ezért ott plyr-t használ)
 > - `plyr`: Plyr lejátszóra cseréli le a lejátszót. (Ez egy lejátszó, amit a kiegészítő használ)
 
 ### Letöltési név

@@ -2,11 +2,13 @@
   "name": "MagyarAnimeTweaks",
   "description": "Egy kis segítség a MagyarAnime oldalhoz.",
   "manifest_version": 3,
-  "version": "0.1.7.5",
+  "version": "0.1.8",
   "permissions": [
     "storage",
     "contextMenus",
-    "downloads"
+    "downloads",
+    "tabs",
+    "activeTab"
   ],
   "host_permissions": [
     "*://*.magyaranime.eu/*",
@@ -25,8 +27,8 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["player.css", "plyr.svg", "MATSettings.css"],
-      "matches": ["https://*.mega.nz/*"],
+      "resources": ["player.css", "plyr.svg", "MATStyle.css", "logo/MATLogo-128.png", "blank.mp4"],
+      "matches": ["https://*.mega.nz/*", "https://*.magyaranime.eu/*", "https://*.magyaranime.hu/*"],
       "extension_ids": ["*"]
     }
   ],
@@ -45,7 +47,8 @@
   "author": "TTK987",
   "background": {
     "service_worker": "background.js",
-    "scripts": ["API.js", "background.js"]
+    "scripts": ["background.js"],
+    "type": "module"
   },
   "browser_specific_settings": {
     "gecko": {
@@ -55,17 +58,16 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.magyaranime.eu/*", "*://*.magyaranime.hu/*", "*://*.mega.nz/embed/*"],
-      "js": ["API.js"],
+      "matches": ["*://*.magyaranime.eu/*", "*://*.magyaranime.hu/*"],
+      "js": ["content.js", "player.js"],
+      "css": ["player.css", "MATStyle.css"],
       "all_frames": true,
       "run_at": "document_start"
     },
     {
       "matches": ["*://*.magyaranime.eu/*", "*://*.magyaranime.hu/*"],
-      "js": ["content.js", "player.js"],
-      "css": ["player.css", "MATSettings.css"],
-      "all_frames": true,
-      "run_at": "document_start"
+      "js": ["rmp.js"],
+      "world": "MAIN"
     },
     {
       "matches": ["*://embed.indavideo.hu/*"],
@@ -81,22 +83,72 @@
       "run_at": "document_end"
     },
     {
-      "matches": ["*://*.dailymotion.com/player.html*"],
-        "js": ["dailymotion.js"],
-        "all_frames": true,
-        "run_at": "document_start"
+      "matches": ["*://*.dailymotion.com/*"],
+      "js": ["dailymotion.js"],
+      "all_frames": true,
+      "run_at": "document_start"
     },
     {
-        "matches": ["*://*.rumble.com/embed/*"],
-        "js": ["rumble.js"],
-        "all_frames": true,
-        "run_at": "document_start"
+      "matches": ["*://*.rumble.com/embed/*"],
+      "js": ["rumble.js"],
+      "all_frames": true,
+      "run_at": "document_start"
     },
     {
-        "matches": ["*://*.videa.hu/player?*"],
-        "js": ["videa.js"],
-        "all_frames": true,
-        "run_at": "document_start"
+      "matches": ["*://*.videa.hu/player?*"],
+      "js": ["videa.js"],
+      "all_frames": true,
+      "run_at": "document_start"
     }
-  ]
+  ],
+  "commands": {
+    "playPause": {
+      "suggested_key": {
+        "default": "MediaPlayPause",
+        "mac": "MediaPlayPause"
+      },
+      "description": "Az anime lejátszásának szüneteltetése vagy folytatása.",
+      "global": true
+    },
+    "forwardSkip": {
+      "suggested_key": {
+        "default": "MediaNextTrack",
+        "mac": "MediaNextTrack"
+      },
+      "description": "Előre ugrás az animeben.",
+      "global": true
+    },
+    "backwardSkip": {
+      "suggested_key": {
+        "default": "MediaPrevTrack",
+        "mac": "MediaPrevTrack"
+      },
+      "description": "Hátrafelé ugrás az animeben.",
+      "global": true
+    },
+    "nextEpisode": {
+      "suggested_key": {
+        "default": "Alt+Right",
+        "mac": "Alt+Right"
+      },
+      "description": "A következő rész megtekintése.",
+      "global": true
+    },
+    "previousEpisode": {
+      "suggested_key": {
+        "default": "Alt+Left",
+        "mac": "Alt+Left"
+      },
+      "description": "Az előző rész megtekintése.",
+      "global": true
+    },
+    "toggleSettings": {
+      "suggested_key": {
+        "default": "Alt+Shift+M",
+        "mac": "Alt+Shift+M"
+      },
+      "description": "A beállítások megnyitása vagy bezárása.",
+      "global": true
+    }
+  }
 }

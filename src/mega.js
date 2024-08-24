@@ -1,32 +1,4 @@
-let MAT = window.MAT;
-let logger = {
-    enabled: false,
-    log(message) {
-        if (this.enabled) {
-            log(message);
-        }
-    },
-    warn(message) {
-        if (this.enabled) {
-            warn(message);
-        }
-    },
-    error(message) {
-        if (this.enabled) {
-            error(message)
-        }
-    },
-    enable() {
-        this.enabled = true;
-    },
-    disable() {
-        this.enabled = false;
-    },
-    isEnabled() {
-        return this.enabled;
-    }
-};
-
+import { MAT, logger } from "./API.js";
 /**
  * Settings object to store the settings (Later loaded from the storage)
  *
@@ -34,14 +6,108 @@ let logger = {
  *
  * @type {Object}
  */
-let settings = MAT.getSettings();
-
-
+let settings = MAT.getDefaultSettings();
 /**
- * Plyr player
- * @type {Plyr}
+ * Plyr player object
  */
 let plyr = undefined;
+
+/**
+ * Class to handle the player
+ */
+class Player {
+    constructor() {
+        this.plyr = undefined;
+    }
+
+    /**
+     * Get the Plyr player i18n
+     * @returns {{play: string,seekLabel: string,seek: string,speed: string,enabled: string,duration: string,download: string,loop: string,unmute:string,end: string,disabled: string,menuBack: string,all: string,settings: string,normal: string,restart: string,start: string,mute: string,played: string,pause: string,quality: string,currentTime: string,volume: string,exitFullscreen: string,enterFullscreen: string,reset: string,qualityBadge: {1080: string, 144: string, 576: string, 720: string, 1440: string, 480: string, 360: string, 2160: string, 240: string}}} The Plyr player i18n
+     * @since v0.1.8
+     */
+    getPlyrI18n() {
+        return {
+            restart: "Újraindítás",
+            play: "Lejátszás",
+            pause: "Megállítás",
+            seek: "Keresés",
+            seekLabel: "{currentTime} másodpercnél",
+            played: "Lejátszott",
+            currentTime: "Jelenlegi idő",
+            duration: "Teljes idő",
+            volume: "Hangerő",
+            mute: "Némítás",
+            unmute: "Némítás kikapcsolása",
+            download: "Letöltés",
+            enterFullscreen: "Teljes képernyő",
+            exitFullscreen: "Kilépés a teljes képernyőből",
+            settings: "Beállítások",
+            menuBack: "Vissza",
+            speed: "Sebesség",
+            normal: "Normál",
+            quality: "Minőség",
+            loop: "Ismétlés",
+            start: "Kezdés",
+            end: "Befejezés",
+            all: "Összes",
+            reset: "Visszaállítás",
+            disabled: "Letiltva",
+            enabled: "Engedélyezve",
+            qualityBadge: {
+                2160: "4K",
+                1440: "2K",
+                1080: "FHD",
+                720: "HD",
+                576: "SD",
+                480: "SD",
+                360: "",
+                240: "",
+                144: "",
+            },
+        };
+    }
+
+    replaceMegaAuto() {
+        const load = setInterval(() => {
+            let playbtn = document.querySelector("div.play-video-button")
+            if (playbtn) {
+                playbtn.click();
+                const video = document.querySelector("video");
+                if (video) {
+                    if (video.src) {
+                        this.addPlyr();
+                        this.removeElements();
+
+
+                        let style = document.createElement("style");
+                        style.innerHTML = `.sharefile-block, .dropdown, .viewer-top-bl, .play-video-button, .viewer-pending, .logo-container, .viewer-vad-control, .video-progress-bar, .viewer-bottom-bl{display: none !important;}.transfer-limitation-block, .file-removed-block  {z-index: 1001 !important;}`;
+                        document.head.appendChild(style);
+
+                        ["sharefile-block", "dropdown", "viewer-top-bl", "viewer-pending", "logo-container", "viewer-vad-control", "video-progress-bar", "viewer-bottom-bl"].forEach(cls => document.querySelector(`.${cls}`)?.remove());
+
+
+                        clearInterval(load);
+                    } else {
+                        logger.error("[Mega.nz] Video source not found");
+                    }
+                } else {
+                    logger.error("[Mega.nz] Video not found");
+                }
+            }
+        }, 10);
+
+    }
+
+
+}
+
+
+
+
+
+
+
+
 
 /**
  * Function to load the settings from the storage and set the settings variable
@@ -49,12 +115,11 @@ let plyr = undefined;
 function loadSettings() {
     MAT.loadSettings().then((data) => {
         settings = data;
-        console.log("[Mega.nz] Settings loaded");
+        logger.log("[Mega.nz] Settings loaded", true);
     }).catch(() => {
-        console.error("[Mega.nz] Settings not loaded");
+        logger.error("[Mega.nz] Settings not loaded", true);
     });
 }
-
 /**
  * Function that checks if the advanced settings are enabled
  * @returns {boolean} Returns true if the advanced settings are enabled, otherwise false
@@ -62,64 +127,41 @@ function loadSettings() {
 function checkAdvancedSettings() {
     return settings.advanced.enabled;
 }
-
 /**
  * Function to initialize the mega.nz part of the extension
  */
 function initMega() {
     loadSettings();
-    if (checkAdvancedSettings() && settings.advanced.settings.ConsoleLog.enabled) {
-        logger.enable();
-    } else {
-        console.log(settings);
-    }
-    // Send a message to the parent window that the iframe has been loaded and ready
-    window.parent.postMessage({plugin: "MATweaks", type: "megaIframeLoaded"}, "*");
+    window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.FRAME_LOADED}, "*");
 }
-
 /**
  * Function to replace the mega.nz player with the custom player
  *
  * (Plyr)
  */
 function replaceMega() {
-    // wait for the video to load
     const load = setInterval(() => {
-        // get the video source
         let playbtn = document.querySelector("div.play-video-button")
         if (playbtn) {
             playbtn.click();
             const video = document.querySelector("video");
             if (video) {
                 if (video.src) {
-                    // Add plyr to the video
                     addPlyr();
-                    // Remove or hide the elements that we don't need
                     let style = document.createElement("style");
                     style.innerHTML = `.sharefile-block, .dropdown, .viewer-top-bl, .play-video-button, .viewer-pending, .logo-container, .viewer-vad-control, .video-progress-bar, .viewer-bottom-bl{display: none !important;}.transfer-limitation-block, .file-removed-block  {z-index: 1001 !important;}`;
                     document.head.appendChild(style);
-                    // Remove the elements that we don't need
-                    let sharefile = document.querySelector(".sharefile-block"); if (sharefile) {sharefile.remove();}
-                    let dropdown = document.querySelector(".dropdown"); if (dropdown) {dropdown.remove();}
-                    let viewerTopBl = document.querySelector(".viewer-top-bl");if (viewerTopBl) {viewerTopBl.remove();}
-                    let viewerPending = document.querySelector(".viewer-pending");if (viewerPending) {viewerPending.remove();}
-                    let logoContainer = document.querySelector(".logo-container");if (logoContainer) {logoContainer.remove();}
-                    let viewerVadControl = document.querySelector(".viewer-vad-control");if (viewerVadControl) {viewerVadControl.remove();}
-                    let videoProgressBar = document.querySelector(".video-progress-bar");if (videoProgressBar) {videoProgressBar.remove();}
-                    let viewerBottomBl = document.querySelector(".viewer-bottom-bl");if (viewerBottomBl) {viewerBottomBl.remove();}
-                    // Clear the interval
+                    ["sharefile-block", "dropdown", "viewer-top-bl", "viewer-pending", "logo-container", "viewer-vad-control", "video-progress-bar", "viewer-bottom-bl"].forEach(cls => document.querySelector(`.${cls}`)?.remove());
                     clearInterval(load);
                 }
             }
         }
     }, 10);
 }
-
 /**
  * Function to add the plyr player to the video
  */
 function addPlyr() {
-    // Get the icon URL and the blank video URL
     if (plyr !== undefined) { plyr.destroy(); }
     plyr = new Plyr("#video", {
         controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "fullscreen"],
@@ -173,31 +215,27 @@ function addPlyr() {
             options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
         }
     });
-    // Fix the plyr
     fixPlyr();
-    // Add the settings to the plyr
     loadCustomCss();
     addShortcutsToPlyr();
+    window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.PLAYER_READY}, "*");
 }
-
 /**
  * Function to skip forwards in the video
  * @param {number} seconds The number of seconds to skip
  */
-function goForwards(seconds) {
+function goForwards(seconds = 10) {
     plyr.currentTime = plyr.currentTime + Number(seconds);
     logger.log("[Mega.nz] Skipping " + seconds + " seconds forwards");
 }
-
 /**
  * Function to skip backwards in the video
  * @param {number} seconds The number of seconds to skip
  */
-function goBackwards(seconds) {
+function goBackwards(seconds= 10) {
     plyr.currentTime = plyr.currentTime - Number(seconds);
     logger.log("[Mega.nz] Skipping " + seconds + " seconds backwards");
 }
-
 /**
  * Function to fix the plyr player
  */
@@ -205,13 +243,13 @@ function fixPlyr() {
     const interval = setInterval(() => {
         const plyr = document.querySelector(".plyr");
         if (plyr) {
-            plyr.style.margin = "0"; // Remove the margin from the player, so when it is in embed mode, there won't be anything around it
-            plyr.style.zIndex = "1000"; // Set the z-index to 1000, so it will be on top of everything
+            plyr.style.margin = "0";
+            plyr.style.zIndex = "1000";
             let style = document.createElement("style");
             style.innerHTML = ".plyr__control--overlaid {background: #00b2ff;background: var(--plyr-video-control-background-hover, var(--plyr-color-main, var(--plyr-color-main, #00b2ff))) !important;}";
             document.head.appendChild(style);
-            if (settings.autoplay.enabled) document.querySelector("video").play(); // Play the video if the autoplay is enabled in the settings
-            if (settings.autoNextEpisode.enabled) setAutoNextEpisode(); // Set the auto next episode if it is enabled in the settings
+            if (settings.autoplay.enabled) document.querySelector("video").play();
+            if (settings.autoNextEpisode.enabled) setAutoNextEpisode();
             clearInterval(interval);
             logger.log("[Mega.nz] Plyr found, fixing it");
         } else {
@@ -219,7 +257,6 @@ function fixPlyr() {
         }
     }, 10);
 }
-
 /**
  * Function to set the auto next episode
  */
@@ -231,42 +268,40 @@ function setAutoNextEpisode() {
     video.addEventListener("timeupdate", () => {
         if (video.currentTime >= video.duration - settings.autoNextEpisode.time && !isAutoNextEpisodeTriggered) {
             isAutoNextEpisodeTriggered = true;
-            window.parent.postMessage({plugin: "MATweaks", type: "nextEpisode"}, "*");
+            window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.AUTO_NEXT_EPISODE}, "*");
         }
     });
 }
-
 /**
  * Event listener to listen for messages from the parent window
  */
 window.addEventListener("message", (event) => {
-    if (event.data.plugin === "MATweaks") {
-        // Handle the messages from the parent window
+    if (event.data.plugin === MAT.__NAME) {
         switch (event.data.type) {
-            case "replacePlayer":
+            case MAT.__ACTIONS.MEGA.REPLACE_PLAYER:
                 logger.log("[Mega.nz] Replace mega");
                 handleMegaReplace();
                 break;
-            case "backwardSkip":
+            case MAT.__ACTIONS.MEGA.BACKWARD_SKIP:
                 goBackwards(event.data.seconds);
                 break;
-            case "forwardSkip":
+            case MAT.__ACTIONS.MEGA.FORWARD_SKIP:
                 goForwards(event.data.seconds);
                 break;
-            case "togglePlay":
+            case MAT.__ACTIONS.MEGA.TOGGLE_PLAY:
                 plyr.togglePlay();
                 break;
-            case "volumeUp":
+            case MAT.__ACTIONS.MEGA.VOL_UP:
                 plyr.increaseVolume(0.1);
                 break
-            case "volumeDown":
+            case MAT.__ACTIONS.MEGA.VOL_DOWN:
                 plyr.decreaseVolume(0.1);
                 break;
-            case "toggleMute":
+            case MAT.__ACTIONS.MEGA.TOGGLE_MUTE:
                 let muted = plyr.muted;
                 plyr.muted = !muted;
                 break;
-            case "toggleFullscreen":
+            case MAT.__ACTIONS.MEGA.TOGGLE_FULLSCREEN:
                 // We have to use this, because the browser API only accepts user gestures to enter fullscreen
                 // and still not 100% working, but it works most of the time (test results: it works on the second try)
                 // Error: Failed to execute 'requestFullscreen' on 'Element': API can only be initiated by a user gesture.
@@ -277,18 +312,20 @@ window.addEventListener("message", (event) => {
                 fullscrnbtn.click();
                 fullscrnbtn.blur();
                 break;
-            case "seekTo":
+            case MAT.__ACTIONS.SEEK:
                 let percentage = event.data.percent;
                 if (percentage < 0) percentage = 0;
                 if (percentage > 100) percentage = 100;
                 plyr.currentTime = (percentage / 100) * plyr.duration;
+                break;
+            case MAT.__ACTIONS.MEGA.GET_CURRENT_TIME:
+                window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.CURRENT_TIME, currentTime: plyr.currentTime}, "*");
                 break;
             default:
                 break;
         }
     }
 });
-
 /**
  * Function to handle the mega player replace
  */
@@ -305,7 +342,6 @@ function handleMegaReplace() {
         replaceMega();
     }
 }
-
 /**
  * Function to add the shortcuts to the plyr player
  */
@@ -317,15 +353,13 @@ function addShortcutsToPlyr() {
 
     document.addEventListener("keyup", (event) => {
         handleShortcutEvent(event, settings.nextEpisode, () => {
-            window.parent.postMessage({ plugin: "MATweaks", type: "nextEpisodeForce" }, "*");
+            window.parent.postMessage({ plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.NEXT_EPISODE }, "*");
         });
         handleShortcutEvent(event, settings.previousEpisode, () => {
-            window.parent.postMessage({ plugin: "MATweaks", type: "previousEpisode" }, "*");
+            window.parent.postMessage({ plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.PREVIOUS_EPISODE }, "*");
         });
     });
 }
-
-
 /**
  * Function to handle the shortcut event
  * @param {KeyboardEvent} event The keyboard event
@@ -335,10 +369,10 @@ function addShortcutsToPlyr() {
 function handleShortcutEvent(event, shortcut, action) {
     if (shortcut.enabled && checkShortcut(event, shortcut)) {
         event.preventDefault();
+        event.stopPropagation();
         action(shortcut.time);
     }
 }
-
 /**
  * Function to check if the shortcut is valid
  * @param {KeyboardEvent} event The keyboard event
@@ -348,7 +382,6 @@ function handleShortcutEvent(event, shortcut, action) {
 function checkShortcut(event, shortcut) {
     return event.ctrlKey === shortcut.ctrlKey && event.altKey === shortcut.altKey && event.shiftKey === shortcut.shiftKey && event.key === shortcut.key;
 }
-
 /**
  * Function to load the custom css for the plyr
  */
@@ -367,6 +400,6 @@ function loadCustomCss() {
     }
 }
 
-// Initialize the mega.nz part of the extension
 initMega();
+
 

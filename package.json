@@ -1,0 +1,33 @@
+{
+  "name": "magyaranimetweaks",
+  "version": "0.1.8",
+  "description": "Tweaks for MagyarAnime",
+  "main": "index.js",
+  "scripts": {
+    "dev": "webpack --mode development -w",
+    "build": "webpack --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TTK987/MagyarAnimeTweaks.git"
+  },
+  "private": true,
+  "devDependencies": {
+    "@eslint/js": "^9.9.1",
+    "autoprefixer": "^10.4.17",
+    "copy-webpack-plugin": "^12.0.2",
+    "css-minimizer-webpack-plugin": "^7.0.0",
+    "globals": "^15.9.0",
+    "mini-css-extract-plugin": "^2.9.0",
+    "webpack": "^5.90.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^12.0.2",
+    "html-minimizer-webpack-plugin": "^5.0.0",
+    "terser-webpack-plugin": "^5.3.10",
+    "webpack": "^5.90.1",
+    "webpack-cli": "^5.1.4"
+  }
+}

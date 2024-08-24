@@ -1,15 +1,14 @@
-let MAT = window.MAT;
-let settings =  MAT.getSettings();
-let logger = window.MATLogger;
+import {MAT, logger} from "./API";
 
+let settings = MAT.getSettings();
 /**
  * Function to save the settings to the storage
  * @param {Object} newSettings - The settings to save
  */
 function saveSettings(newSettings) {
-    settings = Object.assign(settings, newSettings);
-    MAT.setSettings(settings);
+    MAT.setSettings(newSettings)
     MAT.saveSettings();
+    settings = MAT.getSettings();
 }
 
 /**
@@ -18,8 +17,7 @@ function saveSettings(newSettings) {
 function loadSettings() {
     MAT.loadSettings().then((data) => {
         settings = data;
-        logger.log("Settings loaded!");
-        if (settings.advanced.enabled && settings.advanced.settings.ConsoleLog.enabled) logger.enable();
+        if (settings.advanced.enabled && settings.advanced.settings.ConsoleLog.enabled) logger.enable(); else logger.disable();
     }).catch((error) => {
         logger.error(error);
     });
@@ -230,8 +228,7 @@ function handleSetting(settingName, elements) {
         key.addEventListener("keydown", (event) => {
             event.preventDefault();
             setText(event, key);
-            setKeySettings(event, settings[settingName]);
-            logger.log(`${settingName} key: Key: ${settings[settingName].key} Ctrl: ${settings[settingName].ctrlKey} Alt: ${settings[settingName].altKey} Shift: ${settings[settingName].shiftKey}`);
+            setKeySettings(event, settings[settingName].keyBind);
         });
     }
 }
@@ -258,23 +255,12 @@ function combineColors(color, opacity) {
  * @param {HTMLInputElement} input - The input to set the text
  */
 function setText(data, input) {
-    let text = "";
-    if (data.ctrlKey && data.key !== "Control") {
-        text += "Ctrl + ";
-    }
-    if (data.altKey && data.key !== "Alt") {
-        text += "Alt + ";
-    }
-    if (data.shiftKey && data.key !== "Shift") {
-        text += "Shift + ";
-    }
-    text += data.key;
-    input.value = text;
+    input.value = `${data.altKey ? 'Alt + ' : ''}${data.ctrlKey ? 'Ctrl + ' : ''}${data.shiftKey ? 'Shift + ' : ''}${data.key}`;
 }
 
 /**
  * Function to set the key settings
- * @param {Event} event - The keydown event
+ * @param {KeyboardEvent} event - The keydown event
  * @param {Object} setting - The setting to change
  */
 function setKeySettings(event, setting) {
@@ -303,7 +289,7 @@ function setUpSetting(settingName, elements) {
     }
 
     if (key) {
-        setText(settings[settingName], key);
+        setText(settings[settingName].keyBind, key);
     }
 }
 /**
@@ -365,7 +351,7 @@ function setUpSettings() {
     window.document.documentElement.style.setProperty("--plyr-color-main", settings.advanced.plyr.design.settings.mainColor);
     window.document.documentElement.style.setProperty("--plyr-video-control-color-hover", settings.advanced.plyr.design.settings.hoverColor);
 
-    if (settings.eap) {
+    if (settings.private.eap) {
         document.querySelectorAll(".eap").forEach((element) => {
             element.style.display = "inline";
         });
@@ -398,7 +384,7 @@ function separateColors(color) {
 window.addEventListener("load", () => {
     addEventListeners();
     setUpSettings();
-    let player = new Plyr('video', {
+    new Plyr('video', {
         controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "download", "fullscreen"],
         keyboard: {
             focused: true,
@@ -460,7 +446,7 @@ window.saveSettings = saveSettings;
 window.loadSettings = loadSettings;
 window.resetSettings = resetSettings;
 window.setUpSettings = setUpSettings; // <- Reloads the settings page with the current settings (useful when the settings are changed)
-window.reload = e => {window.location.reload(); } // <- Reloads the page
+window.reload = () => {window.location.reload(); } // <- Reloads the page
 window.settings = settings;
 window.logger = logger; // The same as window.MATLogger
 
