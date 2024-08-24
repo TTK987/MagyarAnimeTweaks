@@ -132,11 +132,6 @@
   - Kód átszervezés és optimalizálás.
   - `webpack` használata a kód generálásához.
   - `terser-webpack-plugin` használata a kód tömörítéséhez.
-- **Hiba javítások**
-  -  a 
-### Teljes telefon támogatás
-  - Mostantól a kiegészítő teljesen használható telefonon is. (Android)
-    - [További információk](PHONE_SUPPORT.md)
 
 
 
