@@ -5,5 +5,5 @@ document.addEventListener("MATweaks", function(event) {
         }
     }
 });
-// This is only relevant for users who have the "Premium Player" on the site.
+
 
