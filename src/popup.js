@@ -1,20 +1,12 @@
-/**
- * Handles the popup window
- */
-import { MAT, logger, bookmarks, Bookmark} from "./API";
 window.onload = function () {
     const form = document.querySelector('form');
     form.onsubmit = function (event) {
         event.preventDefault();
-        const search_text = document.getElementById('search_text').value;
-        const tipus = document.getElementById('tipus').value;
-        const sorrend = document.getElementById('sorrend').value;
-        const url = `https://magyaranime.eu/web/kereso/`;
         const data = new URLSearchParams();
-        data.append('search_text', search_text);
-        data.append('tipus', tipus);
-        data.append('sorrend', sorrend);
-        fetch(url, {
+        data.append('search_text', document.getElementById('search_text').value);
+        data.append('tipus',  document.getElementById('tipus').value);
+        data.append('sorrend', document.getElementById('sorrend').value);
+        fetch(`https://magyaranime.eu/web/kereso/`, {
             method: 'POST',
             body: data
         }).then(response => {

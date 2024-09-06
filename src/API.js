@@ -1,3 +1,24 @@
+/**
+ * Helper function to load stuff from the storage
+ * @param {String} key - The key to load
+ * @param {Boolean} sync - Whether to load from the sync storage (default: false)
+ * @returns {Promise<Object>} The value of the key
+ * @since v0.1.8
+ */
+function loadFromStorage(key,sync = false) {
+    return new Promise((resolve, reject) => {
+        chrome.storage[sync ? 'sync' : 'local'].get(key, (data) => {
+            if (data[key]) {
+                resolve(data[key]);
+            } else {
+                reject(new Error('Data not found'));
+            }
+        });
+    });
+}
+
+
+
 class MATweaks {
     constructor() {
         this.settings = this.getDefaultSettings();
@@ -204,15 +225,6 @@ class MATweaks {
                 syncBookmarks: {
                     enabled: true, /* Sync bookmarks using Google Account (default: true) */
                 },
-                shortcut: { /* Bookmarks shortcut settings */
-                    enabled: true, /* Bookmarks shortcut (default: true) */
-                    keyBind: { /* Bookmarks shortcut keybind settings */
-                        ctrlKey: true, /* Ctrl key (default: true) */
-                        altKey: false, /* Alt key (default: false) */
-                        shiftKey: false, /* Shift key (default: false) */
-                        key: 'B', /* Key (default: "B") */
-                    }
-                },
             },
             resume: {
                 enabled: true, /* Resume watching (default: true) */
@@ -284,8 +296,12 @@ class MATweaks {
             FORWARD_SKIP: 'megaForwardSkip',
             GET_CURRENT_TIME: 'getCurrentTime',
             PLAYER_READY: 'megaPlayerReady',
+            SEEK_PERCENTAGE: 'seekPercentage',
+            GET_BOOKMARKS: 'getBookmarks',
+            BOOKMARKS: 'bookmarks',
 
         },
+
     }
     __NAME = "MATweaks";
 
@@ -377,23 +393,15 @@ class Bookmarks {
     loadBookmarks() {
         return new Promise((resolve, reject) => {
             if (MAT.getSettings().bookmarks.syncBookmarks.enabled) {
-                chrome.storage.sync.get('bookmarks', (data) => {
-                    if (data.bookmarks) {
-                        this.bookmarks = data.bookmarks;
-                        resolve(this.bookmarks);
-                    } else {
-                        reject(new Error('Bookmarks not found'));
-                    }
-                });
+                loadFromStorage('bookmarks', true).then((bookmarks) => {
+                    this.bookmarks = bookmarks;
+                    resolve(this.bookmarks);
+                }).catch(() => {reject(new Error('Bookmarks not found'))});
             } else {
-                chrome.storage.local.get('bookmarks', (data) => {
-                    if (data.bookmarks) {
-                        this.bookmarks = data.bookmarks;
-                        resolve(this.bookmarks);
-                    } else {
-                        reject(new Error('Bookmarks not found'));
-                    }
-                });
+                loadFromStorage('bookmarks').then((bookmarks) => {
+                    this.bookmarks = bookmarks;
+                    resolve(this.bookmarks);
+                }).catch(() => {reject(new Error('Bookmarks not found'))});
             }
         });
     }
@@ -437,11 +445,6 @@ class Bookmarks {
         return bookmark;
     }
 
-    removeBookmark(bookmark) {
-        this.bookmarks = this.bookmarks.filter((b) => b.url !== bookmark.url);
-        this.saveBookmarks();
-    }
-
     clearBookmarks() {
         this.bookmarks = [];
         this.saveBookmarks();
@@ -460,12 +463,12 @@ class Bookmarks {
     }
 
     getBookmarkByEpisodeId(episodeId) {
-        return this.bookmarks.find((b) => b.episodeId === episodeId);
+        return this.bookmarks.find((b) => Number(b.episodeId) === Number(episodeId));
     }
 
     deleteBookmark(id) {
         return new Promise((resolve, reject) => {
-            this.bookmarks = this.bookmarks.filter((b) => b.id !== id);
+            this.bookmarks = this.bookmarks.filter((b) => Number(b.id) !== Number(id));
             this.saveBookmarks();
             resolve();
         });
@@ -473,7 +476,7 @@ class Bookmarks {
 
     updateBookmark(id, title, episode, url, description, time, episodeId) {
         return new Promise((resolve, reject) => {
-            const bookmark = this.bookmarks.find((b) => b.id === id);
+            const bookmark = this.bookmarks.find((b) => Number(b.id) === Number(id));
             bookmark.title = title;
             bookmark.episode = episode;
             bookmark.url = url;
@@ -485,10 +488,9 @@ class Bookmarks {
         });
     }
 
-
     openBookmark(id) {
         logger.log('Opening bookmark with id: ' + id, true);
-        const bookmark = this.getBookmark(id);
+        const bookmark = this.getBookmark(Number(id));
         if (bookmark) {
             chrome.runtime.sendMessage({
                 plugin: MAT.__NAME,
@@ -872,6 +874,14 @@ class MagyarAnime {
             return parseInt(window.location.pathname.match(/(-s\d+)?\/(\d+)\//)[2]) || -1;
         },
 
+        /**
+         * Get the datasheet of the episode
+         * @returns {Number} The datasheet of the episode
+         */
+        getDatasheet() {
+            if (!MA.isEpisodePage()) return -1;
+            return Number(document.querySelector('#adatlap')?.href.match(/\/leiras\/(\d+)\//)[1]) || -1;
+        },
         // ---------------------------- TEST ----------------------------
         /**
          * Test function to get the all data of the episode
@@ -889,9 +899,11 @@ class MagyarAnime {
                 downloadLink: MA.EPISODE.getDownloadLink(),
                 animeLink: MA.EPISODE.getAnimeLink(),
                 allEpisodes: MA.EPISODE.getAllEpisodes(),
-                id: MA.EPISODE.getId()
+                id: MA.EPISODE.getId(),
+                datasheetId: Number(MA.EPISODE.getDatasheet())
             };
-        }
+        },
+
     }
 }
 const MA = new MagyarAnime();
@@ -959,7 +971,7 @@ class Popup {
      * @since v0.1.8
      */
     _showPopup(popup, time) {
-        popup.setAttribute('style', `position: fixed; bottom: ${10 + this.popups.length * 60}px; left: 10px; color: var(--black, black); padding: 10px; border-radius: 10px; box-shadow: 0 0 10px var(--primary-color); z-index: 100; transition: opacity 2s;`);
+        popup.setAttribute('style', `position: fixed; bottom: ${10 + this.popups.length * 60}px; left: 10px; color: white; padding: 10px; border-radius: 10px; box-shadow: 0 0 10px var(--primary-color); z-index: 100; transition: opacity 2s;`);
 
         const appendPopup = () => {
             document.body.appendChild(popup);
@@ -984,6 +996,113 @@ class Popup {
     }
 }
 const popup = new Popup();
+/**
+ * Class to manage the resume data
+ * @since v0.1.8
+ */
+class ResumePlayBack {
+    constructor() {
+        this.eps = [];
+    }
+
+    /**
+     * Get the resume data
+     * @returns {Array<{episodeId: Number, time: Number}>} The resume data
+     * @since v0.1.8
+     */
+    getResumeData() {
+        return this.eps;
+    }
+
+    /**
+     * Add a new resume data
+     * @param {Number} episodeId - Episode number
+     * @param {Number} time - Time in the episode (in seconds)
+     * @since v0.1.8
+     */
+    addResumeData(episodeId, time) {
+        this.eps.push(new ResumePlayback(episodeId, time, Date.now()));
+        this.saveResumeData();
+    }
+
+    /**
+     * Remove a resume data
+     * @param {Number} episodeId - Episode number
+     * @since v0.1.8
+     */
+    removeResumeData(episodeId) {
+        this.eps = this.eps.filter((ep) => ep.EpisodeID !== episodeId);
+        this.saveResumeData();
+    }
+
+    /**
+     * Clear all resume data
+     * @since v0.1.8
+     */
+    clearResumeData() {
+        this.eps = [];
+        this.saveResumeData();
+    }
+
+    /**
+     * Save the resume data
+     * @since v0.1.8
+     */
+    saveResumeData() {
+        if (MAT.getSettings().resume.syncResume.enabled) {
+            chrome.storage.sync.set({resume: this.eps});
+        } else {
+            chrome.storage.local.set({resume: this.eps});
+        }
+    }
+
+    /**
+     * Load the resume data
+     * @since v0.1.8
+     */
+    loadResumeData() {
+        return new Promise((resolve, reject) => {
+            if (MAT.getSettings().resume.syncResume.enabled) {
+                loadFromStorage('resume', true).then((resume) => {
+                    this.eps = resume;
+                    resolve(this.eps);
+                }).catch(() => {reject(new Error('Resume data not found'))});
+            } else {
+                loadFromStorage('resume').then((resume) => {
+                    this.eps = resume;
+                    resolve(this.eps);
+                }).catch(() => {reject(new Error('Resume data not found'))});
+            }
+        });
+    }
+
+    /**
+     * Get the resume data by episode ID
+     * @param {Number} episodeId - Episode number
+     * @returns {ResumePlayback} The resume data
+     * @since v0.1.8
+     */
+    getResumeDataByEpisodeId(episodeId) {
+        return this.eps.find((ep) => ep.EpisodeID === episodeId);
+    }
+
+}
+
+/**
+ * Class to define a resume data object for an episode (used in the resume data array)
+ * @param {Number} EpisodeID - Episode number
+ * @param {Number} Time - Time in the episode (in seconds)
+ * @param {Number} CTimestamp - Current timestamp
+ */
+class ResumePlayback {
+    constructor(EpisodeID, Time, CTimestamp) {
+        this.EpisodeID = EpisodeID;
+        this.Time = Time;
+        this.CTimestamp = CTimestamp;
+    }
+}
+
+
 if (typeof window !== 'undefined') {
     window.MAT = MAT;
     window.logger = logger;

@@ -59,25 +59,6 @@ function createContextMenu() {
 let openBookmarks = [];
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * Handle messages from the extension
  */

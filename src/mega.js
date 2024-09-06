@@ -1,4 +1,4 @@
-import { MAT, logger } from "./API.js";
+import {MAT, logger, MA, bookmarks, popup} from "./API.js";
 /**
  * Settings object to store the settings (Later loaded from the storage)
  *
@@ -101,14 +101,6 @@ class Player {
 
 }
 
-
-
-
-
-
-
-
-
 /**
  * Function to load the settings from the storage and set the settings variable
  */
@@ -132,6 +124,7 @@ function checkAdvancedSettings() {
  */
 function initMega() {
     loadSettings();
+    bookmarks.loadBookmarks();
     window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.FRAME_LOADED}, "*");
 }
 /**
@@ -163,62 +156,68 @@ function replaceMega() {
  */
 function addPlyr() {
     if (plyr !== undefined) { plyr.destroy(); }
-    plyr = new Plyr("#video", {
-        controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "fullscreen"],
-        keyboard: {
-            focused: true,
-            global: true,
-        },
-        settings: ["quality", "speed"],
-        tooltips: {
-            controls: true,
-            seek: true,
-        },
-        iconUrl: chrome.runtime.getURL("plyr.svg"),
-        blankVideo: chrome.runtime.getURL("blank.mp4"),
-        i18n: {
-            restart: "Újraindítás",
-            rewind: "10 másodperccel visszább",
-            play: "Lejátszás",
-            pause: "Megállítás",
-            fastForward: "10 másodperccel előre",
-            seek: "Keresés",
-            seekLabel: "{currentTime} másodpercnél",
-            played: "Lejátszott",
-            buffered: "Pufferelt",
-            currentTime: "Jelenlegi idő",
-            duration: "Teljes idő",
-            volume: "Hangerő",
-            mute: "Némítás",
-            unmute: "Némítás kikapcsolása",
-            enableCaptions: "Felirat engedélyezése",
-            disableCaptions: "Felirat letiltása",
-            enterFullscreen: "Teljes képernyő",
-            exitFullscreen: "Kilépés a teljes képernyőből",
-            frameTitle: "A(z) {title} videó lejátszó",
-            captions: "Feliratok",
-            settings: "Beállítások",
-            menuBack: "Vissza",
-            speed: "Sebesség",
-            normal: "Normál",
-            quality: "Minőség",
-            loop: "Ismétlés",
-            start: "Kezdés",
-            end: "Befejezés",
-            all: "Összes",
-            reset: "Visszaállítás",
-            disabled: "Letiltva",
-            enabled: "Engedélyezve",
-        },
-        speed: {
-            selected: 1,
-            options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
-        }
+    getActiveBookmarks().then((bookmarks) => {
+        plyr = new Plyr("#video", {
+            controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "pip", "airplay", "fullscreen"],
+            keyboard: {
+                focused: true,
+                global: true,
+            },
+            settings: ["quality", "speed"],
+            tooltips: {
+                controls: true,
+                seek: true,
+            },
+            iconUrl: chrome.runtime.getURL("plyr.svg"),
+            blankVideo: chrome.runtime.getURL("blank.mp4"),
+            i18n: {
+                restart: "Újraindítás",
+                rewind: "10 másodperccel visszább",
+                play: "Lejátszás",
+                pause: "Megállítás",
+                fastForward: "10 másodperccel előre",
+                seek: "Keresés",
+                seekLabel: "{currentTime} másodpercnél",
+                played: "Lejátszott",
+                buffered: "Pufferelt",
+                currentTime: "Jelenlegi idő",
+                duration: "Teljes idő",
+                volume: "Hangerő",
+                mute: "Némítás",
+                unmute: "Némítás kikapcsolása",
+                enableCaptions: "Felirat engedélyezése",
+                disableCaptions: "Felirat letiltása",
+                enterFullscreen: "Teljes képernyő",
+                exitFullscreen: "Kilépés a teljes képernyőből",
+                frameTitle: "A(z) {title} videó lejátszó",
+                captions: "Feliratok",
+                settings: "Beállítások",
+                menuBack: "Vissza",
+                speed: "Sebesség",
+                normal: "Normál",
+                quality: "Minőség",
+                loop: "Ismétlés",
+                start: "Kezdés",
+                end: "Befejezés",
+                all: "Összes",
+                reset: "Visszaállítás",
+                disabled: "Letiltva",
+                enabled: "Engedélyezve",
+            },
+            speed: {
+                selected: 1,
+                options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+            },
+            markers: {
+                enabled: true,
+                points: bookmarks,
+            }
+        });
+        fixPlyr();
+        loadCustomCss();
+        addShortcutsToPlyr();
+        window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.PLAYER_READY}, "*");
     });
-    fixPlyr();
-    loadCustomCss();
-    addShortcutsToPlyr();
-    window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.PLAYER_READY}, "*");
 }
 /**
  * Function to skip forwards in the video
@@ -312,7 +311,7 @@ window.addEventListener("message", (event) => {
                 fullscrnbtn.click();
                 fullscrnbtn.blur();
                 break;
-            case MAT.__ACTIONS.SEEK:
+            case MAT.__ACTIONS.MEGA.SEEK_PERCENTAGE:
                 let percentage = event.data.percent;
                 if (percentage < 0) percentage = 0;
                 if (percentage > 100) percentage = 100;
@@ -320,6 +319,9 @@ window.addEventListener("message", (event) => {
                 break;
             case MAT.__ACTIONS.MEGA.GET_CURRENT_TIME:
                 window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.CURRENT_TIME, currentTime: plyr.currentTime}, "*");
+                break;
+            case MAT.__ACTIONS.MEGA.SEEK:
+                plyr.currentTime = event.data.time;
                 break;
             default:
                 break;
@@ -398,6 +400,22 @@ function loadCustomCss() {
         document.head.insertAdjacentHTML("beforeend", `<style>${css}</style>`);
         logger.log("Custom CSS loaded.");
     }
+}
+
+function getActiveBookmarks() {
+    window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.GET_BOOKMARKS}, "*");
+    return new Promise((resolve) => {
+        window.addEventListener("message", function bookmarksListener(event) {
+            if (event.data.plugin === MAT.__NAME && event.data.type === MAT.__ACTIONS.MEGA.BOOKMARKS) {
+                window.removeEventListener("message", bookmarksListener);
+                resolve(event.data.bookmarks);
+            } else {
+                logger.error("Error getting bookmarks");
+                resolve([]);
+            }
+        });
+    });
+
 }
 
 initMega();

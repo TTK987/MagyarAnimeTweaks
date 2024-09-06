@@ -448,5 +448,5 @@ window.resetSettings = resetSettings;
 window.setUpSettings = setUpSettings; // <- Reloads the settings page with the current settings (useful when the settings are changed)
 window.reload = () => {window.location.reload(); } // <- Reloads the page
 window.settings = settings;
-window.logger = logger; // The same as window.MATLogger
+window.logger = logger;
 

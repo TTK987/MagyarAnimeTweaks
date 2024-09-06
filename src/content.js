@@ -987,6 +987,7 @@ function setupEventListeners() {
     });
     window.addEventListener("DOMContentLoaded", function () {});  // Useless line
     window.addEventListener("MATweaksPlayerReplaced", function () {
+        logger.log("Player replaced.");
         addShortcutsToPage();
         handleReszPage();
         checkForBookmarks();
@@ -1029,6 +1030,9 @@ function receiveMessage(event) {
                 break;
             case MAT.__ACTIONS.SEEK:
                 player.plyr.currentTime = event.data.time;
+                break;
+            case MAT.__ACTIONS.MEGA.GET_BOOKMARKS:
+                event.source.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.BOOKMARKS, bookmarks: player.getBookmarks()}, "*");
                 break;
             default:
                 break;
@@ -1210,7 +1214,7 @@ function addShortcutsToPageMega() {
             {condition: event.key === "ArrowDown", type: MAT.__ACTIONS.MEGA.VOL_DOWN},
             {condition: event.key.toLowerCase() === "m", type: MAT.__ACTIONS.MEGA.TOGGLE_MUTE},
             {condition: event.key.toLowerCase() === "f", type: MAT.__ACTIONS.MEGA.TOGGLE_FULLSCREEN},
-            {condition: Number(event.key) >= 0 && Number(event.key) <= 9, type: MAT.__ACTIONS.MEGA.SEEK, percent: Number(event.key) * 10}
+            {condition: Number(event.key) >= 0 && Number(event.key) <= 9, type: MAT.__ACTIONS.MEGA.SEEK_PERCENTAGE, percent: Number(event.key) * 10}
         ];
         for (const action of actions) {
             if (action.condition) {
@@ -1298,18 +1302,19 @@ async function getCurrentTime() {
         }
     });
 }
-
 /**
  * Function to add a bookmark
  * @returns {Promise<void>} - Returns when the bookmark is added
  */
 async function addBookmark() {
     getCurrentTime().then((currentTime) => {
-        let url = window.location.href;
-        let title = document.querySelector("h2.gen-title a")?.innerText || "Ismeretlen cím"
-        let episode = Number(document.querySelector("h2.gen-title")?.innerText.split("-")[1].trim().match(/(\d+)/m)[0]) || 0;
-        let episodeId = Number(window.location.href.split("/")[4]) || 0;
-        bookmarks.addBookmark(title, episode, url, `${title} - ${episode}.rész, ${(currentTime / 60).toFixed(2)} perc`, currentTime, episodeId) || popup.showErrorPopup("Hiba történt a könyvjelző hozzáadása közben.");
+        bookmarks.addBookmark(
+            MA.EPISODE.getTitle() || "Ismeretlen",
+            MA.EPISODE.getEpisodeNumber() | 0,
+            window.location.href,
+            `${title} - ${MA.EPISODE.getEpisodeNumber() | 0}.rész, ${(currentTime % 3600 / 60).toFixed(0).padStart(2, "0")}:${(currentTime % 60).toFixed(0).padStart(2, "0")}`,
+            currentTime,
+            MA.EPISODE.getId()) || popup.showErrorPopup("Hiba történt a könyvjelző hozzáadása közben.");
     });
 }
 
@@ -1350,6 +1355,7 @@ function seekToBookmark(time) {
                     type: MAT.__ACTIONS.MEGA.SEEK,
                     time: time
                 }, "*");
+                clearInterval(interval);
             } else {
                 if (player.plyr && player.plyr.duration > 0) {
                     player.plyr.currentTime = time;
@@ -1388,6 +1394,7 @@ function checkForBookmarks() {
                     chrome.runtime.sendMessage({plugin: MAT.__NAME, type: "removeOpenBookmark", id: bookmark.id}, (response) => {
                         if (response) {
                             logger.log("Bookmark opened.");
+                            popup.showInfoPopup("Könyvjelző sikeresen megnyitva.");
                         } else {
                             logger.error("Error while opening the bookmark.");
                             popup.showErrorPopup("Hiba történt a könyvjelző megnyitása közben.");
