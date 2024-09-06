@@ -15,6 +15,19 @@ window.addEventListener('DOMContentLoaded', async () => {
             });
         }
     };
+    let timeout;
+    document.getElementById('search').oninput = function () {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            document.getElementById('container').innerHTML = bookmarksToHTML(searchBookmarks());
+        }, 500);
+    };
+    document.getElementById('search').onkeydown = function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementById('container').innerHTML = bookmarksToHTML(searchBookmarks());
+        }
+    };
 });
 
 function bookmarksToHTML(bookmarks) {
@@ -32,6 +45,7 @@ function bookmarksToHTML(bookmarks) {
         </div>
         `;
     }
+    if (html === '') {html = `<p style="text-align: center; color: red;font-size: 1.5em; font-weight: bold;margin-top: 20px;width: 100%;height: 100%;">Nincs találat.</p>`;}
     return html;
 }
 
@@ -43,4 +57,9 @@ function loadBookmarks() {
         console.error('Error:', error);
         document.getElementById('container').innerHTML = 'Hiba történt a könyvjelzők betöltése során.';
     });
+}
+
+function searchBookmarks() {
+    const search = document.getElementById('search').value;
+    return bookmarks.getBookmarks().filter(bookmark => bookmark.title.toLowerCase().includes(search.toLowerCase()) || bookmark.description.toLowerCase().includes(search.toLowerCase()));
 }

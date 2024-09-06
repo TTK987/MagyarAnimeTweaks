@@ -57,7 +57,7 @@
             border-radius: 0.5em;
         }
 
-        #bookmarkName {
+        #search {
             padding: .5em;
             margin: 2em .5em .5em .5em;
             box-sizing: border-box;
@@ -74,16 +74,17 @@
 
         .card {
             background-color: var(--card-bg-color);
-            border: 1px solid var(--card-border-color);
-            border-radius: 0.5em;
+            border: 4px solid #75757533;
+            border-radius: .5em;
             margin: 1em;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s;
+            box-shadow: 0 4px 10px 3px rgb(0 0 0 / 59%);
+            transition: all 0.3s;
         }
 
         .card:hover {
             transform: scale(1.05);
+            border: 4px solid var(--card-border-color);
         }
 
         .card-img-top {
@@ -146,7 +147,7 @@
     <header>
         <h1>Könyvjelzők</h1>
     </header>
-    <input type="text" id="bookmarkName" placeholder="Keresés...">
+    <input type="text" id="search" placeholder="Keresés...">
 
     <div id="container">
         <div id="loading">Betöltés...</div>

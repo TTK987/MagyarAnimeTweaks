@@ -1312,7 +1312,7 @@ async function addBookmark() {
             MA.EPISODE.getTitle() || "Ismeretlen",
             MA.EPISODE.getEpisodeNumber() | 0,
             window.location.href,
-            `${title} - ${MA.EPISODE.getEpisodeNumber() | 0}.rész, ${(currentTime % 3600 / 60).toFixed(0).padStart(2, "0")}:${(currentTime % 60).toFixed(0).padStart(2, "0")}`,
+            `${MA.EPISODE.getTitle() || "Ismeretlen"} - ${MA.EPISODE.getEpisodeNumber() | 0}.rész, ${(currentTime % 3600 / 60).toFixed(0).padStart(2, "0")}:${(currentTime % 60).toFixed(0).padStart(2, "0")}`,
             currentTime,
             MA.EPISODE.getId()) || popup.showErrorPopup("Hiba történt a könyvjelző hozzáadása közben.");
     });

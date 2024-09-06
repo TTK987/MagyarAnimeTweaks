@@ -900,7 +900,7 @@ class MagyarAnime {
                 animeLink: MA.EPISODE.getAnimeLink(),
                 allEpisodes: MA.EPISODE.getAllEpisodes(),
                 id: MA.EPISODE.getId(),
-                datasheetId: Number(MA.EPISODE.getDatasheet())
+                datasheetId:  MA.EPISODE.getDatasheet(),
             };
         },
 
