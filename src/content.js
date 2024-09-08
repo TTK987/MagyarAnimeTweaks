@@ -1179,14 +1179,9 @@ async function downloadFile(filename) { return new Promise((resolve, reject) => 
             type: "downloadFile",
             url: url,
             filename: filename,
-        }, function (response) {
-            if (response === true) {
-                logger.log(`Download started: "${filename}"`);
-                resolve(true);
-            } else {
-                logger.error("Download failed.");
-                reject("Download failed.");
-            }
+        }, function () {
+            logger.log(`Download started: "${filename}"`);
+            resolve(true);
         });
     });
 }
@@ -1406,6 +1401,7 @@ function checkForBookmarks() {
             });
         } else {
             logger.error("Error while getting the bookmarks.");
+            popup.showErrorPopup("Hiba történt a könyvjelzők lekérdezése közben.");
         }
     });
 }

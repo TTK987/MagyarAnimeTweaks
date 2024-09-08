@@ -100,55 +100,5 @@
       "all_frames": true,
       "run_at": "document_start"
     }
-  ],
-  "commands": {
-    "playPause": {
-      "suggested_key": {
-        "default": "MediaPlayPause",
-        "mac": "MediaPlayPause"
-      },
-      "description": "Az anime lejátszásának szüneteltetése vagy folytatása.",
-      "global": true
-    },
-    "forwardSkip": {
-      "suggested_key": {
-        "default": "MediaNextTrack",
-        "mac": "MediaNextTrack"
-      },
-      "description": "Előre ugrás az animeben.",
-      "global": true
-    },
-    "backwardSkip": {
-      "suggested_key": {
-        "default": "MediaPrevTrack",
-        "mac": "MediaPrevTrack"
-      },
-      "description": "Hátrafelé ugrás az animeben.",
-      "global": true
-    },
-    "nextEpisode": {
-      "suggested_key": {
-        "default": "Alt+Right",
-        "mac": "Alt+Right"
-      },
-      "description": "A következő rész megtekintése.",
-      "global": true
-    },
-    "previousEpisode": {
-      "suggested_key": {
-        "default": "Alt+Left",
-        "mac": "Alt+Left"
-      },
-      "description": "Az előző rész megtekintése.",
-      "global": true
-    },
-    "toggleSettings": {
-      "suggested_key": {
-        "default": "Alt+Shift+M",
-        "mac": "Alt+Shift+M"
-      },
-      "description": "A beállítások megnyitása vagy bezárása.",
-      "global": true
-    }
-  }
+  ]
 }

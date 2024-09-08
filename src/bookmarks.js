@@ -61,5 +61,5 @@ function loadBookmarks() {
 
 function searchBookmarks() {
     const search = document.getElementById('search').value;
-    return bookmarks.getBookmarks().filter(bookmark => bookmark.title.toLowerCase().includes(search.toLowerCase()) || bookmark.description.toLowerCase().includes(search.toLowerCase()));
+    return bookmarks.getBookmarks().filter(bookmark => bookmark.title.toLowerCase().replace(/ /g, '').includes(search.toLowerCase().replace(/ /g, '')) || bookmark.description.toLowerCase().replace(/ /g, '').includes(search.toLowerCase().replace(/ /g, '')));
 }

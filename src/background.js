@@ -255,7 +255,9 @@ function migrateSettings_0_1_7(previousSettings) {
  */
 function migrateSettings_0_1_6(previousSettings) {
     logger.log(`[background.js]: Migrating settings from version 0.1.6.x to version ${MAT.getVersion()}`, true);
-
+    /*
+    v0.1.6.x settings:
+     */
     try {
         if (!/0.1.6.[0-9]/.test(previousSettings.version)) return previousSettings
         let data = MAT.getDefaultSettings();
@@ -284,19 +286,135 @@ function migrateSettings_0_1_6(previousSettings) {
  */
 function migrateSettings_0_1_5(previousSettings) {
     logger.log(`[background.js]: Migrating settings from version 0.1.5.x to version ${MAT.getVersion()}`, true);
-
+    /*
+    v0.1.5.x settings:
+     {
+            forwardSkip: {  enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowRight",},
+            backwardSkip:{ enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowLeft",},
+            nextEpisode: { enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowRight",},
+            previousEpisode: { enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowLeft",},
+            devSettings: { enabled: false,settings: { ConsoleLog: { enabled: false,},DefaultPlayer: { player: "plyr",},}},
+            autoNextEpisode: { enabled: false, time: 50, },
+            autoplay: { enabled: true, },
+            version: MATweaksVersion,
+     };
+     */
+    /*
+     v0.1.8.x settings:
+     {
+        forwardSkip: { enabled: true, time: 85, keyBind: { ctrlKey: true, altKey: false, shiftKey: false, key: 'ArrowRight', } },
+        backwardSkip: { enabled: true, time: 85, keyBind: { ctrlKey: true, altKey: false, shiftKey: false, key: 'ArrowLeft', } },
+        nextEpisode: { enabled: true, keyBind: { ctrlKey: false, altKey: true, shiftKey: false, key: 'ArrowRight', } },
+        previousEpisode: { enabled: true, keyBind: { ctrlKey: false, altKey: true, shiftKey: false, key: 'ArrowLeft', } },
+        autoNextEpisode: { enabled: false, time: 60 },
+        autoplay: { enabled: true},
+        syncSettings: { enabled: true, },
+        bookmarks: { enabled: true, syncBookmarks: { enabled: true, }, },
+        resume: { enabled: true, syncResume: { enabled: true, }, mode: 'ask', },
+        advanced: { enabled: true, settings: { ConsoleLog: {  enabled: true}, DefaultPlayer: { player: 'plyr'} }, plyr: { design: { enabled:false, settings: { svgColor: '#ffffffff', hoverBGColor: '#00b3ffff', mainColor: '#00b3ffff', hoverColor: '#ffffffff', }, }, }, downloadName: '%title% - %episode%.rész (%MAT%)', forcePlyr: true, },
+        private: { hasMAPlayer: false, eap: true, },
+        version: this.getVersion(),
+    };
+     */
     try {
         if (!/0.1.5.[0-9]/.test(previousSettings.version)) return previousSettings
-        let data = MAT.getDefaultSettings();
-        data.version = MAT.getVersion();
-        data.advanced.enabled = previousSettings.devSettings.enabled || false;
-        data.advanced.settings.ConsoleLog.enabled = previousSettings.devSettings.settings.ConsoleLog.enabled || false;
-        data.advanced.settings.DefaultPlayer.player = previousSettings.devSettings.settings.DefaultPlayer.player || 'plyr';
-        data.forwardSkip.time = previousSettings.forwardSkip.duration || 85;
-        data.backwardSkip.time = previousSettings.backwardSkip.duration || 85;
-        data = Object.assign(data, previousSettings);
-        if (data.advanced.settings.DefaultPlayer.player === 'html5') data.advanced.settings.DefaultPlayer.player = 'plyr';
-        return data;
+        return {
+            forwardSkip: { /* Forward skip settings (default: ctrl + →) */
+                enabled: true,
+                time: 85,
+                keyBind: {
+                    ctrlKey: true,
+                    altKey: false,
+                    shiftKey: false,
+                    key: 'ArrowRight',
+                }
+            },
+            backwardSkip: { /* Backward skip settings (default: ctrl + ←) */
+                enabled: true,
+                time: 85,
+                keyBind: {
+                    ctrlKey: true,
+                    altKey: false,
+                    shiftKey: false,
+                    key: 'ArrowLeft',
+                }
+            },
+            nextEpisode: { /* Next episode settings (default: alt + →)  */
+                enabled: true,
+                keyBind: {
+                    ctrlKey: false,
+                    altKey: true,
+                    shiftKey: false,
+                    key: 'ArrowRight',
+                }
+            },
+            previousEpisode: { /* Previous episode settings (default: alt + ←) */
+                enabled: true,
+                keyBind: {
+                    ctrlKey: false,
+                    altKey: true,
+                    shiftKey: false,
+                    key: 'ArrowLeft',
+                }
+            },
+            autoNextEpisode: { /* Auto next episode (default: false) (on last episode of the season it won't skip) */
+                enabled: false,
+                time: 60 /* Time to skip to the next episode before the end of the episode (in seconds) */
+            },
+            autoplay: { /* Autoplay (default: true) */ enabled: true},
+            syncSettings: {
+                enabled: true, /* Sync settings using Google Account (default: true) */
+            },
+            bookmarks: { /* Bookmarks settings */
+                enabled: true, /* Bookmarks (default: true) */
+                syncBookmarks: {
+                    enabled: true, /* Sync bookmarks using Google Account (default: true) */
+                },
+            },
+            resume: {
+                enabled: true, /* Resume watching (default: true) */
+                syncResume: {
+                    enabled: true, /* Sync resume using Google Account (default: true) */
+                },
+                mode: 'ask', /* Resume mode (default: "ask") (ask, auto) */ /* TODO: Requires modification of the plyr player */
+            },
+            advanced: { /* Advanced settings */
+                enabled: /* Developer settings (default: false) */ true, // TODO: Set to false
+                settings: { /* Developer settings */
+                    ConsoleLog: { /* Console log (default: false) */ enabled: true}, // TODO: Set to false
+                    DefaultPlayer: { /* Default player (default: "plyr") */ player: 'plyr'}
+                },
+                plyr: { /* Plyr settings */
+                    design: { /* Plyr design settings */
+                        enabled: /* Plyr design settings (default: false) */ false,
+                        settings: { /* Plyr design settings */
+                            svgColor: '#ffffffff', // --plyr-video-control-color
+                            hoverBGColor: '#00b3ffff', // --plyr-video-control-background-hover
+                            mainColor: '#00b3ffff', // --plyr-color-main
+                            hoverColor: '#ffffffff', //  --plyr-video-control-color-hover
+                        },
+                    },
+                },
+                downloadName: '%title% - %episode%.rész (%MAT%)',
+                /* Download name (default: "%title% - %episode%.rész (%MAT%)") */
+                /*
+                        * Download name variables:
+                        * %title% - Title of the anime (e.g. "One Piece")
+                        * %episode% - Episode number (e.g. 1)
+                        * %0episode% - Episode number with leading zero (e.g. 01 instead of 1)
+                        * %MAT% - "MATweaks" text
+                        * %source% - Source name (e.g. "indavideo")
+                        * %quality% - Quality of the video (e.g. "720p")
+                        * %group% - Fansub group name (e.g. "Akio Fansub")
+                         */
+                forcePlyr: true,
+            },
+            private: {
+                hasMAPlayer: false,
+                eap: false,
+            },
+            version: MAT.getVersion(),
+        };
     } catch (error) {
         logger.error(`[background.js]: Failed to migrate settings from version 0.1.5.x to version ${MAT.getVersion()}`, true);
         console.error(error);

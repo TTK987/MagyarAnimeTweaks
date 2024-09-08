@@ -577,8 +577,8 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getImage() {
-            if (!MA.isAnimePage()) return null;
-            return document.querySelector('.gentech-tv-show-img-holder img')?.src || null;
+            if (!MA.isAnimePage()) return "";
+            try{ return document.querySelector('.gentech-tv-show-img-holder img')?.src || ""; } catch(e) { return ""; }
         },
         /**
          * Get the title of the anime
@@ -586,8 +586,8 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getTitle() {
-            if (!MA.isAnimePage()) return null;
-            return document.querySelector('.gen-single-tv-show-info h2')?.innerText || null;
+            if (!MA.isAnimePage()) return "";
+            try{ return document.querySelector('.gen-single-tv-show-info h2')?.innerText || ""; } catch(e) { return ""; }
         },
         /**
          * Get the description of the anime
@@ -595,17 +595,8 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getDescription() {
-            if (!MA.isAnimePage()) return null;
-            return document.querySelector('.leiras_text')?.innerText.match(/(.*)(?!=\[[Ff]orrás:|\([Ff]orrás:|\([Ss]ource:|\[[Ss]ource:)/)[0] || null;
-        },
-        /**
-         * Get the genres of the anime
-         * @returns {Array<String>} The genres of the anime
-         * @since v0.1.8
-         */
-        getGenres() {
-            if (!MA.isAnimePage()) return null;
-            return document.querySelector('.gen-single-tv-show-info p')?.innerText.match(/Műfajok: (.*)/)[1].split(',').map((g) => g.trim()) || null;
+            if (!MA.isAnimePage()) return "";
+            try{ return document.querySelector('.leiras_text')?.innerText.match(/(.*)(?!=\[[Ff]orrás:|\([Ff]orrás:|\([Ss]ource:|\[[Ss]ource:)/)[0] || ""; } catch(e) { return ""; }
         },
         /**
          * Get the rating of the anime
@@ -613,8 +604,8 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getRating() {
-            if (!MA.isAnimePage()) return null;
-            return parseFloat(document.querySelector('.gen-single-tv-show-info p')?.innerText.match(/(\d+\.\d+) \/ 5/)[1]) || null;
+            if (!MA.isAnimePage()) return -1;
+            try{ return parseFloat(document.querySelector('.gen-single-tv-show-info p')?.innerText.match(/(\d+\.\d+) \/ 10/)[1]) || -1; } catch(e) { return -1; }
         },
         /**
          * Get the age rating of the anime
@@ -622,8 +613,8 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getAgeRating() {
-            if (!MA.isAnimePage()) return null;
-            return document.querySelector('.gen-rating')?.innerText || null;
+            if (!MA.isAnimePage()) return "";
+            try{ return document.querySelector('.gen-rating')?.innerText || ""; } catch(e) { return ""; }
         },
         /**
          * Get the season of the anime (e.g. "Winter 2023")
@@ -631,8 +622,8 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getSeason() {
-            if (!MA.isAnimePage()) return null;
-            return document.querySelector('ul:nth-child(4) li:nth-child(5)')?.innerText || null;
+            if (!MA.isAnimePage()) return "";
+            try{ return document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(4)')?.innerText || ""; } catch(e) { return ""; }
         },
         /**
          * Get the episode count of the anime
@@ -640,8 +631,8 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getEpisodeCount() {
-            if (!MA.isAnimePage()) return null;
-            return parseInt(document.querySelector('ul:nth-child(4) li:nth-child(3)')?.innerText.match(/Epizódok: (\d+) /)[1]) || null;
+            if (!MA.isAnimePage()) return -1;
+            try{ return parseInt(document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(2)')?.innerText.match(/Epizódok: (\d+) /)[1]) || -1; } catch(e) { return -1; }
         },
         /**
          * Get the max episode count of the anime
@@ -649,9 +640,9 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getMaxEpisodeCount() {
-            if (!MA.isAnimePage()) return null;
-            const maxEpisodes = document.querySelector('ul:nth-child(4) li:nth-child(3)')?.innerText.match(/Epizódok: \d+ \/ (\d+|∞)/)[1];
-            return maxEpisodes === '∞' ? Infinity : parseInt(maxEpisodes) || null;
+            if (!MA.isAnimePage()) return -1;
+            const maxEpisodes = document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(2)')?.innerText.match(/Epizódok: \d+ \/ (\d+|∞)/)[1];
+            try{ return maxEpisodes === '∞' ? Infinity : parseInt(maxEpisodes) || -1; } catch(e) { return -1; }
         },
         /**
          * Get the release date of the anime
@@ -659,8 +650,8 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getReleaseDate() {
-            if (!MA.isAnimePage()) return null;
-            return document.querySelector('ul:nth-child(4) li:nth-child(4)')?.innerText || null;
+            if (!MA.isAnimePage()) return "";
+            try{ return document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(3)')?.innerText || ""; } catch(e) { return ""; }
         },
         /**
          * Get the views of the anime
@@ -668,8 +659,8 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getViews() {
-            if (!MA.isAnimePage()) return null;
-            return parseInt(document.querySelector('ul:nth-child(4) li:nth-child(6) span')?.innerText.replace(',', '')) || null;
+            if (!MA.isAnimePage()) return -1;
+            try{ return parseInt(document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(5) span')?.innerText.replace(',', '')) || -1; } catch(e) { return -1; }
         },
         /**
          * Get the episodes of the anime
@@ -677,13 +668,13 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getEpisodes() {
-            if (!MA.isAnimePage()) return null;
-            return [...document.querySelectorAll('.owl-item')]?.map(episodeItem => ({
+            if (!MA.isAnimePage()) return [];
+            try{ return [...document.querySelectorAll('.owl-item')]?.map(episodeItem => ({
                 title: episodeItem.querySelector('.gen-episode-info a')?.textContent || "",
                 link: episodeItem.querySelector('.gen-episode-info a')?.href || "",
                 date: episodeItem.querySelector('.release-date')?.textContent || "",
                 epNumber: parseInt(episodeItem.querySelector('.gen-episode-info a')?.textContent.match(/(\d+)/)[1]) || -1
-            })) || [];
+            })) || []; } catch(e) { return []; }
         },
         /**
          * Get the torrent links of each episode
@@ -693,12 +684,12 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getTorrents() {
-            if (!MA.isAnimePage()) return null;
-            return [...document.querySelectorAll('.epizod_torrent')].map(torrentItem => ({
+            if (!MA.isAnimePage()) return [];
+            try{ return [...document.querySelectorAll('.epizod_torrent')].map(torrentItem => ({
                 title: torrentItem.textContent || "",
                 link: torrentItem.href || "",
                 epNumber: torrentItem.textContent.includes("~") ? Infinity : parseInt(torrentItem.textContent.match(/(\d+)/)?.[1]) || -1
-            })) || [];
+            })) || []; } catch(e) { return []; }
         },
         /**
          * Get the related anime of the anime
@@ -706,13 +697,13 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getRelatedAnime() {
-            if (!MA.isAnimePage()) return null;
-            return [...document.querySelectorAll('.gen-movie-contain')].map(animeItem => ({
+            if (!MA.isAnimePage()) return [];
+            try{ return [...document.querySelectorAll('.gen-movie-contain')].map(animeItem => ({
                 title: animeItem.querySelector('.gen-movie-info h3 a')?.textContent || "",
                 link: animeItem.querySelector('.gen-movie-info h3 a')?.href || "",
                 season: animeItem.querySelector('.gen-movie-meta-holder ul li')?.textContent || "",
                 genres: animeItem.querySelector('.gen-movie-meta-holder ul li:nth-child(2) a span')?.textContent.split(',').map((g) => g.trim()) || []
-            })) || [];
+            })) || []; } catch(e) { return []; }
         },
         /**
          * Get the source of the anime
@@ -720,11 +711,11 @@ class MagyarAnime {
          * @since v0.1.8
          */
         getSource() {
-            if (!MA.isAnimePage()) return null;
-            return [...document.querySelectorAll('.sourceslink')].map(sourceItem => ({
+            if (!MA.isAnimePage()) return [];
+            try{ return [...document.querySelectorAll('.sourceslink')].map(sourceItem => ({
                 site: sourceItem.textContent.toLowerCase() || "",
                 link: sourceItem.href || ""
-            })) || [];
+            })) || []; } catch(e) { return []; }
         },
 
         // ---------------------------- TEST ----------------------------
@@ -736,7 +727,6 @@ class MagyarAnime {
                 image: MA.ANIME.getImage(),
                 title: MA.ANIME.getTitle(),
                 description: MA.ANIME.getDescription(),
-                genres: MA.ANIME.getGenres(),
                 rating: MA.ANIME.getRating(),
                 ageRating: MA.ANIME.getAgeRating(),
                 season: MA.ANIME.getSeason(),
@@ -747,7 +737,26 @@ class MagyarAnime {
                 episodes: MA.ANIME.getEpisodes(),
                 torrents: MA.ANIME.getTorrents(),
                 relatedAnime: MA.ANIME.getRelatedAnime(),
-                source: MA.ANIME.getSource()
+                source: MA.ANIME.getSource(),
+                checks: {
+                    isEpisodePage: MA.isEpisodePage(),
+                    isAnimePage: MA.isAnimePage(),
+                },
+                passes: {
+                    title: MA.ANIME.getTitle() !== "",
+                    description: MA.ANIME.getDescription() !== "",
+                    rating: MA.ANIME.getRating() !== -1,
+                    ageRating: MA.ANIME.getAgeRating() !== "",
+                    season: MA.ANIME.getSeason() !== "",
+                    episodeCount: MA.ANIME.getEpisodeCount() !== -1,
+                    maxEpisodeCount: MA.ANIME.getMaxEpisodeCount() !== -1,
+                    releaseDate: MA.ANIME.getReleaseDate() !== "",
+                    views: MA.ANIME.getViews() !== -1,
+                    episodes: MA.ANIME.getEpisodes().length > 0,
+                    torrents: MA.ANIME.getTorrents().length > 0,
+                    relatedAnime: MA.ANIME.getRelatedAnime().length > 0,
+                    source: MA.ANIME.getSource().length > 0,
+                }
             }
         }
     }
@@ -772,7 +781,7 @@ class MagyarAnime {
          */
         getEpisodeNumber() {
             if (!MA.isEpisodePage()) return -1;
-            return parseInt(document.querySelector(".gen-title").innerText.match(/(\d+)\.?\s?[rR]ész/)[1]) || -1;
+            try{ return parseInt(document.querySelector(".gen-title").innerText.match(/(\d+)\.?\s?[rR]ész/)[1]) || -1; } catch(e) { return -1; }
         },
         /**
          * Get the release date of the episode
@@ -781,7 +790,7 @@ class MagyarAnime {
          */
         getReleaseDate() {
             if (!MA.isEpisodePage()) return "";
-            return document.querySelector('.gen-single-meta-holder ul li:nth-child(1)')?.innerText || "";
+            try{ return document.querySelector('.gen-single-meta-holder ul li:nth-child(1)')?.innerText || ""; } catch(e) { return ""; }
         },
         /**
          * Get the views of the episode
@@ -790,7 +799,7 @@ class MagyarAnime {
          */
         getViews() {
             if (!MA.isEpisodePage()) return -1;
-            return parseInt(document.querySelector('.gen-single-meta-holder ul li:nth-child(3) span')?.innerText.match(/(\d+)/)[1]) || -1;
+            try{ return parseInt(document.querySelector('.gen-single-meta-holder ul li:nth-child(3) span')?.innerText.match(/(\d+)/)[1]) || -1; } catch(e) { return -1; }
         },
         /**
          * Get the fansub data
@@ -799,10 +808,10 @@ class MagyarAnime {
          */
         getFansub() {
             if (!MA.isEpisodePage()) return {name: "", link: ""};
-            return {
+            try{ return {
                 name: document.querySelector('.gen-single-meta-holder p a')?.innerText || "",
                 link: document.querySelector('.gen-single-meta-holder p a')?.href || ""
-            }
+            } || {name: "", link: ""}; } catch(e) { return {name: "", link: ""}; }
         },
         /**
          * Get the urls for different qualities of the episode
@@ -811,10 +820,10 @@ class MagyarAnime {
          */
         getUrls() {
             if (!MA.isEpisodePage()) return [];
-            return [...document.querySelectorAll('.gomb2')].map(btn => ({
+            try{ return [...document.querySelectorAll('.gomb2')].map(btn => ({
                 site: btn.innerText.trim() || "",
                 link: btn.href || ""
-            })) || [];
+            })) || []; } catch(e) { return []; }
         },
         /**
          * Get the previous episode link
@@ -823,7 +832,7 @@ class MagyarAnime {
          */
         getPreviousEpisodeLink() {
             if (!MA.isEpisodePage()) return "";
-            return document.getElementById('epelozo')?.href || "";
+            try{ return document.getElementById('epelozo')?.href || ""; } catch(e) { return ""; }
         },
         /**
          * Get the next episode link
@@ -832,16 +841,7 @@ class MagyarAnime {
          */
         getNextEpisodeLink() {
             if (!MA.isEpisodePage()) return "";
-            return document.getElementById('epkovetkezo')?.href || "";
-        },
-        /**
-         * Get the download link
-         * @returns {String} The download link
-         * @since v0.1.8
-         */
-        getDownloadLink() {
-            if (!MA.isEpisodePage()) return "";
-            return document.getElementById('letoltes')?.href || "";
+            try{ return document.getElementById('epkovetkezo')?.href || ""; } catch(e) { return ""; }
         },
         /**
          * Get the link for the datasheet of the anime
@@ -850,7 +850,7 @@ class MagyarAnime {
          */
         getAnimeLink() {
             if (!MA.isEpisodePage()) return "";
-            return document.getElementById('adatlap')?.href || "";
+            try{ return document.getElementById('adatlap')?.href || ""; } catch(e) { return ""; }
         },
         /**
          * Get all episode links
@@ -859,11 +859,11 @@ class MagyarAnime {
          */
         getAllEpisodes() {
             if (!MA.isEpisodePage()) return [];
-            return [...document.querySelectorAll('.epizod_link_normal')].map(episodeItem => ({
+            try{  return [...document.querySelectorAll('.epizod_link_normal')].map(episodeItem => ({
                 episodeNumber: parseInt(episodeItem.textContent.match(/(\d+)/)[1]) || -1,
                 title: episodeItem.textContent || "",
                 link: episodeItem.href || ""
-            })) || [];
+            })) || []; } catch(e) { return []; }
         },
         /**
          * Returns the id of the episode
@@ -871,7 +871,7 @@ class MagyarAnime {
          */
         getId() {
             if (!MA.isEpisodePage()) return -1;
-            return parseInt(window.location.pathname.match(/(-s\d+)?\/(\d+)\//)[2]) || -1;
+            try{ return parseInt(window.location.pathname.match(/(-s\d+)?\/(\d+)\//)[2]) || -1; } catch(e) { return -1; }
         },
 
         /**
@@ -880,7 +880,7 @@ class MagyarAnime {
          */
         getDatasheet() {
             if (!MA.isEpisodePage()) return -1;
-            return Number(document.querySelector('#adatlap')?.href.match(/\/leiras\/(\d+)\//)[1]) || -1;
+            try{ return Number(document.querySelector('#adatlap')?.href.match(/\/leiras\/(\d+)\//)[1]) || -1; } catch(e) { return -1; }
         },
         // ---------------------------- TEST ----------------------------
         /**
@@ -896,11 +896,28 @@ class MagyarAnime {
                 urls: MA.EPISODE.getUrls(),
                 previousEpisodeLink: MA.EPISODE.getPreviousEpisodeLink(),
                 nextEpisodeLink: MA.EPISODE.getNextEpisodeLink(),
-                downloadLink: MA.EPISODE.getDownloadLink(),
                 animeLink: MA.EPISODE.getAnimeLink(),
                 allEpisodes: MA.EPISODE.getAllEpisodes(),
                 id: MA.EPISODE.getId(),
                 datasheetId:  MA.EPISODE.getDatasheet(),
+                checks: {
+                    isEpisodePage: MA.isEpisodePage(),
+                    isAnimePage: MA.isAnimePage(),
+                },
+                passes: {
+                    title: MA.EPISODE.getTitle() !== "",
+                    episodeNumber: MA.EPISODE.getEpisodeNumber() !== -1,
+                    releaseDate: MA.EPISODE.getReleaseDate() !== "",
+                    views: MA.EPISODE.getViews() !== -1,
+                    fansub: MA.EPISODE.getFansub().name !== "",
+                    urls: MA.EPISODE.getUrls().length > 0,
+                    previousEpisodeLink: MA.EPISODE.getPreviousEpisodeLink() !== "",
+                    nextEpisodeLink: MA.EPISODE.getNextEpisodeLink() !== "",
+                    animeLink: MA.EPISODE.getAnimeLink() !== "",
+                    allEpisodes: MA.EPISODE.getAllEpisodes().length > 0,
+                    id: MA.EPISODE.getId() !== -1,
+                    datasheetId: MA.EPISODE.getDatasheet() !== -1,
+                }
             };
         },
 
