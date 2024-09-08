@@ -76,8 +76,29 @@
 
 
 ![Szín](./img/color.png)
-      
 
+
+# Folytatás ahol abbahagytad
+- **Engeedélyezve**: Ki/be kapcsolja a folytatás ahol abbahagytad funkciót.
+- **Szinkronizálás**: Ki/be kapcsolja az adatok szinkronizálását a böngészőben.
+- **Adatok törlése**: Az adatok törlése a böngészőből/az összes eszközről (Ha be van kapcsolva a szinkronizálás).
+- **Adatok megtekintése**: Az adatok megtekintése egy új ablakban.
+
+# Könyvjelzők
+- **Engeedélyezve**: Ki/be kapcsolja a könyvjelzőket.
+- **Szinkronizálás**: Ki/be kapcsolja az adatok szinkronizálását a böngészőben.
+- **Adatok törlése**: Az adatok törlése a böngészőből/az összes eszközről (Ha be van kapcsolva a szinkronizálás).
+- **Adatok megtekintése**: Az adatok megtekintése egy új ablakban.
+
+# Beállítások szinkronizálása
+- **Engeedélyezve**: Ki/be kapcsolja az beállítások szinkronizálását a böngészőben.
+> Ez a funkció CSAK a beállításokat szinkronizálja, az adatokat nem. (Pl: Könyvjelzők, Részadatok)
+
+# Egyéb
+- **Beállítások visszaállítása**: A beállítások visszaállítása az alapértelmezett értékekre.
+- **Beállítások mentése**: A beállítások mentése.
+- **Beállítások importálása**: A beállítások importálása fájlból.
+- **Beállítások exportálása**: A beállítások exportálása fájlba.
 
 
 
