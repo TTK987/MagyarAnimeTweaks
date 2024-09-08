@@ -319,7 +319,7 @@ function migrateSettings_0_1_5(previousSettings) {
     try {
         if (!/0.1.5.[0-9]/.test(previousSettings.version)) return previousSettings
         return {
-            forwardSkip: { /* Forward skip settings (default: ctrl + →) */
+            forwardSkip: {
                 enabled: true,
                 time: 85,
                 keyBind: {
@@ -329,7 +329,7 @@ function migrateSettings_0_1_5(previousSettings) {
                     key: 'ArrowRight',
                 }
             },
-            backwardSkip: { /* Backward skip settings (default: ctrl + ←) */
+            backwardSkip: {
                 enabled: true,
                 time: 85,
                 keyBind: {
@@ -339,7 +339,7 @@ function migrateSettings_0_1_5(previousSettings) {
                     key: 'ArrowLeft',
                 }
             },
-            nextEpisode: { /* Next episode settings (default: alt + →)  */
+            nextEpisode: {
                 enabled: true,
                 keyBind: {
                     ctrlKey: false,
@@ -348,7 +348,7 @@ function migrateSettings_0_1_5(previousSettings) {
                     key: 'ArrowRight',
                 }
             },
-            previousEpisode: { /* Previous episode settings (default: alt + ←) */
+            previousEpisode: {
                 enabled: true,
                 keyBind: {
                     ctrlKey: false,
@@ -357,56 +357,45 @@ function migrateSettings_0_1_5(previousSettings) {
                     key: 'ArrowLeft',
                 }
             },
-            autoNextEpisode: { /* Auto next episode (default: false) (on last episode of the season it won't skip) */
+            autoNextEpisode: {
                 enabled: false,
-                time: 60 /* Time to skip to the next episode before the end of the episode (in seconds) */
+                time: 60
             },
-            autoplay: { /* Autoplay (default: true) */ enabled: true},
+            autoplay: {enabled: true},
             syncSettings: {
-                enabled: true, /* Sync settings using Google Account (default: true) */
+                enabled: true,
             },
-            bookmarks: { /* Bookmarks settings */
-                enabled: true, /* Bookmarks (default: true) */
+            bookmarks: {
+                enabled: true,
                 syncBookmarks: {
-                    enabled: true, /* Sync bookmarks using Google Account (default: true) */
+                    enabled: true,
                 },
             },
             resume: {
-                enabled: true, /* Resume watching (default: true) */
+                enabled: true,
                 syncResume: {
-                    enabled: true, /* Sync resume using Google Account (default: true) */
+                    enabled: true,
                 },
-                mode: 'ask', /* Resume mode (default: "ask") (ask, auto) */ /* TODO: Requires modification of the plyr player */
+                mode: 'ask',
             },
-            advanced: { /* Advanced settings */
-                enabled: /* Developer settings (default: false) */ true, // TODO: Set to false
-                settings: { /* Developer settings */
-                    ConsoleLog: { /* Console log (default: false) */ enabled: true}, // TODO: Set to false
-                    DefaultPlayer: { /* Default player (default: "plyr") */ player: 'plyr'}
+            advanced: {
+                enabled: true,
+                settings: {
+                    ConsoleLog: { enabled: true},
+                    DefaultPlayer: { player: 'plyr'}
                 },
-                plyr: { /* Plyr settings */
-                    design: { /* Plyr design settings */
-                        enabled: /* Plyr design settings (default: false) */ false,
-                        settings: { /* Plyr design settings */
-                            svgColor: '#ffffffff', // --plyr-video-control-color
-                            hoverBGColor: '#00b3ffff', // --plyr-video-control-background-hover
-                            mainColor: '#00b3ffff', // --plyr-color-main
-                            hoverColor: '#ffffffff', //  --plyr-video-control-color-hover
+                plyr: {
+                    design: {
+                        enabled: false,
+                        settings: {
+                            svgColor: '#ffffffff',
+                            hoverBGColor: '#00b3ffff',
+                            mainColor: '#00b3ffff',
+                            hoverColor: '#ffffffff',
                         },
                     },
                 },
                 downloadName: '%title% - %episode%.rész (%MAT%)',
-                /* Download name (default: "%title% - %episode%.rész (%MAT%)") */
-                /*
-                        * Download name variables:
-                        * %title% - Title of the anime (e.g. "One Piece")
-                        * %episode% - Episode number (e.g. 1)
-                        * %0episode% - Episode number with leading zero (e.g. 01 instead of 1)
-                        * %MAT% - "MATweaks" text
-                        * %source% - Source name (e.g. "indavideo")
-                        * %quality% - Quality of the video (e.g. "720p")
-                        * %group% - Fansub group name (e.g. "Akio Fansub")
-                         */
                 forcePlyr: true,
             },
             private: {
