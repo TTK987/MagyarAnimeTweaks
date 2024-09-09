@@ -141,12 +141,6 @@ function openPermissionPopup() {
     });
 }
 
-
-// |=================================================================================================
-// | CURRENTLY ALL THE CODE BELOW IS BROKEN AND NEEDS TO BE FIXED
-// |=================================================================================================
-
-// TODO: Fix settings migration
 /**
  * Helper function to migrate settings
  * @param {String} previousVersion The previous version of the extension
@@ -209,8 +203,7 @@ function migrateSyncSettings(previousVersion, currentVersion) {
 function migrateSettings_0_1_8(pr) {
     logger.log(`[background.js]: Migrating settings from version 0.1.8 to version ${MAT.getVersion()}`, true);
     try {
-        if (!/0.1.8.[0-9]/.test(pr.version)) return pr
-        pr.version = MAT.getVersion();
+        if (!/0.1.8.[0-9]/.test(pr.version)) return pr;
         return pr;
     } catch (error) {
         logger.error(`[background.js]: Failed to migrate settings from version 0.1.8 to version ${MAT.getVersion()}`, true);
@@ -233,12 +226,20 @@ function migrateSettings_0_1_7(pr) {
             logger.log(`[background.js]: Settings are already up to date`, true);
             return pr
         }
-        let data = MAT.getDefaultSettings();
-        data.version = MAT.getVersion();
-        data.private.eap = pr.eap || false;
-        data = Object.assign(data, pr);
-        if (data.advanced.settings.DefaultPlayer.player === 'html5') data.advanced.settings.DefaultPlayer.player = 'plyr';
-        return data;
+        return {
+            forwardSkip: { enabled: pr.forwardSkip.enabled || true, time: pr.forwardSkip.time || 85, keyBind: { ctrlKey: pr.forwardSkip.ctrlKey || true, altKey: pr.forwardSkip.altKey || false, shiftKey: pr.forwardSkip.shiftKey || false, key: pr.forwardSkip.key || 'ArrowRight', }},
+            backwardSkip: { enabled: pr.backwardSkip.enabled || true, time: pr.backwardSkip.time || 85, keyBind: { ctrlKey: pr.backwardSkip.ctrlKey || true, altKey: pr.backwardSkip.altKey || false, shiftKey: pr.backwardSkip.shiftKey || false, key: pr.backwardSkip.key || 'ArrowLeft', }},
+            nextEpisode: { enabled: pr.nextEpisode.enabled || true, keyBind: { ctrlKey: pr.nextEpisode.ctrlKey || false, altKey: pr.nextEpisode.altKey || true, shiftKey: pr.nextEpisode.shiftKey || false, key: pr.nextEpisode.key || 'ArrowRight', }},
+            previousEpisode: { enabled: pr.previousEpisode.enabled || true, keyBind: { ctrlKey: pr.previousEpisode.ctrlKey || false, altKey: pr.previousEpisode.altKey || true, shiftKey: pr.previousEpisode.shiftKey || false, key: pr.previousEpisode.key || 'ArrowLeft', }},
+            autoNextEpisode: { enabled: pr.autoNextEpisode.enabled || false, time: pr.autoNextEpisode.time || 60 },
+            autoplay: { enabled: pr.autoplay.enabled || true},
+            syncSettings: { enabled: true, },
+            bookmarks: { enabled: true, syncBookmarks: { enabled: true, }, },
+            resume: { enabled: true, syncResume: { enabled: true, }, mode: 'ask', },
+            advanced: { enabled: pr.advanced.enabled || false, settings: { ConsoleLog: {  enabled: pr.advanced.settings.ConsoleLog.enabled || false}, DefaultPlayer: { player: pr.advanced.settings.DefaultPlayer.player === 'html5' ? 'plyr' : pr.advanced.settings.DefaultPlayer.player || 'plyr'} }, plyr: { design: { enabled:false, settings: { svgColor: '#ffffffff', hoverBGColor: '#00b3ffff', mainColor: '#00b3ffff', hoverColor: '#ffffffff', }, }, }, downloadName: '%title% - %episode%.rész (%MAT%)', forcePlyr: true, },
+            private: { hasMAPlayer: false, eap: true, },
+            version: this.getVersion(),
+        };
     } catch (error) {
         logger.error(`[background.js]: Failed to migrate settings from version 0.1.7.x to version ${MAT.getVersion()}`, true);
         console.error(error);
@@ -255,21 +256,22 @@ function migrateSettings_0_1_7(pr) {
  */
 function migrateSettings_0_1_6(pr) {
     logger.log(`[background.js]: Migrating settings from version 0.1.6.x to version ${MAT.getVersion()}`, true);
-    /*
-    v0.1.6.x settings:
-     */
     try {
         if (!/0.1.6.[0-9]/.test(pr.version)) return pr
-        let data = MAT.getDefaultSettings();
-        data.version = MAT.getVersion();
-        data.advanced.enabled = pr.devSettings.enabled || false;
-        data.advanced.settings.ConsoleLog.enabled = pr.devSettings.settings.ConsoleLog.enabled || false;
-        data.advanced.settings.DefaultPlayer.player = pr.devSettings.settings.DefaultPlayer.player || 'plyr';
-        data.forwardSkip.time = pr.forwardSkip.duration || 85;
-        data.backwardSkip.time = pr.backwardSkip.duration || 85;
-        data = Object.assign(data, pr);
-        if (data.advanced.settings.DefaultPlayer.player === 'html5') data.advanced.settings.DefaultPlayer.player = 'plyr';
-        return data;
+        return {
+            forwardSkip: { enabled: pr.forwardSkip.enabled || true, time: pr.forwardSkip.duration || 85, keyBind: { ctrlKey: pr.forwardSkip.ctrlKey || true, altKey: pr.forwardSkip.altKey || false, shiftKey: pr.forwardSkip.shiftKey || false, key: pr.forwardSkip.key || 'ArrowRight', }},
+            backwardSkip: { enabled: pr.backwardSkip.enabled || true, time: pr.backwardSkip.duration || 85, keyBind: { ctrlKey: pr.backwardSkip.ctrlKey || true, altKey: pr.backwardSkip.altKey || false, shiftKey: pr.backwardSkip.shiftKey || false, key: pr.backwardSkip.key || 'ArrowLeft', }},
+            nextEpisode: { enabled: pr.nextEpisode.enabled || true, keyBind: { ctrlKey: pr.nextEpisode.ctrlKey || false, altKey: pr.nextEpisode.altKey || true, shiftKey: pr.nextEpisode.shiftKey || false, key: pr.nextEpisode.key || 'ArrowRight', }},
+            previousEpisode: { enabled: pr.previousEpisode.enabled || true, keyBind: { ctrlKey: pr.previousEpisode.ctrlKey || false, altKey: pr.previousEpisode.altKey || true, shiftKey: pr.previousEpisode.shiftKey || false, key: pr.previousEpisode.key || 'ArrowLeft', }},
+            autoNextEpisode: { enabled: pr.autoNextEpisode.enabled || false, time: pr.autoNextEpisode.time || 60 },
+            autoplay: { enabled: pr.autoplay.enabled || true},
+            syncSettings: { enabled: true, },
+            bookmarks: { enabled: true, syncBookmarks: { enabled: true, }, },
+            resume: { enabled: true, syncResume: { enabled: true, }, mode: 'ask', },
+            advanced: { enabled: pr.devSettings.enabled || false, settings: {ConsoleLog: {  enabled: pr.devSettings.settings.ConsoleLog.enabled || false}, DefaultPlayer: { player: pr.devSettings.settings.DefaultPlayer.player === 'html5' ? 'plyr' : pr.devSettings.settings.DefaultPlayer.player || 'plyr'}}, plyr: {design: { enabled:false, settings: { svgColor: '#ffffffff', hoverBGColor: '#00b3ffff', mainColor: '#00b3ffff', hoverColor: '#ffffffff', }, }, }, downloadName: '%title% - %episode%.rész (%MAT%)', forcePlyr: true, },
+            private: { hasMAPlayer: false, eap: true, },
+            version: this.getVersion(),
+        };
     } catch (error) {
         logger.error(`[background.js]: Failed to migrate settings from version 0.1.6.x to version ${MAT.getVersion()}`, true);
         console.error(error);
@@ -280,130 +282,26 @@ function migrateSettings_0_1_6(pr) {
 }
 /**
  * Migrate the settings from version 0.1.5.x to 0.1.6.x
- * @param {{forwardSkip: {  enabled: Boolean,duration: Number,ctrlKey: Boolean,altKey: Boolean,shiftKey: Boolean,Boolean: String,},backwardSkip:{ enabled: Boolean,duration: Number,ctrlKey: Boolean,altKey: Boolean,shiftKey: Boolean,Boolean: String,},nextEpisode: { enabled: Boolean,ctrlKey: Boolean,altKey: Boolean,shiftKey: Boolean,key: String,},previousEpisode: { enabled: Boolean,ctrlKey: Boolean,altKey: Boolean,shiftKey: Boolean,key: String,},devSettings: { enabled: Boolean,settings: { ConsoleLog: { enabled: Boolean,},DefaultPlayer: { player: String,},}},autoNextEpisode: { enabled: Boolean, time: Number, },autoplay: { enabled: Boolean, },version: String,}} pr The previous settings
- * @returns {Object} The migrated settings from version 0.1.5.x to 0.1.6.x
+ * @param {Object} pr The previous settings
+ * @return{Object} The migrated settings from version 0.1.5.x to 0.1.6.x
  * @since v0.1.8
  */
 function migrateSettings_0_1_5(pr) {
     logger.log(`[background.js]: Migrating settings from version 0.1.5.x to version ${MAT.getVersion()}`, true);
-    /*
-    v0.1.5.x settings:
-     {
-            forwardSkip: {  enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowRight",},
-            backwardSkip:{ enabled: true,duration: 85,ctrlKey: true,altKey: false,shiftKey: false,key: "ArrowLeft",},
-            nextEpisode: { enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowRight",},
-            previousEpisode: { enabled: true,ctrlKey: false,altKey: true,shiftKey: false,key: "ArrowLeft",},
-            devSettings: { enabled: false,settings: { ConsoleLog: { enabled: false,},DefaultPlayer: { player: "plyr",},}},
-            autoNextEpisode: { enabled: false, time: 50, },
-            autoplay: { enabled: true, },
-            version: MATweaksVersion,
-     };
-     */
-    /*
-     v0.1.8.x settings:
-     {
-        forwardSkip: { enabled: true, time: 85, keyBind: { ctrlKey: true, altKey: false, shiftKey: false, key: 'ArrowRight', } },
-        backwardSkip: { enabled: true, time: 85, keyBind: { ctrlKey: true, altKey: false, shiftKey: false, key: 'ArrowLeft', } },
-        nextEpisode: { enabled: true, keyBind: { ctrlKey: false, altKey: true, shiftKey: false, key: 'ArrowRight', } },
-        previousEpisode: { enabled: true, keyBind: { ctrlKey: false, altKey: true, shiftKey: false, key: 'ArrowLeft', } },
-        autoNextEpisode: { enabled: false, time: 60 },
-        autoplay: { enabled: true},
-        syncSettings: { enabled: true, },
-        bookmarks: { enabled: true, syncBookmarks: { enabled: true, }, },
-        resume: { enabled: true, syncResume: { enabled: true, }, mode: 'ask', },
-        advanced: { enabled: true, settings: { ConsoleLog: {  enabled: true}, DefaultPlayer: { player: 'plyr'} }, plyr: { design: { enabled:false, settings: { svgColor: '#ffffffff', hoverBGColor: '#00b3ffff', mainColor: '#00b3ffff', hoverColor: '#ffffffff', }, }, }, downloadName: '%title% - %episode%.rész (%MAT%)', forcePlyr: true, },
-        private: { hasMAPlayer: false, eap: true, },
-        version: this.getVersion(),
-    };
-     */
     try {
         if (!/0.1.5.[0-9]/.test(pr.version)) return pr
         return {
-            forwardSkip: {
-                enabled: pr.forwardSkip.enabled || true,
-                time: pr.forwardSkip.duration || 85,
-                keyBind: {
-                    ctrlKey: pr.forwardSkip.ctrlKey || true,
-                    altKey: pr.forwardSkip.altKey || false,
-                    shiftKey: pr.forwardSkip.shiftKey || false,
-                    key: pr.forwardSkip.key || 'ArrowRight',
-                }
-            },
-            backwardSkip: {
-                enabled: pr.backwardSkip.enabled || true,
-                time: pr.backwardSkip.duration || 85,
-                keyBind: {
-                    ctrlKey: pr.backwardSkip.ctrlKey || true,
-                    altKey: pr.backwardSkip.altKey || false,
-                    shiftKey: pr.backwardSkip.shiftKey || false,
-                    key: pr.backwardSkip.key || 'ArrowLeft',
-                }
-            },
-            nextEpisode: {
-                enabled: pr.nextEpisode.enabled || true,
-                keyBind: {
-                    ctrlKey: pr.nextEpisode.ctrlKey || false,
-                    altKey: pr.nextEpisode.altKey || true,
-                    shiftKey: pr.nextEpisode.shiftKey || false,
-                    key: pr.nextEpisode.key || 'ArrowRight',
-                }
-            },
-            previousEpisode: {
-                enabled: pr.previousEpisode.enabled || true,
-                keyBind: {
-                    ctrlKey: pr.previousEpisode.ctrlKey || false,
-                    altKey: pr.previousEpisode.altKey || true,
-                    shiftKey: pr.previousEpisode.shiftKey || false,
-                    key: pr.previousEpisode.key || 'ArrowLeft',
-                }
-            },
-            autoNextEpisode: {
-                enabled: pr.autoNextEpisode.enabled || false,
-                time: pr.autoNextEpisode.time || 60,
-            },
+            forwardSkip: {enabled: pr.forwardSkip.enabled || true, time: pr.forwardSkip.duration || 85, keyBind: {ctrlKey: pr.forwardSkip.ctrlKey || true, altKey: pr.forwardSkip.altKey || false, shiftKey: pr.forwardSkip.shiftKey || false, key: pr.forwardSkip.key || 'ArrowRight',}},
+            backwardSkip: {enabled: pr.backwardSkip.enabled || true, time: pr.backwardSkip.duration || 85, keyBind: {ctrlKey: pr.backwardSkip.ctrlKey || true, altKey: pr.backwardSkip.altKey || false, shiftKey: pr.backwardSkip.shiftKey || false, key: pr.backwardSkip.key || 'ArrowLeft',}},
+            nextEpisode: {enabled: pr.nextEpisode.enabled || true, keyBind: {ctrlKey: pr.nextEpisode.ctrlKey || false, altKey: pr.nextEpisode.altKey || true, shiftKey: pr.nextEpisode.shiftKey || false, key: pr.nextEpisode.key || 'ArrowRight',}},
+            previousEpisode: {enabled: pr.previousEpisode.enabled || true, keyBind: {ctrlKey: pr.previousEpisode.ctrlKey || false, altKey: pr.previousEpisode.altKey || true, shiftKey: pr.previousEpisode.shiftKey || false, key: pr.previousEpisode.key || 'ArrowLeft',}},
+            autoNextEpisode: {enabled: pr.autoNextEpisode.enabled || false, time: pr.autoNextEpisode.time || 60,},
             autoplay: {enabled: pr.autoplay.enabled || true},
-            syncSettings: {
-                enabled: true,
-            },
-            bookmarks: {
-                enabled: true,
-                syncBookmarks: {
-                    enabled: true,
-                },
-            },
-            resume: {
-                enabled: true,
-                syncResume: {
-                    enabled: true,
-                },
-                mode: 'ask',
-            },
-            advanced: {
-                enabled: pr.devSettings.enabled || false,
-                settings: {
-                    ConsoleLog: {
-                        enabled: pr.devSettings.settings.ConsoleLog.enabled || false,
-                    },
-                    DefaultPlayer: { player: pr.devSettings.settings.DefaultPlayer.player === 'html5' ? 'plyr' : pr.devSettings.settings.DefaultPlayer.player || 'plyr' },
-                },
-                plyr: {
-                    design: {
-                        enabled: false,
-                        settings: {
-                            svgColor: '#ffffffff',
-                            hoverBGColor: '#00b3ffff',
-                            mainColor: '#00b3ffff',
-                            hoverColor: '#ffffffff',
-                        },
-                    },
-                },
-                downloadName: '%title% - %episode%.rész (%MAT%)',
-                forcePlyr: true,
-            },
-            private: {
-                hasMAPlayer: false,
-                eap: false,
-            },
+            syncSettings: {enabled: true,},
+            bookmarks: {enabled: true, syncBookmarks: {enabled: true,},},
+            resume: {enabled: true, syncResume: {enabled: true,}, mode: 'ask',},
+            advanced: {enabled: pr.devSettings.enabled || false, settings: {ConsoleLog: {enabled: pr.devSettings.settings.ConsoleLog.enabled || false,}, DefaultPlayer: { player: pr.devSettings.settings.DefaultPlayer.player === 'html5' ? 'plyr' : pr.devSettings.settings.DefaultPlayer.player || 'plyr' },}, plyr: {design: {enabled: false, settings: {svgColor: '#ffffffff', hoverBGColor: '#00b3ffff', mainColor: '#00b3ffff', hoverColor: '#ffffffff',},},}, downloadName: '%title% - %episode%.rész (%MAT%)', forcePlyr: true,},
+            private: {hasMAPlayer: false, eap: false,},
             version: MAT.getVersion(),
         };
     } catch (error) {
