@@ -40,7 +40,7 @@ class MATweaks {
      *
      */
     loadSettings() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (this.settings.syncSettings.enabled) {
                 this.getSyncSettings().then((settings) => {
                     this.setSettings(settings.settings);
@@ -1017,7 +1017,7 @@ const popup = new Popup();
  * Class to manage the resume data
  * @since v0.1.8
  */
-class ResumePlayBack {
+class ResumePlayBackCL {
     constructor() {
         this.eps = [];
     }
@@ -1096,13 +1096,28 @@ class ResumePlayBack {
     /**
      * Get the resume data by episode ID
      * @param {Number} episodeId - Episode number
-     * @returns {ResumePlayback} The resume data
+     * @returns {ResumePlayback | null} The resume data
      * @since v0.1.8
      */
     getResumeDataByEpisodeId(episodeId) {
-        return this.eps.find((ep) => ep.EpisodeID === episodeId);
+        return this.eps.find((ep) => ep.EpisodeID === episodeId) || null;
     }
 
+    /**
+     * Update the resume data
+     * @param {Number} id - Episode number
+     * @param {Number} currentTime - Current time in the episode (in seconds)
+     */
+    updateResumeData(id, currentTime) {
+        const ep = this.getResumeDataByEpisodeId(id);
+        if (ep) {
+            ep.Time = currentTime;
+            ep.CTimestamp = Date.now();
+            this.saveResumeData();
+        } else {
+            this.addResumeData(id, currentTime);
+        }
+    }
 }
 
 /**
@@ -1118,6 +1133,7 @@ class ResumePlayback {
         this.CTimestamp = CTimestamp;
     }
 }
+const ResumePlayBack = new ResumePlayBackCL();
 
 
 if (typeof window !== 'undefined') {
@@ -1125,7 +1141,8 @@ if (typeof window !== 'undefined') {
     window.logger = logger;
     window.bookmarks = bookmarks;
     window.popup = popup;
+    window.ResumePlayBack = ResumePlayBack;
 }
 export {
-    MAT, logger, bookmarks, Bookmark, MA, popup,
+    MAT, logger, bookmarks, Bookmark, MA, popup, ResumePlayBack, ResumePlayback
 };

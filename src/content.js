@@ -1,9 +1,9 @@
-import {MAT, logger, bookmarks, MA, popup} from "./API";
+import {MAT, logger, bookmarks, MA, popup, ResumePlayBack } from "./API";
 
 /**
  * Settings object to store the settings (Later loaded from the storage)
  * Default settings for the extension (used if the settings are not loaded from the storage)
- * @type {Object}
+ * @type {{  forwardSkip: {  enabled: boolean,  time: number,  keyBind: {  ctrlKey: boolean,  altKey: boolean,  shiftKey: boolean,  key: string  }  },  backwardSkip: {  enabled: boolean,  time: number,  keyBind: {  ctrlKey: boolean,  altKey: boolean,  shiftKey: boolean,  key: string  }  },  nextEpisode: {  enabled: boolean,  keyBind: {  ctrlKey: boolean,  altKey: boolean,  shiftKey: boolean,  key: string  }  },  previousEpisode: {  enabled: boolean,  keyBind: {  ctrlKey: boolean,  altKey: boolean,  shiftKey: boolean,  key: string  }  },  autoNextEpisode: {  enabled: boolean,  time: number  },  autoplay: {  enabled: boolean  },  syncSettings: {  enabled: boolean  },  bookmarks: {  enabled: boolean,  syncBookmarks: {  enabled: boolean  }  },  resume: {  enabled: boolean,  syncResume: {  enabled: boolean  },  mode: string  },  advanced: {  enabled: boolean,  settings: {  ConsoleLog: {  enabled: boolean  },  DefaultPlayer: {  player: string  }  },  plyr: {  design: {  enabled: boolean,  settings: {  svgColor: string,  hoverBGColor: string,  mainColor: string,  hoverColor: string  }  }  },  downloadName: string,  forcePlyr: boolean  },  private: {  hasMAPlayer: boolean,  eap: boolean  },  version: string}} Default settings for the extension
  */
 let settings = MAT.getDefaultSettings();
 
@@ -13,12 +13,9 @@ let settings = MAT.getDefaultSettings();
  */
 class Player {
     /**
-     * Player can be reloaded without a page reload
-     * Since: v0.1.5
-     */
-    /**
      * Create a Player instance
      * @constructor
+     * Since: v0.1.5 Player can be reloaded without a page reload
      */
     constructor() {
         this.selector = "#indavideoframe";
@@ -38,7 +35,7 @@ class Player {
     replacePlayer(playerType) {
         const playerActions = {
             "default": () => this.replaceWithDefaultPlayer(),
-            "plyr": () => this.replaceWithPlyrPlayer()
+            "plyr": () => this.replaceWithPlyrPlayer(),
         };
         try {
             playerActions[playerType]();
@@ -651,15 +648,15 @@ function checkAdvancedSettings() {
  *
  * UNUSED
  * @returns {boolean} Returns true if the user is an admin, otherwise false
-
+ */
 function checkAdmin() {
     let adminbtn = document.querySelector(".gen-account-menu li a")
     return adminbtn && adminbtn.textContent.includes("Admin") &&
         adminbtn.querySelector("i").classList.contains("fa-crown") &&
-        !document.querySelector(".gen-account-menu li a[href='felhasznalo/torles']");
-
+        !document.querySelector(".gen-account-menu li a[href='felhasznalo/torles']") &&
+        !!document.querySelector(".logo_third");
 }
-*/
+
 
 /**
  * Function to render the filename
@@ -984,6 +981,7 @@ function setupEventListeners() {
         handleA();
         if (MA.isEpisodePage()) console.log(MA.EPISODE.TEST()); // TODO: Remove this line
         if (MA.isAnimePage()) console.log(MA.ANIME.TEST()); // TODO: Remove this line
+        logger.log("IsAdmin: " + checkAdmin());
     });
     window.addEventListener("DOMContentLoaded", function () {});  // Useless line
     window.addEventListener("MATweaksPlayerReplaced", function () {
@@ -991,6 +989,7 @@ function setupEventListeners() {
         addShortcutsToPage();
         handleReszPage();
         checkForBookmarks();
+        if (settings.resume.enabled) {initializeResumeFeature();}
         player.isReplaced = true;
     });
     window.addEventListener("MATweaksPlayerReplaceFailed", function () {
@@ -1101,6 +1100,7 @@ function handleReszPage() {
 function autoNextEpisode() {
     let nextEpisodeButton = document.getElementById("epkovetkezo")
     if (nextEpisodeButton) nextEpisodeButton.click();
+    ResumePlayBack.removeResumeData(MA.EPISODE.getId()); // Remove the resume data, since the auto next episode is triggered, which means the user has finished the episode
     logger.log("Moved to the next episode automatically.");
 }
 
@@ -1167,7 +1167,8 @@ function nextEpisodeMega() {
  * @param {string} filename - The filename of the file to download
  * @returns {Promise<boolean>} - Returns true if the download was successful
  */
-async function downloadFile(filename) { return new Promise((resolve, reject) => {
+async function downloadFile(filename) {
+    return new Promise((resolve, reject) => {
         let url = document.querySelector("video").src;
         if (!filename) {
             logger.error("Download failed: filename is empty or undefined.");
@@ -1258,8 +1259,9 @@ function addShortcutsToPage() {
  */
 async function getMegaCurrentTime() {
     return  await new Promise((resolve) => {
-        window.addEventListener("message", (event) => {
+        window.addEventListener("message", function temp(event) {
             if (event.data.plugin === MAT.__NAME && event.data.type === MAT.__ACTIONS.MEGA.CURRENT_TIME) {
+                window.removeEventListener("message", temp);
                 resolve(event.data.currentTime);
             }
         });
@@ -1337,10 +1339,10 @@ function addBookmarkButton() {
 }
 
 /**
- * Function to seek player to the bookmarked time
+ * Function to seek player to the specified time
  * @param {number} time - The time to seek to
  */
-function seekToBookmark(time) {
+function seekTo(time) {
     let tryCount = 0;
     let interval = setInterval(() => {
         if (player.isReplaced) {
@@ -1385,7 +1387,7 @@ function checkForBookmarks() {
                 if (bookmark.url.split("/")[4] === MA.EPISODE.getId().toString()) {
                     let i = bookmarks.getBookmark(bookmark.id) || 0;
                     if (Number(i.id) !== Number(bookmark.id)) {logger.error("Error while getting the bookmark."); return;}
-                    seekToBookmark(i.time);
+                    seekTo(i.time);
                     chrome.runtime.sendMessage({plugin: MAT.__NAME, type: "removeOpenBookmark", id: bookmark.id}, (response) => {
                         if (response) {
                             logger.log("Bookmark opened.");
@@ -1409,12 +1411,97 @@ function checkForBookmarks() {
 
 // ---------------------------- End of Bookmarking ----------------------------
 
+// ---------------------------- Resume feature ----------------------------
+
+
+function checkForResume() {
+    ResumePlayBack.loadResumeData().then(() => {
+        const current = ResumePlayBack.getResumeDataByEpisodeId(MA.EPISODE.getId());
+        if (current) {
+            switch (settings.resume.mode) {
+                case "ask":
+                    let buttons = a => {
+                        let btns = [];
+                        for (let i = 0; i < a.length; i++) {
+                            let btn = document.createElement("button");
+                            btn.innerHTML = a[i];
+                            btn.value = a[i].toLowerCase();
+                            btns.push(btn);
+                        }
+                        return btns;
+                    }
+                    askUser("Szeretnéd folytatni az előzőleg megnézett részt?", buttons(["Igen", "Nem"]), function (value) {
+                        if (value === "igen") {
+                            seekTo(current.Time);
+                            logger.log("Resumed playback.");
+                        } else {
+                            logger.log("Playback not resumed.");
+                        }
+                    });
+                    break;
+                case "auto":
+                    seekTo(current.Time);
+                    logger.log("Resumed playback.");
+                    break;
+                case "off":
+                    logger.log("Resume feature is turned off.");
+                    break;
+                default:
+                    logger.error("Error while checking for resume data.");
+                    popup.showErrorPopup("Hiba történt a folytatás adatok ellenőrzése közben.");
+            }
+        } else {
+            logger.log("No resume data found for the current episode.");
+        }
+    }).catch((error) => {
+        logger.error("Error while loading resume data: " + error);
+        popup.showErrorPopup("Hiba történt a folytatás adatok betöltése közben.");
+    });
+}
+
+function updateResumeData() {
+    ResumePlayBack.updateResumeData(MA.EPISODE.getId(), player.plyr.currentTime);
+    logger.log("Resume data updated.");
+}
+
+
+function addResumeEventListeners() {
+    document.addEventListener("visibilitychange", handle);
+    window.addEventListener("beforeunload", () => handle);
+    window.addEventListener("unload", () => handle);
+    const video = document.querySelector("video");
+    video.addEventListener("pause", handle);
+    video.addEventListener("ended", () => {
+        ResumePlayBack.removeResumeData(MA.EPISODE.getId());
+        video.removeEventListener("pause", handle);
+        video.removeEventListener("ended", handle);
+        document.removeEventListener("visibilitychange", handle);
+        window.removeEventListener("beforeunload", handle);
+        window.removeEventListener("unload", handle);
+        logger.log("Resume data removed.");
+    });
+    function handle(event) {
+        if (event.type === "visibilitychange" && document.hidden) {
+            updateResumeData();
+        } else if (event.type !== "visibilitychange") {
+            updateResumeData();
+        }
+    }
+}
+
+function initializeResumeFeature() {
+    if (player.isMega) return; // Resume feature is handled by the Mega player itself
+    checkForResume();
+    addResumeEventListeners();
+}
+
+
+
+
 /**
  * Initialize the extension
  */
 initializeExtension();
-
-
 
 
 
