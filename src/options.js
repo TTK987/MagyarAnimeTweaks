@@ -1,4 +1,4 @@
-import {MAT, logger} from "./API";
+import {MAT, logger, popup} from "./API";
 
 let settings = MAT.getSettings();
 /**

@@ -1,13 +1,12 @@
 /**
  * Helper function to load stuff from the storage
  * @param {String} key - The key to load
- * @param {Boolean} sync - Whether to load from the sync storage (default: false)
  * @returns {Promise<Object>} The value of the key
  * @since v0.1.8
  */
-function loadFromStorage(key,sync = false) {
+function loadFromStorage(key) {
     return new Promise((resolve, reject) => {
-        chrome.storage[sync ? 'sync' : 'local'].get(key, (data) => {
+        chrome.storage.sync.get(key, (data) => {
             if (data[key]) {
                 resolve(data[key]);
             } else {
@@ -16,9 +15,6 @@ function loadFromStorage(key,sync = false) {
         });
     });
 }
-
-
-
 class MATweaks {
     constructor() {
         this.settings = this.getDefaultSettings();
@@ -41,98 +37,15 @@ class MATweaks {
      */
     loadSettings() {
         return new Promise((resolve) => {
-            if (this.settings.syncSettings.enabled) {
-                this.getSyncSettings().then((settings) => {
-                    this.setSettings(settings.settings);
-                    resolve(settings.settings);
-                }).catch(() => {
-                    this.getLocalSettings().then((settings) => {
-                        this.setSettings(settings.settings);
-                        resolve(settings.settings);
-                    }).catch(() => {
-                        this.setSettings(this.getDefaultSettings());
-                        resolve(this.getDefaultSettings());
-                    });
-                });
-            } else {
-                this.getLocalSettings().then((settings) => {
-                    this.setSettings(settings.settings);
-                    resolve(settings.settings);
-                }).catch(() => {
-                    this.getSyncSettings().then((settings) => {
-                        this.setSettings(settings.settings);
-                        resolve(settings.settings);
-                    }).catch(() => {
-                        this.setSettings(this.getDefaultSettings());
-                        resolve(this.getDefaultSettings());
-                    });
-                });
-            }
-        });
-    }
-
-    /**
-     * Get the settings from the local storage
-     * @returns {Promise<Object>} The settings from the local storage
-     */
-    getLocalSettings() {
-        return new Promise((resolve, reject) => {
-            chrome.storage.local.get('settings', (data) => {
-                if (data) {
-                    resolve(data);
-                } else {
-                    logger.error('Error: Settings not found in the local storage', true)
-                    reject(new Error('Settings not found'));
-                }
+            loadFromStorage('settings').then((settings) => {
+                this.setSettings(settings);
+                resolve(settings);
+            }).catch(() => {
+                this.setSettings(this.getDefaultSettings());
+                resolve(this.getDefaultSettings());
             });
         });
     }
-
-    /**
-     * Get the settings from the sync storage
-     * @returns {Promise<Object>} The settings from the sync storage
-     * @since v0.1.8
-     */
-    getSyncSettings() {
-        return new Promise((resolve, reject) => {
-            chrome.storage.sync.get('settings', (data) => {
-                if (data) {
-                    resolve(data);
-                } else {
-                    logger.error('Error: Settings not found in the sync storage', true)
-                    reject(new Error('Settings not found'));
-                }
-            });
-        });
-    }
-
-    /**
-     * Sync the settings to the storage
-     */
-    syncSettings() {
-        if (this.settings.syncSettings.enabled) {
-            chrome.storage.sync.set({settings: this.settings});
-        } else {
-            chrome.storage.local.set({settings: this.settings});
-        }
-    }
-
-    /**
-     * Save the settings to the local storage
-     * @since v0.1.8
-     */
-    saveLocalSettings() {
-        chrome.storage.local.set({settings: this.settings});
-    }
-
-    /**
-     * Save the settings to the sync storage
-     * @since v0.1.8
-     */
-    saveSyncSettings() {
-        chrome.storage.sync.set({settings: this.settings});
-    }
-
     /**
      * Save the settings to the storage (local and sync)
      *
@@ -141,7 +54,6 @@ class MATweaks {
      */
     saveSettings() {
         chrome.storage.sync.set({settings: this.settings});
-        chrome.storage.local.set({settings: this.settings});
     }
 
     /**
@@ -301,6 +213,8 @@ class MATweaks {
             BOOKMARKS: 'bookmarks',
 
         },
+        DOWNLOAD: "download",
+
 
     }
     __NAME = "MATweaks";
@@ -322,6 +236,7 @@ class Logger {
             log: `color: #000000; background-color: #2196F3; padding: 2px 5px; border-radius: 5px;`,
             warn: `color: #000000; background-color: #FFC107; padding: 2px 5px; border-radius: 5px;`,
             error: `color: #000000; background-color: #F44336; padding: 2px 5px; border-radius: 5px;`,
+            success: `color: #000000; background-color: #4CAF50; padding: 2px 5px; border-radius: 5px;`,
         };
     }
 
@@ -368,6 +283,19 @@ class Logger {
     }
 
     /**
+     * Logs a success message to the console in style
+     * @example logger.success('This is a success message')
+     * @param {String} message - The message to log
+     * @param {Boolean} bypass - Bypass the enabled setting (force log)
+     * @since v0.1.8
+     */
+    success(message, bypass = false) {
+        if (this.enabled || bypass) {
+            console.log(`%c[MATweaks]: %c${message}`, this.styles.logo, this.styles.success);
+        }
+    }
+
+    /**
      * Enable the logger
      * @since v0.1.7
      */
@@ -386,32 +314,36 @@ class Logger {
 }
 const logger = new Logger();
 class Bookmarks {
+    /**
+     * Create a new Bookmarks class
+     * @since v0.1.8
+     * @constructor Bookmarks - Create a new Bookmarks class
+     * @property {Array<Bookmark>} bookmarks - The bookmarks
+     */
     constructor() {
         this.bookmarks = [];
     }
 
+    /**
+     * Load the bookmarks
+     * @returns {Promise<Array<Bookmark>>} The bookmarks
+     * @since v0.1.8
+     */
     loadBookmarks() {
         return new Promise((resolve, reject) => {
-            if (MAT.getSettings().bookmarks.syncBookmarks.enabled) {
-                loadFromStorage('bookmarks', true).then((bookmarks) => {
-                    this.bookmarks = bookmarks;
-                    resolve(this.bookmarks);
-                }).catch(() => {reject(new Error('Bookmarks not found'))});
-            } else {
-                loadFromStorage('bookmarks').then((bookmarks) => {
-                    this.bookmarks = bookmarks;
-                    resolve(this.bookmarks);
-                }).catch(() => {reject(new Error('Bookmarks not found'))});
-            }
+            loadFromStorage('bookmarks').then((bookmarks) => {
+                this.bookmarks = bookmarks;
+                resolve(this.bookmarks);
+            }).catch(() => {reject(new Error('Bookmarks not found'))});
         });
     }
 
+    /**
+     * Save the bookmarks
+     * @since v0.1.8
+     */
     saveBookmarks() {
-        if (MAT.getSettings().bookmarks.syncBookmarks.enabled) {
-            chrome.storage.sync.set({bookmarks: this.bookmarks});
-        } else {
-            chrome.storage.local.set({bookmarks: this.bookmarks});
-        }
+        chrome.storage.sync.set({bookmarks: this.bookmarks});
     }
 
     /**
@@ -433,47 +365,80 @@ class Bookmarks {
      * @constructor Bookmark - Create a new bookmark
      * @returns {Bookmark} The created bookmark
      * @method addBookmark - Add a new bookmark
-     * @example
-     * const bookmark = bookmarks.addBookmark('One Piece', 1, 'https://magyaranime.eu/resz/5555/', 'Ez egy példa leírás', 60, 5555, 'https://magyaranime.eu/image.jpg');
-     * console.log(bookmark);
      * @since v0.1.8
      */
     addBookmark(title, episode, url, description, time, episodeId) {
-        const bookmark = new Bookmark(Date.now(), title, episode, url, description, time, episodeId, Number(MA.EPISODE.getAnimeLink().match(/\/leiras\/(\d+)\//)[1]));
+        const bookmark = new Bookmark(Date.now(), title, episode, url, description, time, episodeId, MA.EPISODE.getDatasheet());
         this.bookmarks.push(bookmark);
         this.saveBookmarks();
         return bookmark;
     }
 
+    /**
+     * Clear all bookmarks
+     * @since v0.1.8
+     */
     clearBookmarks() {
         this.bookmarks = [];
         this.saveBookmarks();
     }
 
+    /**
+     * Check if the bookmark exists
+     * @param {Bookmark} bookmark - The bookmark to check
+     * @returns {boolean} Whether the bookmark exists
+     * @since v0.1.8
+     */
     hasBookmark(bookmark) {
         return this.bookmarks.some((b) => b.url === bookmark.url);
     }
 
+    /**
+     * Get the bookmark by URL
+     * @param {String} url - The URL of the bookmark
+     * @returns {Bookmark} The bookmark
+     * @since v0.1.8
+     */
     getBookmarkByUrl(url) {
         return this.bookmarks.find((b) => b.url === url);
     }
 
-    getBookmarkByTitle(title) {
-        return this.bookmarks.find((b) => b.title === title);
-    }
-
-    getBookmarkByEpisodeId(episodeId) {
+    /**
+     * Get the bookmark by ID
+     * @param {Number} id - The ID of the bookmark
+     * @returns {Bookmark} The bookmark
+     * @since v0.1.8
+     */
+    getBookmarkByEpisodeId(id) {
         return this.bookmarks.find((b) => Number(b.episodeId) === Number(episodeId));
     }
 
+    /**
+     * Delete a bookmark
+     * @param {Number} id - The ID of the bookmark
+     * @returns {Promise<boolean>} Whether the bookmark was deleted
+     * @since v0.1.8
+     */
     deleteBookmark(id) {
         return new Promise((resolve, reject) => {
             this.bookmarks = this.bookmarks.filter((b) => Number(b.id) !== Number(id));
             this.saveBookmarks();
-            resolve();
+            resolve(this.getBookmark(Number(id)) === undefined);
         });
     }
 
+    /**
+     * Update a bookmark
+     * @param {Number} id - The ID of the bookmark
+     * @param {String} title - Title of the anime
+     * @param {Number} episode - Episode number
+     * @param {String} url - URL of the bookmark
+     * @param {String} description - Description of the bookmark
+     * @param {Number} time - Time in the episode (in seconds)
+     * @param {Number} episodeId - Episode number
+     * @returns {Promise<void>} Whether the bookmark was updated
+     * @since v0.1.8
+     */
     updateBookmark(id, title, episode, url, description, time, episodeId) {
         return new Promise((resolve, reject) => {
             const bookmark = this.bookmarks.find((b) => Number(b.id) === Number(id));
@@ -488,6 +453,11 @@ class Bookmarks {
         });
     }
 
+    /**
+     * Open a bookmark
+     * @param {Number} id - The ID of the bookmark
+     * @since v0.1.8
+     */
     openBookmark(id) {
         logger.log('Opening bookmark with id: ' + id, true);
         const bookmark = this.getBookmark(Number(id));
@@ -508,6 +478,11 @@ class Bookmarks {
         } else { logger.error('Bookmark not found', true); }
     }
 
+    /**
+     * Get a bookmark by ID
+     * @param {Number} id - The ID of the bookmark
+     * @returns {Bookmark | undefined} The bookmark
+     */
     getBookmark(id) {
         return this.bookmarks.find((b) => b.id === Number(id));
     }
@@ -524,6 +499,7 @@ class Bookmark {
      * @param {Number} id - ID of the bookmark
      * @param {Number} datasheetId - ID of the datasheet
      * @constructor Bookmark - Create a new bookmark
+     * @since v0.1.8
      */
     constructor(id, title, episode, url, description, time, episodeId, datasheetId) {
         this.id = id;
@@ -988,20 +964,28 @@ class Popup {
      * @since v0.1.8
      */
     _showPopup(popup, time) {
-        popup.setAttribute('style', `position: fixed; bottom: ${10 + this.popups.length * 60}px; left: 10px; color: white; padding: 10px; border-radius: 10px; box-shadow: 0 0 10px var(--primary-color); z-index: 100; transition: opacity 2s;`);
+        popup.setAttribute('style', `position: fixed;${document.fullscreenElement ? 'top' : 'bottom'}: ${10 + this.popups.length * 60}px;left: 10px; color: white; padding: 10px; border-radius: 10px; box-shadow: 0 0 10px var(--primary-color); z-index: 100; transition: opacity 2s;`);
 
         const appendPopup = () => {
-            document.body.appendChild(popup);
+            if (document.fullscreenElement) {
+                document.fullscreenElement.appendChild(popup);
+            } else {
+                document.body.appendChild(popup);
+            }
             this.popups.push(popup);
             setTimeout(() => {
                 popup.style.opacity = "0";
                 setTimeout(() => {
                     this.popups.shift();
-                    document.body.removeChild(popup);
+                    popup.remove();
                     this.popups.forEach((p, index) => {
-                        p.style.bottom = `${10 + index * 60}px`;
+                        if (document.fullscreenElement) {
+                            p.style.top = `${10 + index * 60}px`;
+                        } else {
+                            p.style.bottom = `${10 + index * 60}px`;
+                        }
                     });
-                }, 2000);
+                }, time);
             }, time);
         };
 
@@ -1013,42 +997,57 @@ class Popup {
     }
 }
 const popup = new Popup();
-/**
- * Class to manage the resume data
- * @since v0.1.8
- */
-class ResumePlayBackCL {
+
+class ResumePlaybackCL {
+    /**
+     * Create a new ResumeData class
+     * @since v0.1.8
+     * @constructor ResumeData - Create a new ResumeData class
+     * @property {Array<Anime>} animes - The animes with resume data
+     */
     constructor() {
-        this.eps = [];
+        this.animes = [];
     }
 
     /**
      * Get the resume data
-     * @returns {Array<{episodeId: Number, time: Number}>} The resume data
-     * @since v0.1.8
+     * @returns {Array<Anime>}
      */
     getResumeData() {
-        return this.eps;
+        return this.animes;
     }
 
     /**
-     * Add a new resume data
-     * @param {Number} episodeId - Episode number
-     * @param {Number} time - Time in the episode (in seconds)
+     * Add resume data
+     * @param {Number} episodeId - The ID of the episode
+     * @param {Number} time - The time in the episode
+     * @param {Number} datasheetId - The ID of the datasheet
+     * @param {String} title - The title of the anime
+     * @param {String} url - The URL of the episode
+     * @param {Number} epnum - The episode number
+     * @param {Number} currentTime - The current time in real life (in milliseconds)
      * @since v0.1.8
      */
-    addResumeData(episodeId, time) {
-        this.eps.push(new ResumePlayback(episodeId, time, Date.now()));
+    addResumeData(episodeId, time, datasheetId, title, url, epnum, currentTime) {
+        let anime = this.animes.find(anime => anime.datasheetId === datasheetId);
+        if (!anime) {
+            anime = new Anime(datasheetId, title);
+            this.animes.push(anime);
+        }
+        anime.addEpisode(new ResumeData(episodeId, time, url, epnum, currentTime));
         this.saveResumeData();
     }
 
     /**
-     * Remove a resume data
-     * @param {Number} episodeId - Episode number
+     * Remove resume data
+     * @param {Number} id - The ID of the episode
      * @since v0.1.8
      */
-    removeResumeData(episodeId) {
-        this.eps = this.eps.filter((ep) => ep.EpisodeID !== episodeId);
+    removeResumeData(id) {
+        for (const anime of this.animes) {
+            anime.removeEpisode(id);
+        }
+        this.animes = this.animes.filter(anime => anime.episodes.length > 0);
         this.saveResumeData();
     }
 
@@ -1057,7 +1056,7 @@ class ResumePlayBackCL {
      * @since v0.1.8
      */
     clearResumeData() {
-        this.eps = [];
+        this.animes = [];
         this.saveResumeData();
     }
 
@@ -1066,76 +1065,127 @@ class ResumePlayBackCL {
      * @since v0.1.8
      */
     saveResumeData() {
-        if (MAT.getSettings().resume.syncResume.enabled) {
-            chrome.storage.sync.set({resume: this.eps});
-        } else {
-            chrome.storage.local.set({resume: this.eps});
-        }
+        chrome.storage.sync.set({resume: this.animes});
     }
 
     /**
      * Load the resume data
+     * @returns {Promise<Array<Anime>>} The resume data
      * @since v0.1.8
      */
     loadResumeData() {
         return new Promise((resolve, reject) => {
-            if (MAT.getSettings().resume.syncResume.enabled) {
-                loadFromStorage('resume', true).then((resume) => {
-                    this.eps = resume;
-                    resolve(this.eps);
-                }).catch(() => {reject(new Error('Resume data not found'))});
-            } else {
-                loadFromStorage('resume').then((resume) => {
-                    this.eps = resume;
-                    resolve(this.eps);
-                }).catch(() => {reject(new Error('Resume data not found'))});
-            }
+            loadFromStorage('resume').then((resume) => {
+                this.animes = resume.map(animeData => {
+                    const anime = new Anime(animeData.datasheetId, animeData.title);
+                    anime.episodes = animeData.episodes.map(ep => new ResumeData(ep.id, ep.time, ep.url, ep.epnum, ep.timestamp));
+                    return anime;
+                });
+                resolve(this.animes);
+            }).catch(() => {reject(new Error('Resume data not found'))});
         });
     }
 
     /**
      * Get the resume data by episode ID
-     * @param {Number} episodeId - Episode number
-     * @returns {ResumePlayback | null} The resume data
+     * @param {Number} id - The ID of the episode
+     * @returns {ResumeData | null} The resume data
      * @since v0.1.8
      */
-    getResumeDataByEpisodeId(episodeId) {
-        return this.eps.find((ep) => ep.EpisodeID === episodeId) || null;
+    getResumeDataByEpisodeId(id) {
+        for (const anime of this.animes) {
+            const episode = anime.getEpisodeById(id);
+            if (episode) return episode;
+        }
+        return null;
     }
 
     /**
-     * Update the resume data
-     * @param {Number} id - Episode number
-     * @param {Number} currentTime - Current time in the episode (in seconds)
+     * Update resume data
+     * @param {Number} id - The ID of the episode
+     * @param {Number} time - The time in the episode
+     * @param {Number} datasheetId - The ID of the datasheet
+     * @param {String} title - The title of the anime
+     * @param {String} url - The URL of the episode
+     * @param {Number} epnum - The episode number
+     * @param {Number} currentTime - The current time in real life (in milliseconds)
+     * @since v0.1.8
      */
-    updateResumeData(id, currentTime) {
-        const ep = this.getResumeDataByEpisodeId(id);
-        if (ep) {
-            ep.Time = currentTime;
-            ep.CTimestamp = Date.now();
-            this.saveResumeData();
+    updateResumeData(id, time, datasheetId, title, url, epnum, currentTime) {
+        const anime = this.animes.find(anime => anime.datasheetId === datasheetId);
+        if (anime) {
+            const episode = anime.getEpisodeById(id);
+            if (episode) {
+                episode.time = time;
+                episode.timestamp = Date.now();
+            } else {
+                anime.addEpisode(new ResumeData(id, time, url, epnum, currentTime));
+            }
         } else {
-            this.addResumeData(id, currentTime);
+            this.addResumeData(id, time, datasheetId, title, url, epnum, currentTime);
         }
+        this.saveResumeData();
+    }
+
+    /**
+     * Get the last updated resume data
+     * @returns {{episode: ResumeData | null, anime: Anime | null}} The last updated resume data
+     */
+    getLastUpdated() {
+        let lastUpdated = null;
+        let lastAnime = null;
+        for (const anime of this.animes) {
+            for (const episode of anime.episodes) {
+                if (!lastUpdated || episode.timestamp > lastUpdated.timestamp) {
+                    lastUpdated = episode;
+                    lastAnime = anime;
+                }
+            }
+        }
+        return {episode: lastUpdated, anime: lastAnime};
+    }
+
+    /**
+     * Get the anime by datasheet ID
+     * @param {Number} id - The ID of the datasheet
+     * @returns {Anime | undefined} The anime
+     */
+    getAnime(id) {
+        return this.animes.find(anime => anime.datasheetId === id);
     }
 }
 
-/**
- * Class to define a resume data object for an episode (used in the resume data array)
- * @param {Number} EpisodeID - Episode number
- * @param {Number} Time - Time in the episode (in seconds)
- * @param {Number} CTimestamp - Current timestamp
- */
-class ResumePlayback {
-    constructor(EpisodeID, Time, CTimestamp) {
-        this.EpisodeID = EpisodeID;
-        this.Time = Time;
-        this.CTimestamp = CTimestamp;
+class Anime {
+    constructor(datasheetId, title) {
+        this.datasheetId = datasheetId;
+        this.title = title;
+        this.episodes = [];
+    }
+
+    addEpisode(episode) {
+        this.episodes.push(episode);
+    }
+
+    removeEpisode(id) {
+        this.episodes = this.episodes.filter(ep => ep.id !== id);
+    }
+
+    getEpisodeById(id) {
+        return this.episodes.find(ep => ep.id === id) || null;
     }
 }
-const ResumePlayBack = new ResumePlayBackCL();
 
+class ResumeData {
+    constructor(EpisodeID, Time, url, epnum, currentTime) {
+        this.id = EpisodeID;
+        this.timestamp = currentTime;
+        this.time = Time;
+        this.url = url;
+        this.epnum = epnum;
+    }
+}
 
+const ResumePlayBack = new ResumePlaybackCL();
 if (typeof window !== 'undefined') {
     window.MAT = MAT;
     window.logger = logger;
@@ -1144,5 +1194,5 @@ if (typeof window !== 'undefined') {
     window.ResumePlayBack = ResumePlayBack;
 }
 export {
-    MAT, logger, bookmarks, Bookmark, MA, popup, ResumePlayBack, ResumePlayback
+    MAT, logger, bookmarks, Bookmark, MA, popup, ResumePlayBack, ResumeData
 };

@@ -1,21 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>MATweaks | MagyarAnime bővítmény</title>
+    <title>MATweaks | Epizód folytatás</title>
+    <script src="resume.js"></script>
     <link rel="stylesheet" href="MATStyle.css">
-    <script src="popup.js"></script>
     <style>
         :root {
             --primary-color: #3F9FFF;
             --primarydark-color: #182031;
             --bg-color: #263143;
             --dark-color: #0a0e17;
-            --card-bg-color: #1c2533;
-            --card-border-color: #3F9FFF;
-            --button-bg-color: #3F9FFF;
-            --button-hover-bg-color: #1c7ed6;
-            --button-text-color: #fff;
         }
         body {
             background-color: var(--bg-color);
@@ -65,31 +60,64 @@
         .btn:hover {
             background-color: var(--primarydark-color);
         }
-        .btn-open {
-            padding: 0.5em;
-            background-color: var(--button-bg-color);
-            color: var(--button-text-color);
-            border: none;
-            cursor: pointer;
-            border-radius: 0.5em;
-            text-align: center;
-            display: block;
-            transition: background-color 0.3s;
-            text-decoration: none;
+        .btn:active {
+            background-color: var(--primary-color);
+        }
+        .btn:disabled {
+            background-color: var(--dark-color);
+            cursor: not-allowed;
+        }
+        .btn:disabled:hover {
+            background-color: var(--dark-color);
+        }
+        .btn:disabled:active {
+            background-color: var(--dark-color);
+        }
+        .btn:focus {
+            outline: none;
+        }
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+        .btn-container > * {
             margin: .5em;
         }
-        .btn-open:hover {
-            background-color: var(--button-hover-bg-color);
+        .btn-container > *:first-child {
+            margin-top: 0;
+        }
+        .btn-container > * {
+            margin-bottom: 0;
+        }
+        .loader {
+            width: 50px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background:
+                    radial-gradient(farthest-side, var(--primary-color) 94%, #0000) top/8px 8px no-repeat,
+                    conic-gradient(#0000 30%, var(--primary-color));
+            -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+            animation: l13 1s infinite linear;
+        }
+        @keyframes l13 {
+            100% { transform: rotate(1turn); }
+        }
+        #episodes {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1em;
+            width: 94%;
         }
     </style>
 </head>
 <body>
-    <h1>MATweaks</h1>
-    <button id="bookmarks" class="btn">Könyvjelzők</button>
-    <button id="resume" class="btn">Előzmények</button>
-    <button id="settings" class="btn">Beállítások</button>
-    <div id="last-episode" class="MAT-container">
-        <div class="loader"></div>
+    <h1>Epizód folytatása</h1>
+    <div id="episodes" class="MAT-container">
+        <div class="MAT-loader"></div>
+        <p>Epizódok betöltése...</p>
     </div>
 </body>
 </html>

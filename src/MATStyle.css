@@ -343,3 +343,75 @@ button.MATweaks-settings-window-body-content-item-feature-button:hover {
 
 
 
+.MAT-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 1em;
+    background: var(--primarydark-color);
+    margin: 1em;
+    border-radius: 0.5em;
+}
+
+.MAT-card {
+    background-color: var(--card-bg-color);
+    border: 4px solid #75757533;
+    border-radius: .5em;
+    margin: 1em;
+    overflow: hidden;
+    box-shadow: 0 4px 10px 3px rgb(0 0 0 / 59%);
+    transition: all 0.3s;
+}
+
+.MAT-card:hover {
+    transform: scale(1.05);
+    border: 4px solid var(--card-border-color);
+}
+
+.MAT-card-img-top {
+    width: 100%;
+    height: auto;
+}
+
+.MAT-card-body {
+    padding: 1em;
+}
+
+.MAT-card-title {
+    font-size: 1.25em;
+    margin: 0.5em 0;
+}
+
+.MAT-card-text {
+    font-size: 1em;
+    margin: 0.5em 0;
+}
+
+.MAT-btn {
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: 0.5em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.MAT-btn:hover {
+    background-color: var(--button-hover-bg-color);
+}
+
+.MAT-loader {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+            radial-gradient(farthest-side, var(--primary-color) 94%, #0000) top/8px 8px no-repeat,
+            conic-gradient(#0000 30%, var(--primary-color));
+    -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+    animation: l13 1s infinite linear;
+}
+
+@keyframes l13 {
+    100% { transform: rotate(1turn); }
+}

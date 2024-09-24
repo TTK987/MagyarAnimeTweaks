@@ -1,4 +1,4 @@
-import { bookmarks } from "./API";
+import {bookmarks, popup} from "./API";
 
 window.addEventListener('DOMContentLoaded', async () => {
     loadBookmarks();
@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             bookmarks.openBookmark(id);
         } else if (action === 'delete') {
             bookmarks.deleteBookmark(id).then(() => {
+                popup.showSuccessPopup('Könyvjelző törölve.');
                 loadBookmarks();
             }).catch(error => {
                 console.error('Error:', error);
@@ -34,13 +35,13 @@ function bookmarksToHTML(bookmarks) {
     let html = '';
     for (const bookmark of bookmarks) {
         html += `
-        <div class="card" style="width: 18rem;">
+        <div class="MAT-card">
             <img src="https://animehungary.hu/images_v2/boritokepek/small/${bookmark.datasheetId}.webp" class="card-img-top" alt="${bookmark.title}">
-            <div class="card-body">
-                <h5 class="card-title">${bookmark.title}</h5>
-                <p class="card-text">${bookmark.description}</p>
-                <button class="btn btn-primary" id="bookmark-${bookmark.id}">Megnyitás</button>
-                <button class="btn btn-danger" id="delete-${bookmark.id}">Törlés</button>
+            <div class="MAT-card-body">
+                <h5 class="MAT-card-title">${bookmark.title}</h5>
+                <p class="MAT-card-text">${bookmark.description}</p>
+                <button class="MAT-btn btn-primary" id="bookmark-${bookmark.id}">Megnyitás</button>
+                <button class="MAT-btn btn-danger" id="delete-${bookmark.id}">Törlés</button>
             </div>
         </div>
         `;

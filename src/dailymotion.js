@@ -66,7 +66,7 @@ function parseVideoData(videoData) {
 /**
  * Function to extract the media ID from the URL
  * @param {string} mediaID - URL
- * @returns {string} - Media ID
+ * @returns {Promise<Object>} - Video data
  * @since v0.1.7
  */
 async function getVideoData(mediaID) {

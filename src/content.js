@@ -136,12 +136,11 @@ class Player {
      */
     setupAutoNextEpisode(videoElement) {
         if (!settings.autoNextEpisode.enabled) return;
-        settings.autoNextEpisode.time = Math.max(settings.autoNextEpisode.time, 0);
+        settings.autoNextEpisode.time = Math.max(Number(settings.autoNextEpisode.time), 0);
         let autoNextEpisodeTriggered = false;
         videoElement.addEventListener("timeupdate", () => {
-            if ((this.plyr.duration - this.plyr.currentTime) <= settings.autoNextEpisode.time && !autoNextEpisodeTriggered && this.plyr.currentTime !== 0 && this.plyr.duration !== 0) {
+            if ((this.plyr.duration - this.plyr.currentTime) <= Number(settings.autoNextEpisode.time) && !autoNextEpisodeTriggered && this.plyr.currentTime !== 0 && this.plyr.duration !== 0) {
                 logger.log("Auto next episode triggered.");
-                popup.showSuccessPopup("Következő rész betöltése...");
                 autoNextEpisode();
                 autoNextEpisodeTriggered = true;
             }
@@ -149,7 +148,6 @@ class Player {
         videoElement.addEventListener("ended", () => {
             if (!autoNextEpisodeTriggered && this.plyr.currentTime !== 0 && this.plyr.duration !== 0) {
                 logger.log("Auto next episode triggered.");
-                popup.showSuccessPopup("Következő rész betöltése...");
                 autoNextEpisode();
                 autoNextEpisodeTriggered = true;
             }
@@ -331,6 +329,7 @@ class Player {
     skipForward(player) {
         if (player === null) player = document.querySelector('video');
         player.currentTime = Number(player.currentTime) + Number(settings.forwardSkip.time);
+        popup.showSuccessPopup("Előreugrás:" + settings.forwardSkip.time + " sec.", 200);
         logger.log("Skipped forward " + settings.forwardSkip.time + " seconds.");
     }
 
@@ -341,6 +340,7 @@ class Player {
     skipBackward(player) {
         if (player === null) player = document.querySelector('video');
         player.currentTime = Number(player.currentTime) - Number(settings.backwardSkip.time);
+        popup.showSuccessPopup("Visszaugrás:" + settings.backwardSkip.time + " sec.", 200);
         logger.log("Skipped backward " + settings.backwardSkip.time + " seconds.");
     }
 
@@ -830,7 +830,7 @@ function checkCustomPlayer() {
  * Function to handle MA player replacement
  */
 function handleA() {
-    if (!window.location.href.includes("resz")) return;
+    if (!MA.isEpisodePage()) return;
     settings.private.hasMAPlayer = checkCustomPlayer();
     if (settings.private.hasMAPlayer) {
         logger.log("User has the custom player.");
@@ -1100,6 +1100,7 @@ function handleReszPage() {
 function autoNextEpisode() {
     let nextEpisodeButton = document.getElementById("epkovetkezo")
     if (nextEpisodeButton) nextEpisodeButton.click();
+    popup.showSuccessPopup("Következő rész betöltése...");
     ResumePlayBack.removeResumeData(MA.EPISODE.getId()); // Remove the resume data, since the auto next episode is triggered, which means the user has finished the episode
     logger.log("Moved to the next episode automatically.");
 }
@@ -1119,10 +1120,13 @@ function nextEpisode() {
         let dataSheetButton = document.getElementById("adatlap")
         if (dataSheetButton) {
             dataSheetButton.click();
+            popup.showSuccessPopup("Adatlap betöltése...");
+            logger.log("Moved to the data sheet.");
         } else {
             logger.log("No next episode or data sheet button found.");
         }
     }
+    popup.showSuccessPopup("Következő rész betöltése...");
     logger.log("Moved to the next episode.");
 }
 
@@ -1141,10 +1145,14 @@ function previousEpisode() {
         let dataSheetButton = document.getElementById("adatlap")
         if (dataSheetButton) {
             dataSheetButton.click();
+            popup.showSuccessPopup("Adatlap betöltése...");
+            logger.log("Moved to the data sheet.");
+            return;
         } else {
             logger.log("No previous episode or data sheet button found.");
         }
     }
+    popup.showSuccessPopup("Előző rész betöltése...");
     logger.log("Moved to the previous episode.");
 }
 
@@ -1155,7 +1163,8 @@ function nextEpisodeMega() {
     let nextEpisodeButton = document.getElementById("epkovetkezo")
     if (nextEpisodeButton) {
         nextEpisodeButton.click();
-        logger.log("Moved to the next episode. (If you can read this message, then you are a wizard.)");
+        popup.showSuccessPopup("Következő rész betöltése...");
+        logger.log("Moved to the next episode.");
     }
 }
 
@@ -1169,20 +1178,27 @@ function nextEpisodeMega() {
  */
 async function downloadFile(filename) {
     return new Promise((resolve, reject) => {
-        let url = document.querySelector("video").src;
+        let url = document.querySelector("video").src || document.querySelector("source").src;
+        if (!url) {
+            popup.showErrorPopup("Hiba történt a videó letöltése közben. (URL is empty)");
+            logger.error("Download failed: URL is empty or undefined.");
+            reject("URL is empty or undefined.");
+        }
         if (!filename) {
+            popup.showErrorPopup("Hiba történt a videó letöltése közben. (Filename is empty)");
             logger.error("Download failed: filename is empty or undefined.");
             reject("Filename is empty or undefined.");
         }
         logger.log("Starting download...");
-        chrome.runtime.sendMessage({
-            plugin: "MATweaks",
-            type: "downloadFile",
-            url: url,
-            filename: filename,
-        }, function () {
-            logger.log(`Download started: "${filename}"`);
-            resolve(true);
+        chrome.runtime.sendMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.DOWNLOAD, url: url, filename: filename}, (response) => {
+            console.log(response);
+            if (response === "success") {
+                logger.log("Download successful.");
+                resolve(true);
+            } else {
+                logger.error("Download failed.");
+                reject("Download failed.");
+            }
         });
     });
 }
@@ -1304,14 +1320,16 @@ async function getCurrentTime() {
  * @returns {Promise<void>} - Returns when the bookmark is added
  */
 async function addBookmark() {
-    getCurrentTime().then((currentTime) => {
-        bookmarks.addBookmark(
-            MA.EPISODE.getTitle() || "Ismeretlen",
-            MA.EPISODE.getEpisodeNumber() | 0,
-            window.location.href,
-            `${MA.EPISODE.getTitle() || "Ismeretlen"} - ${MA.EPISODE.getEpisodeNumber() | 0}.rész, ${(currentTime % 3600 / 60).toFixed(0).padStart(2, "0")}:${(currentTime % 60).toFixed(0).padStart(2, "0")}`,
-            currentTime,
-            MA.EPISODE.getId()) || popup.showErrorPopup("Hiba történt a könyvjelző hozzáadása közben.");
+    bookmarks.loadBookmarks().then(() => {
+        getCurrentTime().then((currentTime) => {
+            bookmarks.addBookmark(
+                MA.EPISODE.getTitle() || "Ismeretlen",
+                MA.EPISODE.getEpisodeNumber() | 0,
+                window.location.href,
+                `${MA.EPISODE.getTitle() || "Ismeretlen"} - ${MA.EPISODE.getEpisodeNumber() | 0}.rész, ${(currentTime % 3600 / 60).toFixed(0).padStart(2, "0")}:${(currentTime % 60).toFixed(0).padStart(2, "0")}`,
+                currentTime,
+                MA.EPISODE.getId()) || popup.showErrorPopup("Hiba történt a könyvjelző hozzáadása közben.");
+        });
     });
 }
 
@@ -1432,7 +1450,7 @@ function checkForResume() {
                     }
                     askUser("Szeretnéd folytatni az előzőleg megnézett részt?", buttons(["Igen", "Nem"]), function (value) {
                         if (value === "igen") {
-                            seekTo(current.Time);
+                            seekTo(current.time);
                             logger.log("Resumed playback.");
                         } else {
                             logger.log("Playback not resumed.");
@@ -1440,7 +1458,7 @@ function checkForResume() {
                     });
                     break;
                 case "auto":
-                    seekTo(current.Time);
+                    seekTo(current.time);
                     logger.log("Resumed playback.");
                     break;
                 case "off":
@@ -1460,10 +1478,22 @@ function checkForResume() {
 }
 
 function updateResumeData() {
-    ResumePlayBack.updateResumeData(MA.EPISODE.getId(), player.plyr.currentTime);
-    logger.log("Resume data updated.");
+    getCurrentTime().then((currentTime) => {
+        ResumePlayBack.updateResumeData(
+            MA.EPISODE.getId(),
+            currentTime,
+            MA.EPISODE.getDatasheet(),
+            MA.EPISODE.getTitle(),
+            window.location.href,
+            MA.EPISODE.getEpisodeNumber(),
+            Date.now()
+        );
+        logger.log("Resume data updated.");
+    }).catch((error) => {
+        logger.error("Error while updating resume data: " + error);
+        popup.showErrorPopup("Hiba történt a folytatás adatok frissítése közben.");
+    });
 }
-
 
 function addResumeEventListeners() {
     document.addEventListener("visibilitychange", handle);
@@ -1473,18 +1503,15 @@ function addResumeEventListeners() {
     video.addEventListener("pause", handle);
     video.addEventListener("ended", () => {
         ResumePlayBack.removeResumeData(MA.EPISODE.getId());
-        video.removeEventListener("pause", handle);
-        video.removeEventListener("ended", handle);
-        document.removeEventListener("visibilitychange", handle);
-        window.removeEventListener("beforeunload", handle);
-        window.removeEventListener("unload", handle);
-        logger.log("Resume data removed.");
+        logger.log("Removed resume data.");
     });
     function handle(event) {
-        if (event.type === "visibilitychange" && document.hidden) {
-            updateResumeData();
-        } else if (event.type !== "visibilitychange") {
-            updateResumeData();
+        if (player.plyr.duration > 0 && player.plyr.currentTime > 0) {
+            if (event.type === "visibilitychange" && document.hidden) {
+                updateResumeData();
+            } else if (event.type !== "visibilitychange") {
+                updateResumeData();
+            }
         }
     }
 }

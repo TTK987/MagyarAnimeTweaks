@@ -8,8 +8,7 @@ chrome.runtime.onInstalled.addListener((details) => {
         if (details.reason === "update") {
             const previousVersion = details.previousVersion;
             logger.log(`[background.js]: Updated from version ${previousVersion}`, true);
-            migrateLocalSettings(previousVersion, version);
-            migrateSyncSettings(previousVersion, version);
+            migrateSettings(previousVersion, version);
             MAT.saveSettings();
         }
     }
@@ -36,17 +35,7 @@ function createContextMenu() {
 
     chrome.contextMenus.onClicked.addListener((info, tab) => {
         if (info.menuItemId === "searchOnMagyarAnime") {
-            let url;
-            if (info.linkUrl || info.pageUrl) {
-                const targetUrl = info.linkUrl || info.pageUrl;
-                const match = targetUrl.match(/myanimelist\.net\/anime\/(\d+)/);
-                if (match) {
-                    url = `https://magyaranime.eu/web/kereso-mal/${match[1]}/`;
-                }
-            }
-            if (url) {
-                chrome.tabs.create({ url: url });
-            }
+            chrome.tabs.create({url: `https://magyaranime.eu/web/kereso-mal/${(info.linkUrl || info.pageUrl)?.match(/myanimelist\.net\/anime\/(\d+)/)[1] || ''}/`});
         }
     });
 }
@@ -63,19 +52,20 @@ let openBookmarks = [];
  * Handle messages from the extension
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log(request);
     if (request.plugin === MAT.__NAME) {
         switch (request.type) {
-            case "downloadFile":
-                // Download the file
-                chrome.downloads.download({url: request.url, filename: request.filename}).then(r => {
-                    logger.log(`[background.js]: Downloading file: ${request.filename}`, true);
-                    sendResponse(true);
-                }).catch(e => {
-                    logger.log(`[background.js]: Failed to download file: ${e}`, true);
-                    sendResponse(false);
-                })
-                break;
+            case MAT.__ACTIONS.DOWNLOAD:
+                console.log(request);
+                chrome.downloads.download({ url: request.url, filename: request.filename}, (downloadId) => {
+                    if (downloadId) {
+                        sendResponse("success");
+                        logger.log(`[background.js]: Downloading file: ${request.filename}`, true);
+                    } else {
+                        sendResponse("error");
+                        logger.error(`[background.js]: Failed to download file: ${request.filename}`, true);
+                    }
+                });
+                return true;
             case "openSettings":
                 chrome.tabs.create({
                     url: chrome.runtime.getURL('options.html'),
@@ -85,7 +75,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 }).catch(e => {
                     sendResponse(false);
                 });
-                break;
+                return true;
             case "openBookmark":
                 logger.log(`[background.js]: Opening bookmark: ${request.id}`, true);
                 if (openBookmarks.find(id => id === request.id)) {
@@ -145,21 +135,19 @@ function openPermissionPopup() {
  * Helper function to migrate settings
  * @param {String} previousVersion The previous version of the extension
  * @param {String} currentVersion The current version of the extension
- * @param {Function} getSettings Function to get settings (local or sync)
- * @param {Function} saveSettings Function to save settings (local or sync)
  */
-function migrateSettings(previousVersion, currentVersion, getSettings, saveSettings) {
+function migrateSettings(previousVersion, currentVersion) {
     if (previousVersion !== currentVersion) {
         const migrateFn = getMigrationFunction(previousVersion);
         if (migrateFn) {
-            getSettings().then(data => {
+            MAT.getSettings().then(data => {
                 MAT.setSettings(migrateFn(data));
-                saveSettings();
+                MAT.saveSettings();
             });
         } else {
             logger.error(`[background.js]: Failed to migrate settings from version ${previousVersion} to version ${currentVersion}`, true);
             MAT.setSettings(MAT.getDefaultSettings());
-            saveSettings();
+            MAT.saveSettings();
         }
     }
 }
@@ -177,23 +165,6 @@ function getMigrationFunction(version) {
     return null;
 }
 
-/**
- * Migrate local settings
- * @param {String} previousVersion The previous version of the extension
- * @param {String} currentVersion The current version of the extension
- */
-function migrateLocalSettings(previousVersion, currentVersion) {
-    migrateSettings(previousVersion, currentVersion, MAT.getLocalSettings, MAT.saveLocalSettings);
-}
-
-/**
- * Migrate sync settings
- * @param {String} previousVersion The previous version of the extension
- * @param {String} currentVersion The current version of the extension
- */
-function migrateSyncSettings(previousVersion, currentVersion) {
-    migrateSettings(previousVersion, currentVersion, MAT.getSyncSettings, MAT.saveSyncSettings);
-}
 /**
  * Migrate the settings from version 0.1.8 to the current version
  * @param {Object} pr The previous settings
