@@ -1,22 +1,74 @@
 # Verziók
-## 0.1.0 (Nem publikus)
-- Első verzió
-- A kiegészítő működik a magyaranime.eu oldalon.
- 
-## 0.1.1 (Nem publikus)
-- Hibajavítások
-- Megbízhatóbb link keresés a videókhoz
 
-## 0.1.2 (Nem publikus)
+## 0.1.7.1 - 0.1.7.5
 - Hibajavítások
-    - Nem cserélte le a videólejátszót, ha a videó csak 360p-ben volt elérhető.
+  - A kiegészítő nem tudta megfelelően betölteni a beállításokat frissítés után.
 
-## 0.1.3
- - **Első nyilvános verzió**
- - Egy kezdetleges logo hozzáadása
- - A devtools visszahozása, ha be van kapcsolva a fejlesztői beállítások.
- > (Valamiért a MA úgy döntött, hogy alkalmaz egy disable-devtools nevezetű scriptet, ami letiltja a devtools-t. <3)
- - Hibajavítások
+## 0.1.7
+- **Tovább bővült a támogatott források listája.**
+  - Új források: `dailymotion.com`, `rumble.com`, `videa.hu`
+- **Fontosabb változások**:
+  - **Automatikus jobb minőség** beállítás **Eltávolítva**.
+    - Ez azért történt, mert bugos volt és nem működött megfelelően, illetve nem sokan használták.
+  - **Új engedélyek**:
+    - `downloads` (Dalilymotion videók letöltéséhez)
+- **Új beállítások oldal**
+- **Új beállítások**
+  - **Letöltési név** (Alapértelmezett: `%title% - %episode% - %MAT%`)
+    - A letöltött fájl neve.
+    - [További információk](SETTINGS.md#letöltési-név)
+  - **Plyr** (Alapértelmezett: Kikapcsolva)
+    - Egyedi kinézet
+    - [További információk](SETTINGS.md#plyr)
+
+## 0.1.6.2
+- Hibajavítások
+  - A kiegészítő nem tudta megfelelően betölteni a beállításokat.
+  - Mega.nz esetén a részek közötti ugrás nem működött megfelelően.
+
+## 0.1.6.1
+- Hibajavítások
+  - A gombok kattintás után focus-ban maradtak.
+  - Ha nem sikerült a beállításokat betölteni, akkor nem működött a kiegészítő.
+    - Jelenlegi megoldás: Ha nem sikerült a beállításokat betölteni, akkor a beállítások alapértelmezett értékei lesznek beállítva.
+  - Lehet telepíteni a kiegészítőt Kiwi Browserben, telefonra.
+- Egyéb változások
+  - A kód rendezettebb lett és több kommentet tartalmaz a könnyebb olvashatóság érdekében.
+
+## 0.1.6
+- **MyAnimeList Keresés**
+  - Ha MyAnimeList-en nézel egy animét, akkor van lehetőséged a kiegészítő segítségével megkeresni az adott animét a magyaranime.eu oldalon.
+- **Új beállítások**
+  - **Automatikus jobb minőség** (Alapértelmezett: Kikapcsolva)
+    - **Engedélyezve**: Az oldal automatikusan átirányít a legjobb minőségű videóra.
+- Hibajavítások
+  - Memória szivárgás javítása letöltésnél.
+
+## 0.1.5.3
+- *Firefox jogok kérése telepítés után.*
+> Az megoldás `emburcke` ötlete volt. Köszönöm neki.
+
+## 0.1.5.2
+- Hibajavítások
+  - Letöltés hiba javítása firefoxon. (Jelentette: emburcke ) (Még mindig nem működött)
+
+## 0.1.5.1
+- Hibajavítások
+  - Mega.nz mute gomb hiba javítása.
+  - Letöltés hiba javítása firefoxon. (Jelentette: emburcke )
+  - Invalid manifest hiba javítása.
+
+## 0.1.5
+- **Mega.nz alap lejátszója helyett a plyr.io lejátszó használata.**
+- magyaranime.hu domain támogatás.
+> Nem tudom miért nem volt eddig benne. xd
+- **Új beállítások**
+  - **Automatikus indítás** (Alapértelmezett: Engedélyezve)
+    - **Engedélyezve**: Az oldal betöltése után azonnal elindítja a videót.
+- "Javítások" beállítások kivétele.
+> Ez azért került kivételre, mert mostantól a MA alapból a jó linkre továbbít.
+- Firefox támogatás.
+- Egy kezdetleges Discord szerver, ahol segítséget kérhetsz és értesülhetsz a legújabb fejlesztésekről és hiba bejelentést tehetsz. [Kattints ide](https://discord.gg/dJX4tVGZhY)
 
 ## 0.1.4
 - Automatikus ugrás a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
@@ -33,84 +85,24 @@
 - Logo hozzáadása a bővítményhez.
 - Hibajavítások
 - Nem lényeges újítások
-    - (background.js és indavideo.js kommentezése)
-    - (A kódok átszervezése)
+  - (background.js és indavideo.js kommentezése)
+  - (A kódok átszervezése)
 
-
-## 0.1.5
-- **Mega.nz alap lejátszója helyett a plyr.io lejátszó használata.**
-- magyaranime.hu domain támogatás.
-> Nem tudom miért nem volt eddig benne. xd
-- **Új beállítások**
-  - **Automatikus indítás** (Alapértelmezett: Engedélyezve)
-    - **Engedélyezve**: Az oldal betöltése után azonnal elindítja a videót.
-- "Javítások" beállítások kivétele.
-> Ez azért került kivételre, mert mostantól a MA alapból a jó linkre továbbít.
-- Firefox támogatás.
-- Egy kezdetleges Discord szerver, ahol segítséget kérhetsz és értesülhetsz a legújabb fejlesztésekről és hiba bejelentést tehetsz. [Kattints ide](https://discord.gg/dJX4tVGZhY)
-
-## 0.1.5.1
+## 0.1.3
+- **Első nyilvános verzió**
+- Egy kezdetleges logo hozzáadása
+- A devtools visszahozása, ha be van kapcsolva a fejlesztői beállítások.
+> (Valamiért a MA úgy döntött, hogy alkalmaz egy disable-devtools nevezetű scriptet, ami letiltja a devtools-t. <3)
 - Hibajavítások
-  - Mega.nz mute gomb hiba javítása.
-  - Letöltés hiba javítása firefoxon. (Jelentette: emburcke )
-  - Invalid manifest hiba javítása.
 
-## 0.1.5.2
+## 0.1.2 (Nem publikus)
 - Hibajavítások
-  - Letöltés hiba javítása firefoxon. (Jelentette: emburcke ) (Még mindig nem működött)
+  - Nem cserélte le a videólejátszót, ha a videó csak 360p-ben volt elérhető.
 
-
-## 0.1.5.3
-- *Firefox jogok kérése telepítés után.*
-> Az megoldás `emburcke` ötlete volt. Köszönöm neki.
-
-
-## 0.1.6
-- **MyAnimeList Keresés**
-  - Ha MyAnimeList-en nézel egy animét, akkor van lehetőséged a kiegészítő segítségével megkeresni az adott animét a magyaranime.eu oldalon.
-- **Új beállítások**
-  - **Automatikus jobb minőség** (Alapértelmezett: Kikapcsolva)
-    - **Engedélyezve**: Az oldal automatikusan átirányít a legjobb minőségű videóra.
+## 0.1.1 (Nem publikus)
 - Hibajavítások
-  - Memória szivárgás javítása letöltésnél.
+- Megbízhatóbb link keresés a videókhoz
 
-## 0.1.6.1
-- Hibajavítások
-  - A gombok kattintás után focus-ban maradtak.
-  - Ha nem sikerült a beállításokat betölteni, akkor nem működött a kiegészítő.
-    - Jelenlegi megoldás: Ha nem sikerült a beállításokat betölteni, akkor a beállítások alapértelmezett értékei lesznek beállítva.
-  - Lehet telepíteni a kiegészítőt Kiwi Browserben, telefonra.
-- Egyéb változások
-  - A kód rendezettebb lett és több kommentet tartalmaz a könnyebb olvashatóság érdekében.
-
-## 0.1.6.2
-- Hibajavítások
-  - A kiegészítő nem tudta megfelelően betölteni a beállításokat.
-  - Mega.nz eseetén a részek közötti ugrás nem működött megfelelően.
-
-
-## 0.1.7
-- **Tovább bővült a támogatott források listája.**
-    - Új források: `dailymotion.com`, `rumble.com`, `videa.hu`
-- **Fontosabb változások**:
-    - **Automatikus jobb minőség** beállítás **Eltávolítva**.
-        - Ez azért történt, mert bugos volt és nem működött megfelelően, illetve nem sokan használták.
-    - **Új engedélyek**:
-        - `downloads` (Dalilymotion videók letöltéséhez)
-- **Új beállítások oldal**
-- **Új beállítások**
-  - **Letöltési név** (Alapértelmezett: `%title% - %episode% - %MAT%`)
-    - A letöltött fájl neve.
-    - [További információk](SETTINGS.md#letöltési-név)
-  - **Plyr** (Alapértelmezett: Kikapcsolva)
-    - Egyedi kinézet
-    - [További információk](SETTINGS.md#plyr)
-
-## 0.1.7.1
-- Hibajavítások
-  - A kiegészítő nem tudta megfelelően betölteni a beállításokat frissítés után.
-
-## 0.1.7.5
-- Hibajavítások
-  - A kiegészítő nem tudta megfelelően betölteni a beállításokat frissítés után.
-  > Remélem most már tényleg megoldódott a probléma.
+## 0.1.0 (Nem publikus)
+- Első verzió
+- A kiegészítő működik a magyaranime.eu oldalon.
