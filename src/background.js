@@ -1,4 +1,4 @@
-import {MAT, logger, bookmarks} from "./API.js";
+import {MAT, logger} from "./API.js";
 chrome.runtime.onInstalled.addListener((details) => {
     checkAndRequestPermissions();
     if (details.reason === "install" || details.reason === "update") {
@@ -47,14 +47,19 @@ function createContextMenu() {
  */
 let openBookmarks = [];
 
+/**
+ * Temporary storage for resumes that are currently being opened and loaded
+ * @type {[{id: number, url: string, time: number}]}
+ */
+let openResume = [];
 
 /**
  * Handle messages from the extension
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.plugin === MAT.__NAME) {
+    if (request.plugin === MAT.__NAME__) {
         switch (request.type) {
-            case MAT.__ACTIONS.DOWNLOAD:
+            case MAT.__ACTIONS__.DOWNLOAD:
                 console.log(request);
                 chrome.downloads.download({ url: request.url, filename: request.filename}, (downloadId) => {
                     if (downloadId) {
@@ -68,7 +73,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 return true;
             case "openSettings":
                 chrome.tabs.create({
-                    url: chrome.runtime.getURL('options.html'),
+                    url: chrome.runtime.getURL('pages/settings/index.html'),
                     active: true,
                 }).then(r => {
                     sendResponse(true);
@@ -101,6 +106,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 break;
             case "getOpenBookmarks":
                 sendResponse(openBookmarks);
+                break;
+            case "openResume":
+                logger.log(`[background.js]: Opening resume: ${request.id}`, true);
+                if (openResume.find(id => id === request.id)) {
+                    logger.log(`[background.js]: Resume ${request.id} is already being opened`, true);
+                    sendResponse(false);
+                    return;
+                } else {
+                    logger.log(`[background.js]: Resume ${request.id} is being opened`, true);
+                    openResume.push({id: request.id, url: request.url, time: request.time});
+                }
+                logger.log(`[background.js]: Opening resume: ${request.url}`, true);
+                chrome.tabs.create({
+                    url: request.url,
+                    active: true,
+                });
+                sendResponse(true);
+                break;
+            case "removeOpenResume":
+                logger.log(`[background.js]: Resume ${request.id} opened`, true);
+                openResume = openResume.filter(b => Number(b.id) !== Number(request.id));
+                console.log(openResume);
+                sendResponse(true);
+                break;
+            case "getOpenResume":
+                sendResponse(openResume);
                 break;
             default:
                 break;
@@ -160,8 +191,6 @@ function migrateSettings(previousVersion, currentVersion) {
 function getMigrationFunction(version) {
     if (/0.1.8.[0-9]/.test(version)) return migrateSettings_0_1_8;
     if (/0.1.7.[0-9]/.test(version)) return migrateSettings_0_1_7;
-    if (/0.1.6.[0-9]/.test(version)) return migrateSettings_0_1_6;
-    if (/0.1.5.[0-9]/.test(version)) return migrateSettings_0_1_5;
     return null;
 }
 
@@ -175,6 +204,7 @@ function migrateSettings_0_1_8(pr) {
     logger.log(`[background.js]: Migrating settings from version 0.1.8 to version ${MAT.getVersion()}`, true);
     try {
         if (!/0.1.8.[0-9]/.test(pr.version)) return pr;
+        // Boilerplate code for future migrations from 0.1.8.x
         return pr;
     } catch (error) {
         logger.error(`[background.js]: Failed to migrate settings from version 0.1.8 to version ${MAT.getVersion()}`, true);
@@ -198,18 +228,7 @@ function migrateSettings_0_1_7(pr) {
             return pr
         }
         return {
-            forwardSkip: { enabled: pr.forwardSkip.enabled || true, time: pr.forwardSkip.time || 85, keyBind: { ctrlKey: pr.forwardSkip.ctrlKey || true, altKey: pr.forwardSkip.altKey || false, shiftKey: pr.forwardSkip.shiftKey || false, key: pr.forwardSkip.key || 'ArrowRight', }},
-            backwardSkip: { enabled: pr.backwardSkip.enabled || true, time: pr.backwardSkip.time || 85, keyBind: { ctrlKey: pr.backwardSkip.ctrlKey || true, altKey: pr.backwardSkip.altKey || false, shiftKey: pr.backwardSkip.shiftKey || false, key: pr.backwardSkip.key || 'ArrowLeft', }},
-            nextEpisode: { enabled: pr.nextEpisode.enabled || true, keyBind: { ctrlKey: pr.nextEpisode.ctrlKey || false, altKey: pr.nextEpisode.altKey || true, shiftKey: pr.nextEpisode.shiftKey || false, key: pr.nextEpisode.key || 'ArrowRight', }},
-            previousEpisode: { enabled: pr.previousEpisode.enabled || true, keyBind: { ctrlKey: pr.previousEpisode.ctrlKey || false, altKey: pr.previousEpisode.altKey || true, shiftKey: pr.previousEpisode.shiftKey || false, key: pr.previousEpisode.key || 'ArrowLeft', }},
-            autoNextEpisode: { enabled: pr.autoNextEpisode.enabled || false, time: pr.autoNextEpisode.time || 60 },
-            autoplay: { enabled: pr.autoplay.enabled || true},
-            syncSettings: { enabled: true, },
-            bookmarks: { enabled: true, syncBookmarks: { enabled: true, }, },
-            resume: { enabled: true, syncResume: { enabled: true, }, mode: 'ask', },
-            advanced: { enabled: pr.advanced.enabled || false, settings: { ConsoleLog: {  enabled: pr.advanced.settings.ConsoleLog.enabled || false}, DefaultPlayer: { player: pr.advanced.settings.DefaultPlayer.player === 'html5' ? 'plyr' : pr.advanced.settings.DefaultPlayer.player || 'plyr'} }, plyr: { design: { enabled:false, settings: { svgColor: '#ffffffff', hoverBGColor: '#00b3ffff', mainColor: '#00b3ffff', hoverColor: '#ffffffff', }, }, }, downloadName: '%title% - %episode%.rész (%MAT%)', forcePlyr: true, },
-            private: { hasMAPlayer: false, eap: true, },
-            version: this.getVersion(),
+            
         };
     } catch (error) {
         logger.error(`[background.js]: Failed to migrate settings from version 0.1.7.x to version ${MAT.getVersion()}`, true);
@@ -219,68 +238,3 @@ function migrateSettings_0_1_7(pr) {
         logger.log(`[background.js]: Migrated settings from version 0.1.7.x to version ${MAT.getVersion()}`, true);
     }
 }
-/**
- * Migrate the settings from version 0.1.6.x to 0.1.7.x
- * @param {Object} pr The previous settings
- * @returns {Object} The migrated settings from version 0.1.6.x to 0.1.7.x
- * @since v0.1.8
- */
-function migrateSettings_0_1_6(pr) {
-    logger.log(`[background.js]: Migrating settings from version 0.1.6.x to version ${MAT.getVersion()}`, true);
-    try {
-        if (!/0.1.6.[0-9]/.test(pr.version)) return pr
-        return {
-            forwardSkip: { enabled: pr.forwardSkip.enabled || true, time: pr.forwardSkip.duration || 85, keyBind: { ctrlKey: pr.forwardSkip.ctrlKey || true, altKey: pr.forwardSkip.altKey || false, shiftKey: pr.forwardSkip.shiftKey || false, key: pr.forwardSkip.key || 'ArrowRight', }},
-            backwardSkip: { enabled: pr.backwardSkip.enabled || true, time: pr.backwardSkip.duration || 85, keyBind: { ctrlKey: pr.backwardSkip.ctrlKey || true, altKey: pr.backwardSkip.altKey || false, shiftKey: pr.backwardSkip.shiftKey || false, key: pr.backwardSkip.key || 'ArrowLeft', }},
-            nextEpisode: { enabled: pr.nextEpisode.enabled || true, keyBind: { ctrlKey: pr.nextEpisode.ctrlKey || false, altKey: pr.nextEpisode.altKey || true, shiftKey: pr.nextEpisode.shiftKey || false, key: pr.nextEpisode.key || 'ArrowRight', }},
-            previousEpisode: { enabled: pr.previousEpisode.enabled || true, keyBind: { ctrlKey: pr.previousEpisode.ctrlKey || false, altKey: pr.previousEpisode.altKey || true, shiftKey: pr.previousEpisode.shiftKey || false, key: pr.previousEpisode.key || 'ArrowLeft', }},
-            autoNextEpisode: { enabled: pr.autoNextEpisode.enabled || false, time: pr.autoNextEpisode.time || 60 },
-            autoplay: { enabled: pr.autoplay.enabled || true},
-            syncSettings: { enabled: true, },
-            bookmarks: { enabled: true, syncBookmarks: { enabled: true, }, },
-            resume: { enabled: true, syncResume: { enabled: true, }, mode: 'ask', },
-            advanced: { enabled: pr.devSettings.enabled || false, settings: {ConsoleLog: {  enabled: pr.devSettings.settings.ConsoleLog.enabled || false}, DefaultPlayer: { player: pr.devSettings.settings.DefaultPlayer.player === 'html5' ? 'plyr' : pr.devSettings.settings.DefaultPlayer.player || 'plyr'}}, plyr: {design: { enabled:false, settings: { svgColor: '#ffffffff', hoverBGColor: '#00b3ffff', mainColor: '#00b3ffff', hoverColor: '#ffffffff', }, }, }, downloadName: '%title% - %episode%.rész (%MAT%)', forcePlyr: true, },
-            private: { hasMAPlayer: false, eap: true, },
-            version: this.getVersion(),
-        };
-    } catch (error) {
-        logger.error(`[background.js]: Failed to migrate settings from version 0.1.6.x to version ${MAT.getVersion()}`, true);
-        console.error(error);
-        return MAT.getDefaultSettings();
-    } finally {
-        logger.log(`[background.js]: Migrated settings from version 0.1.6.x to version ${MAT.getVersion()}`, true);
-    }
-}
-/**
- * Migrate the settings from version 0.1.5.x to 0.1.6.x
- * @param {Object} pr The previous settings
- * @return{Object} The migrated settings from version 0.1.5.x to 0.1.6.x
- * @since v0.1.8
- */
-function migrateSettings_0_1_5(pr) {
-    logger.log(`[background.js]: Migrating settings from version 0.1.5.x to version ${MAT.getVersion()}`, true);
-    try {
-        if (!/0.1.5.[0-9]/.test(pr.version)) return pr
-        return {
-            forwardSkip: {enabled: pr.forwardSkip.enabled || true, time: pr.forwardSkip.duration || 85, keyBind: {ctrlKey: pr.forwardSkip.ctrlKey || true, altKey: pr.forwardSkip.altKey || false, shiftKey: pr.forwardSkip.shiftKey || false, key: pr.forwardSkip.key || 'ArrowRight',}},
-            backwardSkip: {enabled: pr.backwardSkip.enabled || true, time: pr.backwardSkip.duration || 85, keyBind: {ctrlKey: pr.backwardSkip.ctrlKey || true, altKey: pr.backwardSkip.altKey || false, shiftKey: pr.backwardSkip.shiftKey || false, key: pr.backwardSkip.key || 'ArrowLeft',}},
-            nextEpisode: {enabled: pr.nextEpisode.enabled || true, keyBind: {ctrlKey: pr.nextEpisode.ctrlKey || false, altKey: pr.nextEpisode.altKey || true, shiftKey: pr.nextEpisode.shiftKey || false, key: pr.nextEpisode.key || 'ArrowRight',}},
-            previousEpisode: {enabled: pr.previousEpisode.enabled || true, keyBind: {ctrlKey: pr.previousEpisode.ctrlKey || false, altKey: pr.previousEpisode.altKey || true, shiftKey: pr.previousEpisode.shiftKey || false, key: pr.previousEpisode.key || 'ArrowLeft',}},
-            autoNextEpisode: {enabled: pr.autoNextEpisode.enabled || false, time: pr.autoNextEpisode.time || 60,},
-            autoplay: {enabled: pr.autoplay.enabled || true},
-            syncSettings: {enabled: true,},
-            bookmarks: {enabled: true, syncBookmarks: {enabled: true,},},
-            resume: {enabled: true, syncResume: {enabled: true,}, mode: 'ask',},
-            advanced: {enabled: pr.devSettings.enabled || false, settings: {ConsoleLog: {enabled: pr.devSettings.settings.ConsoleLog.enabled || false,}, DefaultPlayer: { player: pr.devSettings.settings.DefaultPlayer.player === 'html5' ? 'plyr' : pr.devSettings.settings.DefaultPlayer.player || 'plyr' },}, plyr: {design: {enabled: false, settings: {svgColor: '#ffffffff', hoverBGColor: '#00b3ffff', mainColor: '#00b3ffff', hoverColor: '#ffffffff',},},}, downloadName: '%title% - %episode%.rész (%MAT%)', forcePlyr: true,},
-            private: {hasMAPlayer: false, eap: false,},
-            version: MAT.getVersion(),
-        };
-    } catch (error) {
-        logger.error(`[background.js]: Failed to migrate settings from version 0.1.5.x to version ${MAT.getVersion()}`, true);
-        console.error(error);
-        return MAT.getDefaultSettings();
-    } finally {
-        logger.log(`[background.js]: Migrated settings from version 0.1.5.x to version ${MAT.getVersion()}`, true);
-    }
-}
-

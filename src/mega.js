@@ -1,4 +1,4 @@
-import {MAT, logger, MA, bookmarks, popup} from "./API.js";
+import {MAT, logger, bookmarks} from "./API.js";
 /**
  * Settings object to store the settings (Later loaded from the storage)
  *
@@ -125,7 +125,7 @@ function checkAdvancedSettings() {
 function initMega() {
     loadSettings();
     bookmarks.loadBookmarks();
-    window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.FRAME_LOADED}, "*");
+    window.parent.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.FRAME_LOADED}, "*");
 }
 /**
  * Function to replace the mega.nz player with the custom player
@@ -216,7 +216,7 @@ function addPlyr() {
         fixPlyr();
         loadCustomCss();
         addShortcutsToPlyr();
-        window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.PLAYER_READY}, "*");
+        window.parent.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.PLAYER_READY}, "*");
     });
 }
 /**
@@ -267,7 +267,7 @@ function setAutoNextEpisode() {
     video.addEventListener("timeupdate", () => {
         if (video.currentTime >= video.duration - settings.autoNextEpisode.time && !isAutoNextEpisodeTriggered) {
             isAutoNextEpisodeTriggered = true;
-            window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.AUTO_NEXT_EPISODE}, "*");
+            window.parent.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.AUTO_NEXT_EPISODE}, "*");
         }
     });
 }
@@ -275,32 +275,32 @@ function setAutoNextEpisode() {
  * Event listener to listen for messages from the parent window
  */
 window.addEventListener("message", (event) => {
-    if (event.data.plugin === MAT.__NAME) {
+    if (event.data.plugin === MAT.__NAME__) {
         switch (event.data.type) {
-            case MAT.__ACTIONS.MEGA.REPLACE_PLAYER:
+            case MAT.__ACTIONS__.MEGA.REPLACE_PLAYER:
                 logger.log("[Mega.nz] Replace mega");
                 handleMegaReplace();
                 break;
-            case MAT.__ACTIONS.MEGA.BACKWARD_SKIP:
+            case MAT.__ACTIONS__.MEGA.BACKWARD_SKIP:
                 goBackwards(event.data.seconds);
                 break;
-            case MAT.__ACTIONS.MEGA.FORWARD_SKIP:
+            case MAT.__ACTIONS__.MEGA.FORWARD_SKIP:
                 goForwards(event.data.seconds);
                 break;
-            case MAT.__ACTIONS.MEGA.TOGGLE_PLAY:
+            case MAT.__ACTIONS__.MEGA.TOGGLE_PLAY:
                 plyr.togglePlay();
                 break;
-            case MAT.__ACTIONS.MEGA.VOL_UP:
+            case MAT.__ACTIONS__.MEGA.VOL_UP:
                 plyr.increaseVolume(0.1);
                 break
-            case MAT.__ACTIONS.MEGA.VOL_DOWN:
+            case MAT.__ACTIONS__.MEGA.VOL_DOWN:
                 plyr.decreaseVolume(0.1);
                 break;
-            case MAT.__ACTIONS.MEGA.TOGGLE_MUTE:
+            case MAT.__ACTIONS__.MEGA.TOGGLE_MUTE:
                 let muted = plyr.muted;
                 plyr.muted = !muted;
                 break;
-            case MAT.__ACTIONS.MEGA.TOGGLE_FULLSCREEN:
+            case MAT.__ACTIONS__.MEGA.TOGGLE_FULLSCREEN:
                 // We have to use this, because the browser API only accepts user gestures to enter fullscreen
                 // and still not 100% working, but it works most of the time (test results: it works on the second try)
                 // Error: Failed to execute 'requestFullscreen' on 'Element': API can only be initiated by a user gesture.
@@ -311,16 +311,16 @@ window.addEventListener("message", (event) => {
                 fullscrnbtn.click();
                 fullscrnbtn.blur();
                 break;
-            case MAT.__ACTIONS.MEGA.SEEK_PERCENTAGE:
+            case MAT.__ACTIONS__.MEGA.SEEK_PERCENTAGE:
                 let percentage = event.data.percent;
                 if (percentage < 0) percentage = 0;
                 if (percentage > 100) percentage = 100;
                 plyr.currentTime = (percentage / 100) * plyr.duration;
                 break;
-            case MAT.__ACTIONS.MEGA.GET_CURRENT_TIME:
-                window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.CURRENT_TIME, currentTime: plyr.currentTime}, "*");
+            case MAT.__ACTIONS__.MEGA.GET_CURRENT_TIME:
+                window.parent.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.CURRENT_TIME, currentTime: plyr.currentTime}, "*");
                 break;
-            case MAT.__ACTIONS.MEGA.SEEK:
+            case MAT.__ACTIONS__.MEGA.SEEK:
                 plyr.currentTime = event.data.time;
                 break;
             default:
@@ -355,10 +355,10 @@ function addShortcutsToPlyr() {
 
     document.addEventListener("keyup", (event) => {
         handleShortcutEvent(event, settings.nextEpisode, () => {
-            window.parent.postMessage({ plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.NEXT_EPISODE }, "*");
+            window.parent.postMessage({ plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.NEXT_EPISODE }, "*");
         });
         handleShortcutEvent(event, settings.previousEpisode, () => {
-            window.parent.postMessage({ plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.PREVIOUS_EPISODE }, "*");
+            window.parent.postMessage({ plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.PREVIOUS_EPISODE }, "*");
         });
     });
 }
@@ -403,10 +403,10 @@ function loadCustomCss() {
 }
 
 function getActiveBookmarks() {
-    window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.GET_BOOKMARKS}, "*");
+    window.parent.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.GET_BOOKMARKS}, "*");
     return new Promise((resolve) => {
         window.addEventListener("message", function bookmarksListener(event) {
-            if (event.data.plugin === MAT.__NAME && event.data.type === MAT.__ACTIONS.MEGA.BOOKMARKS) {
+            if (event.data.plugin === MAT.__NAME__ && event.data.type === MAT.__ACTIONS__.MEGA.BOOKMARKS) {
                 window.removeEventListener("message", bookmarksListener);
                 resolve(event.data.bookmarks);
             } else {

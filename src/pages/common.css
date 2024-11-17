@@ -1,0 +1,190 @@
+:root {
+    --primary-color: #3f9fff;
+    --secondary-color: #60b0ff;
+    --background-color: #182031;
+    --nav-color: #0a0e17;
+    --text-color: #fff;
+    --dark: #000;
+    --light: var(--text-color);
+    --darker-primary: #205daa;
+    --card-color: #182031;
+    --primarydark-color: var(--card-color);
+    --bg-color: #263143;
+    --dark-color: var(--nav-color);
+    --card-bg-color: #1c2533;
+    --card-border-color: var(--primary-color);
+    --button-bg-color: var(--primary-color);
+    --button-hover-bg-color: #1c7ed6;
+    --button-text-color: var(--text-color);
+}
+
+body {
+    margin: 0;
+    font-family: 'Fira Code', monospace;
+    background-color: var(--background-color);
+    color: #F3F4F6;
+}
+main .container {
+    min-height: 100vh;
+    margin-bottom: 3vh;
+}
+header {
+    position: relative;
+    z-index: 1000;
+}
+
+header, footer {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1F2937;
+    border-bottom: 1px solid #374151;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+header .container,
+footer .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+    display: flex;
+    width: 100%;
+    align-content: center;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+nav a {
+    color: #9CA3AF;
+    margin: 0 10px;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+nav a:hover {
+    color: #3B82F6;
+}
+
+nav .active {
+    color: #3B82F6;
+}
+
+header .navbar {
+    display: flex;
+    gap: 10px;
+}
+
+footer p {
+    font-size: 0.8rem;
+    color: #6B7280;
+}
+
+footer nav a {
+    color: #9CA3AF;
+    font-size: 0.8rem;
+}
+
+footer nav a:hover {
+    color: #3B82F6;
+}
+
+footer .links a {
+    margin: 0 10px;
+    color: #9CA3AF;
+    text-decoration: none;
+    font-size: 0.8rem;
+}
+
+footer .links a:hover {
+    color: #3B82F6;
+}
+
+footer .links {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+}
+
+footer .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1F2937;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4B5563;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #4B5563;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+::-webkit-scrollbar-corner {
+    background: #1F2937;
+}
+
+::-webkit-resizer {
+    display: none;
+}
+
+
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#loading img {
+    width: 100px;
+    height: 100px;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

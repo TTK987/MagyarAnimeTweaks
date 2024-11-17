@@ -33,7 +33,7 @@
     }
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "pages/popup/index.html",
     "default_icon": {
       "16": "logo/MATLogo-16.png",
       "32": "logo/MATLogo-32.png",
@@ -42,7 +42,7 @@
     }
   },
   "options_ui": {
-    "page": "options.html"
+    "page": "pages/settings/index.html"
   },
   "author": "TTK987",
   "background": {
@@ -60,7 +60,7 @@
     {
       "matches": ["*://*.magyaranime.eu/*", "*://*.magyaranime.hu/*"],
       "js": ["content.js", "player.js"],
-      "css": ["player.css", "MATStyle.css"],
+      "css": ["player.css", "MATStyle.css", "assets/popup.css"],
       "all_frames": true,
       "run_at": "document_start"
     },
@@ -68,6 +68,12 @@
       "matches": ["*://*.magyaranime.eu/*", "*://*.magyaranime.hu/*"],
       "js": ["rmp.js"],
       "world": "MAIN"
+    },
+    {
+      "matches": ["*://*.magyaranime.eu/hibajelentes/*", "*://*.magyaranime.hu/hibajelentes/*"],
+      "js": ["report.js"],
+      "all_frames": true,
+      "run_at": "document_end"
     },
     {
       "matches": ["*://embed.indavideo.hu/*"],

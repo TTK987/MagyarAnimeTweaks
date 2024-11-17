@@ -15,6 +15,24 @@ function loadFromStorage(key) {
         });
     });
 }
+/**
+ * Helper function to save stuff to the storage
+ * @param {String} key - The key to save
+ * @param {Object} value - The value to save
+ * @returns {Promise<Object>} The saved value
+ * @since v0.1.8
+ */
+function saveToStorage(key, value) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.sync.set({[key]: value}, () => {
+            if (chrome.runtime.lastError) {
+                reject(new Error('Error: Data not saved'));
+            } else {
+                resolve(value);
+            }
+        });
+    });
+}
 class MATweaks {
     constructor() {
         this.settings = this.getDefaultSettings();
@@ -53,7 +71,12 @@ class MATweaks {
      * - Saves the settings to BOTH local and sync storage
      */
     saveSettings() {
-        chrome.storage.sync.set({settings: this.settings});
+        saveToStorage('settings', this.settings).then(() => {
+            logger.success('Settings saved', true);
+        }).catch(() => {
+            logger.error('Error: Settings not saved', true);
+            console.log(chrome.runtime.lastError);
+        });
     }
 
     /**
@@ -129,20 +152,11 @@ class MATweaks {
                 time: 60 /* Time to skip to the next episode before the end of the episode (in seconds) */
             },
             autoplay: { /* Autoplay (default: true) */ enabled: true},
-            syncSettings: {
-                enabled: true, /* Sync settings using Google Account (default: true) */
-            },
             bookmarks: { /* Bookmarks settings */
                 enabled: true, /* Bookmarks (default: true) */
-                syncBookmarks: {
-                    enabled: true, /* Sync bookmarks using Google Account (default: true) */
-                },
             },
             resume: {
                 enabled: true, /* Resume watching (default: true) */
-                syncResume: {
-                    enabled: true, /* Sync resume using Google Account (default: true) */
-                },
                 mode: 'ask', /* Resume mode (default: "ask") (ask, auto) */ /* TODO: Requires modification of the plyr player */
             },
             advanced: { /* Advanced settings */
@@ -185,7 +199,7 @@ class MATweaks {
         };
     }
 
-    __ACTIONS = {
+    __ACTIONS__ = {
         SEEK: 'seek',
         SOURCE_URL: 'sourceUrl',
         GET_SOURCE_URL: 'getSourceUrl',
@@ -217,7 +231,7 @@ class MATweaks {
 
 
     }
-    __NAME = "MATweaks";
+    __NAME__ = "MATweaks";
 
     /**
      * Returns whether the extension is an Early Access Program build
@@ -225,6 +239,15 @@ class MATweaks {
      */
     isEAP() {
         return this.settings.private.eap;
+    }
+
+    /**
+     * Returns a JSON object
+     * @param {Number} id - The ID of the setting
+     * @returns {Object} The setting object
+     */
+    getSetting(id) {
+        return this.settings[id] || undefined;
     }
 }
 const MAT = new MATweaks();
@@ -334,7 +357,10 @@ class Bookmarks {
             loadFromStorage('bookmarks').then((bookmarks) => {
                 this.bookmarks = bookmarks;
                 resolve(this.bookmarks);
-            }).catch(() => {reject(new Error('Bookmarks not found'))});
+            }).catch(() => {
+                logger.warn('Bookmarks not found', true);
+                resolve(this.bookmarks);
+            });
         });
     }
 
@@ -343,7 +369,12 @@ class Bookmarks {
      * @since v0.1.8
      */
     saveBookmarks() {
-        chrome.storage.sync.set({bookmarks: this.bookmarks});
+        saveToStorage('bookmarks', this.bookmarks).then(() => {
+            logger.success('Bookmarks saved', true);
+        }).catch(() => {
+            logger.error('Error: Bookmarks not saved', true);
+            console.log(chrome.runtime.lastError);
+        });
     }
 
     /**
@@ -463,7 +494,7 @@ class Bookmarks {
         const bookmark = this.getBookmark(Number(id));
         if (bookmark) {
             chrome.runtime.sendMessage({
-                plugin: MAT.__NAME,
+                plugin: MAT.__NAME__,
                 type: 'openBookmark',
                 id: bookmark.id,
                 time: bookmark.time,
@@ -521,7 +552,7 @@ class MagyarAnime {
      * @since v0.1.8
      */
     isEpisodePage() {
-        return window.location.pathname.includes('resz');
+        return window.location.pathname.includes('resz') || window.location.pathname.includes('inda-play');
     }
     /**
      * Returns whether we are on the anime page (leírás)
@@ -539,7 +570,7 @@ class MagyarAnime {
     addCSS(css) {
         const style = document.createElement('style');
         style.textContent = css.replace(/\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g, '').replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
-        style.classList.add('MATweaks');
+        style.id = 'MAT_CSS';
         document.head.appendChild(style);
     }
     /**
@@ -898,6 +929,10 @@ class MagyarAnime {
         },
 
     }
+
+    removeCSS() {
+        document.querySelectorAll('#MAT_CSS').forEach((style) => style.remove());
+    }
 }
 const MA = new MagyarAnime();
 class Popup {
@@ -911,36 +946,36 @@ class Popup {
      * @param {number} time - The time to show the popup in milliseconds (default: 2000)
      * @since v0.1.8
      */
-    showErrorPopup(message, time) {
+    showErrorPopup(message, time= 2000) {
         const popup = document.createElement('div');
-        popup.textContent = message;
-        popup.classList.add('error-popup');
+        popup.innerHTML = `<p><i class="fas fa-exclamation-circle"></i> ${message}</p>`;
+        popup.className = 'MAT-popup error-popup';
         this._showPopup(popup, time || 2000);
     }
 
     /**
      * Function to show an info popup
      * @param {string} message - The message to show
-     * @param {number | undefined} time - The time to show the popup in milliseconds (default: 2000)
+     * @param {number} time - The time to show the popup in milliseconds (default: 2000)
      * @since v0.1.8
      */
-    showInfoPopup(message, time) {
+    showInfoPopup(message, time= 2000) {
         const popup = document.createElement('div');
-        popup.textContent = message;
-        popup.classList.add('info-popup');
+        popup.innerHTML = `<p><i class="fas fa-info-circle"></i> ${message}</p>`;
+        popup.className = 'MAT-popup info-popup';
         this._showPopup(popup, time || 2000);
     }
 
     /**
      * Function to show a success popup
      * @param {string} message - The message to show
-     * @param {number | undefined} time - The time to show the popup in milliseconds
+     * @param {number} time - The time to show the popup in milliseconds
      * @since v0.1.8
      */
-    showSuccessPopup(message, time) {
+    showSuccessPopup(message, time= 2000) {
         const popup = document.createElement('div');
-        popup.textContent = message;
-        popup.classList.add('success-popup');
+        popup.innerHTML = `<p><i class="fas fa-check-circle"></i> ${message}</p>`;
+        popup.className = 'MAT-popup success-popup';
         this._showPopup(popup, time || 2000);
     }
 
@@ -952,8 +987,8 @@ class Popup {
      */
     showWarningPopup(message, time) {
         const popup = document.createElement('div');
-        popup.textContent = message;
-        popup.classList.add('warning-popup');
+        popup.innerHTML = `<p><i class="fas fa-exclamation-triangle"></i> ${message}</p>`;
+        popup.className = 'MAT-popup warning-popup';
         this._showPopup(popup, time || 2000);
     }
 
@@ -964,8 +999,8 @@ class Popup {
      * @since v0.1.8
      */
     _showPopup(popup, time) {
-        popup.setAttribute('style', `position: fixed;${document.fullscreenElement ? 'top' : 'bottom'}: ${10 + this.popups.length * 60}px;left: 10px; color: white; padding: 10px; border-radius: 10px; box-shadow: 0 0 10px var(--primary-color); z-index: 100; transition: opacity 2s;`);
-
+        if (time < 0) time = 2000;
+        popup.setAttribute('style', `${document.fullscreenElement ? 'top' : 'bottom'}: ${10 + this.popups.length * 60}px;`);
         const appendPopup = () => {
             if (document.fullscreenElement) {
                 document.fullscreenElement.appendChild(popup);
@@ -997,24 +1032,15 @@ class Popup {
     }
 }
 const popup = new Popup();
-
-class ResumePlaybackCL {
+class resume {
     /**
-     * Create a new ResumeData class
+     * Create a new Episode class
      * @since v0.1.8
-     * @constructor ResumeData - Create a new ResumeData class
+     * @constructor Episode - Create a new Episode class
      * @property {Array<Anime>} animes - The animes with resume data
      */
     constructor() {
         this.animes = [];
-    }
-
-    /**
-     * Get the resume data
-     * @returns {Array<Anime>}
-     */
-    getResumeData() {
-        return this.animes;
     }
 
     /**
@@ -1028,14 +1054,14 @@ class ResumePlaybackCL {
      * @param {Number} currentTime - The current time in real life (in milliseconds)
      * @since v0.1.8
      */
-    addResumeData(episodeId, time, datasheetId, title, url, epnum, currentTime) {
+    addData(episodeId, time, datasheetId, title, url, epnum, currentTime) {
         let anime = this.animes.find(anime => anime.datasheetId === datasheetId);
         if (!anime) {
             anime = new Anime(datasheetId, title);
             this.animes.push(anime);
         }
-        anime.addEpisode(new ResumeData(episodeId, time, url, epnum, currentTime));
-        this.saveResumeData();
+        anime.addEpisode(new Episode(episodeId, time, url, epnum, currentTime));
+        this.saveData();
     }
 
     /**
@@ -1043,29 +1069,32 @@ class ResumePlaybackCL {
      * @param {Number} id - The ID of the episode
      * @since v0.1.8
      */
-    removeResumeData(id) {
-        for (const anime of this.animes) {
-            anime.removeEpisode(id);
-        }
-        this.animes = this.animes.filter(anime => anime.episodes.length > 0);
-        this.saveResumeData();
-    }
-
-    /**
-     * Clear all resume data
-     * @since v0.1.8
-     */
-    clearResumeData() {
-        this.animes = [];
-        this.saveResumeData();
+    removeData(id) {
+        return new Promise((resolve, reject) => {
+            for (const anime of this.animes) {
+                anime.removeEpisode(id);
+            }
+            this.animes = this.animes.filter(anime => anime.episodes.length > 0);
+            this.saveData();
+            if (this.getDataByEpisodeId(id) === null) {
+                resolve(true);
+            } else {
+                reject(new Error('Resume data not removed'));
+            }
+        });
     }
 
     /**
      * Save the resume data
      * @since v0.1.8
      */
-    saveResumeData() {
-        chrome.storage.sync.set({resume: this.animes});
+    saveData() {
+        saveToStorage('resume', this.animes).then(() => {
+            logger.log('Resume data saved', true);
+        }).catch(() => {
+            logger.error('Error: Resume data not saved', true);
+            console.log(chrome.runtime.lastError);
+        });
     }
 
     /**
@@ -1073,12 +1102,12 @@ class ResumePlaybackCL {
      * @returns {Promise<Array<Anime>>} The resume data
      * @since v0.1.8
      */
-    loadResumeData() {
+    loadData() {
         return new Promise((resolve, reject) => {
             loadFromStorage('resume').then((resume) => {
                 this.animes = resume.map(animeData => {
                     const anime = new Anime(animeData.datasheetId, animeData.title);
-                    anime.episodes = animeData.episodes.map(ep => new ResumeData(ep.id, ep.time, ep.url, ep.epnum, ep.timestamp));
+                    anime.episodes = animeData.episodes.map(ep => new Episode(ep.id, ep.time, ep.url, ep.epnum, ep.timestamp));
                     return anime;
                 });
                 resolve(this.animes);
@@ -1089,10 +1118,10 @@ class ResumePlaybackCL {
     /**
      * Get the resume data by episode ID
      * @param {Number} id - The ID of the episode
-     * @returns {ResumeData | null} The resume data
+     * @returns {Episode | null} The resume data
      * @since v0.1.8
      */
-    getResumeDataByEpisodeId(id) {
+    getDataByEpisodeId(id) {
         for (const anime of this.animes) {
             const episode = anime.getEpisodeById(id);
             if (episode) return episode;
@@ -1111,7 +1140,7 @@ class ResumePlaybackCL {
      * @param {Number} currentTime - The current time in real life (in milliseconds)
      * @since v0.1.8
      */
-    updateResumeData(id, time, datasheetId, title, url, epnum, currentTime) {
+    updateData(id, time, datasheetId, title, url, epnum, currentTime) {
         const anime = this.animes.find(anime => anime.datasheetId === datasheetId);
         if (anime) {
             const episode = anime.getEpisodeById(id);
@@ -1119,17 +1148,17 @@ class ResumePlaybackCL {
                 episode.time = time;
                 episode.timestamp = Date.now();
             } else {
-                anime.addEpisode(new ResumeData(id, time, url, epnum, currentTime));
+                anime.addEpisode(new Episode(id, time, url, epnum, currentTime));
             }
         } else {
-            this.addResumeData(id, time, datasheetId, title, url, epnum, currentTime);
+            this.addData(id, time, datasheetId, title, url, epnum, currentTime);
         }
-        this.saveResumeData();
+        this.saveData();
     }
 
     /**
      * Get the last updated resume data
-     * @returns {{episode: ResumeData | null, anime: Anime | null}} The last updated resume data
+     * @returns {{episode: Episode | null, anime: Anime | null}} The last updated resume data
      */
     getLastUpdated() {
         let lastUpdated = null;
@@ -1146,15 +1175,33 @@ class ResumePlaybackCL {
     }
 
     /**
-     * Get the anime by datasheet ID
-     * @param {Number} id - The ID of the datasheet
-     * @returns {Anime | undefined} The anime
+     * Filter the resume data
+     * @param {string} param - The parameter to filter
      */
-    getAnime(id) {
-        return this.animes.find(anime => anime.datasheetId === id);
+    search(param) {
+        return this.animes.filter(anime => anime.title.toLowerCase().includes(param.toLowerCase()));
     }
-}
 
+    openEpisode(id) {
+        const episode = this.getDataByEpisodeId(id);
+        if (episode) {
+            chrome.runtime.sendMessage({
+                plugin: MAT.__NAME__,
+                type: 'openResume',
+                id: episode.id,
+                time: episode.time,
+                url: episode.url,
+            }, (response) => {
+                if (response) {
+                    logger.log('Episode opened', true);
+                } else {
+                    logger.error('Error: Episode not opened', true);
+                }
+            });
+        } else { logger.error('Episode not found', true); }
+    }
+
+}
 class Anime {
     constructor(datasheetId, title) {
         this.datasheetId = datasheetId;
@@ -1162,10 +1209,18 @@ class Anime {
         this.episodes = [];
     }
 
+    /**
+     * Add an episode to the anime
+     * @param {Episode} episode - The episode to add
+     */
     addEpisode(episode) {
         this.episodes.push(episode);
     }
 
+    /**
+     * Remove an episode from the anime
+     * @param {Number} id - The ID of the episode
+     */
     removeEpisode(id) {
         this.episodes = this.episodes.filter(ep => ep.id !== id);
     }
@@ -1173,26 +1228,29 @@ class Anime {
     getEpisodeById(id) {
         return this.episodes.find(ep => ep.id === id) || null;
     }
-}
 
-class ResumeData {
-    constructor(EpisodeID, Time, url, epnum, currentTime) {
-        this.id = EpisodeID;
+    getLastEpisode() {
+        return this.episodes.sort((a, b) => b.timestamp - a.timestamp)[0];
+    }
+}
+class Episode {
+    constructor(id, time, url, epnum, currentTime) {
+        this.id = id;
         this.timestamp = currentTime;
-        this.time = Time;
+        this.time = time;
         this.url = url;
         this.epnum = epnum;
     }
 }
-
-const ResumePlayBack = new ResumePlaybackCL();
+const Resume = new resume();
 if (typeof window !== 'undefined') {
     window.MAT = MAT;
     window.logger = logger;
     window.bookmarks = bookmarks;
     window.popup = popup;
-    window.ResumePlayBack = ResumePlayBack;
+    window.Resume = Resume;
+    window.loadFromStorage = loadFromStorage;
+    window.saveToStorage = saveToStorage;
 }
-export {
-    MAT, logger, bookmarks, Bookmark, MA, popup, ResumePlayBack, ResumeData
-};
+export {MAT, logger, bookmarks, MA, popup, Resume, loadFromStorage, saveToStorage};
+

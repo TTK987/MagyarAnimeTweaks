@@ -1,7 +1,7 @@
 import {MAT, logger} from "./API";
 window.addEventListener('message', function (event) {
-    if (event.data && event.data.plugin === MAT.__NAME) {
-        if (event.data.type === MAT.__ACTIONS.GET_SOURCE_URL) {
+    if (event.data && event.data.plugin === MAT.__NAME__) {
+        if (event.data.type === MAT.__ACTIONS__.GET_SOURCE_URL) {
             let retry = 10;
             let interval = setInterval(function () {
                 if (f720() === false && f360() === false) {
@@ -18,7 +18,7 @@ window.addEventListener('message', function (event) {
                     if (f720Url !== false) {
                         data.push({quality: 720, url: f720Url});
                     }
-                    window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.SOURCE_URL, data: data}, '*');
+                    window.parent.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.SOURCE_URL, data: data}, '*');
                     return;
                 }
                 retry--;
@@ -71,5 +71,5 @@ function f360() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.FRAME_LOADED}, '*');
+    window.parent.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.FRAME_LOADED}, '*');
 });

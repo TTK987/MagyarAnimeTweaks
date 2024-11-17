@@ -1,0 +1,62 @@
+.MAT-popup {
+    border-radius: 5px;
+    box-shadow: 1px 2px 2px 1px rgb(0 0 0);
+    display: inline-block;
+    left: 10px;
+    max-width: 400px;
+    opacity: 1;
+    padding: 8px;
+    position: fixed;
+    transition: opacity 2s,top .5s,bottom .5s;
+    z-index: 1000;
+}
+
+.MAT-popup,.MAT-popup p {
+    border-bottom: 1px solid #374151;
+    overflow: hidden;
+}
+
+.MAT-popup p {
+    background: var(--dark-color,#333);
+    border-radius: 8px;
+    color: var(--white-color,#fff);
+    margin: 0;
+    padding: 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    height: 1.7em;
+}
+
+.MAT-popup p i {
+    margin-right: 10px
+}
+
+.error-popup {
+    background-color: #ff4d4d
+}
+.error-popup p i {
+    color: #ff4d4d
+}
+
+.info-popup {
+    background-color: #4d94ff
+}
+.info-popup p i {
+    color: #4d94ff
+}
+
+.success-popup {
+    background-color: #4dff4d
+}
+.success-popup p i {
+   color: #4dff4d
+}
+
+.warning-popup {
+    background-color: #fc0
+}
+.warning-popup p i {
+    color: #fc0
+}

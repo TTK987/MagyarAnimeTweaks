@@ -1,9 +1,9 @@
 import {MAT} from "./API";
 
 window.addEventListener('message', async function (event) {
-    if (event.data && event.data.plugin === MAT.__NAME) {
-        if (event.data.type === MAT.__ACTIONS.GET_SOURCE_URL) {
-            window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.SOURCE_URL, data: await getQualityData()}, '*');
+    if (event.data && event.data.plugin === MAT.__NAME__) {
+        if (event.data.type === MAT.__ACTIONS__.GET_SOURCE_URL) {
+            window.parent.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.SOURCE_URL, data: await getQualityData()}, '*');
         }
     }
 });
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     let interval = setInterval(function () {
         if (document.querySelectorAll('#videa-toolbar > div.settings-panel > div.settings-version-selector-block.settings-submenu > div > a').length > 0) {
             clearInterval(interval);
-            window.parent.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.FRAME_LOADED}, '*');
+            window.parent.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.FRAME_LOADED}, '*');
         }
     }, 10);
 });

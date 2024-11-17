@@ -1,9 +1,5 @@
 document.addEventListener("MATweaks", function(event) {
-    if (event.detail.type === "removePlayer") {
-        if (player) {
-            player.destroy();
-        }
+    if (event.detail.type === "removePlayer" && player) {
+        player.destroy();
     }
 });
-
-

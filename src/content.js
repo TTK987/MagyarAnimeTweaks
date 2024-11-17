@@ -1,9 +1,8 @@
-import {MAT, logger, bookmarks, MA, popup, ResumePlayBack } from "./API";
+import {MAT, logger, bookmarks, MA, popup, Resume } from "./API";
 
 /**
  * Settings object to store the settings (Later loaded from the storage)
  * Default settings for the extension (used if the settings are not loaded from the storage)
- * @type {{  forwardSkip: {  enabled: boolean,  time: number,  keyBind: {  ctrlKey: boolean,  altKey: boolean,  shiftKey: boolean,  key: string  }  },  backwardSkip: {  enabled: boolean,  time: number,  keyBind: {  ctrlKey: boolean,  altKey: boolean,  shiftKey: boolean,  key: string  }  },  nextEpisode: {  enabled: boolean,  keyBind: {  ctrlKey: boolean,  altKey: boolean,  shiftKey: boolean,  key: string  }  },  previousEpisode: {  enabled: boolean,  keyBind: {  ctrlKey: boolean,  altKey: boolean,  shiftKey: boolean,  key: string  }  },  autoNextEpisode: {  enabled: boolean,  time: number  },  autoplay: {  enabled: boolean  },  syncSettings: {  enabled: boolean  },  bookmarks: {  enabled: boolean,  syncBookmarks: {  enabled: boolean  }  },  resume: {  enabled: boolean,  syncResume: {  enabled: boolean  },  mode: string  },  advanced: {  enabled: boolean,  settings: {  ConsoleLog: {  enabled: boolean  },  DefaultPlayer: {  player: string  }  },  plyr: {  design: {  enabled: boolean,  settings: {  svgColor: string,  hoverBGColor: string,  mainColor: string,  hoverColor: string  }  }  },  downloadName: string,  forcePlyr: boolean  },  private: {  hasMAPlayer: boolean,  eap: boolean  },  version: string}} Default settings for the extension
  */
 let settings = MAT.getDefaultSettings();
 
@@ -421,43 +420,7 @@ class Settings {
      * @private
      */
     _createSettingsWindow() {
-        this.settingsWindow.innerHTML = `
-        <div class="MA-Tweaks-settings-popup-content">
-            <div class="MATweaks-settings-window-header">
-                <span class="MATweaks-settings-window-close">&times;</span>
-                <h2>MATweaks beállítások</h2>
-            </div>
-            <div class="MATweaks-settings-window-body">
-                <div class="MATweaks-settings-window-body-content">
-                    <div class="MA-Tweaks-settings-popup-body-content-features">
-                        ${this.settingsItems.map(item => this._generateSettingsItem(item.title, item.id)).join("")}
-                        <div class="MATweaks-settings-window-body-content-item">
-                            <p>További beállítások</p>
-                            <button class="MATweaks-settings-window-body-content-item-feature-button">További beállítások</button>    
-                        </div>
-                    </div>
-                </div>
-                <div class="MATweaks-settings-window-body-content-buttons">
-                    <button class="MATweaks-settings-window-body-content-buttons-button" id="MATweaks-settings-window-body-content-buttons-button-save">Mentés</button>
-                    <button class="MATweaks-settings-window-body-content-buttons-button" id="MATweaks-settings-window-body-content-buttons-button-cancel">Mégse</button>
-                </div>
-                <div class="MATweaks-settings-window-body-content-credits">
-                    <div class="MATweaks-settings-window-body-content-credits-item">
-                        <p>MATweaks készítette: <a href="https://discord.com/users/537718439586955285" target="_blank">TTK987</a></p>
-                        <p>GitHub: <a href="https://github.com/TTK987/MagyarAnimeTweaks/" target="_blank">MagyarAnimeTweaks</a></p>
-                    </div>
-                    <div class="MATweaks-settings-window-body-content-credits-item">
-                        <p>Verzió: ${MAT.getVersion()} <span class="eap">EAP</span> </p>
-                        <p class="eap">Ez egy Early Access Program (Korai hozzáférésű program) verzió, amely még fejlesztés alatt áll.</p>
-                    </div>
-                    <div class="MATweaks-settings-window-body-content-credits-item">
-                        <p>Weblap: < Fejlesztés alatt... ></p>
-                        <p>Discord: <a href="https://discord.gg/dJX4tVGZhY" target="_blank">MagyarAnimeTweaks</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>     
-        `;
+        this.settingsWindow.innerHTML = `<div class="MA-Tweaks-settings-popup-content"><div class="MATweaks-settings-window-header"><span class="MATweaks-settings-window-close">&times;</span><h2>MATweaks beállítások</h2></div><div class="MATweaks-settings-window-body"><div class="MATweaks-settings-window-body-content"><div class="MA-Tweaks-settings-popup-body-content-features">${this.settingsItems.map(item => this._generateSettingsItem(item.title, item.id)).join("")}<div class="MATweaks-settings-window-body-content-item"><p>További beállítások</p><button class="MATweaks-settings-window-body-content-item-feature-button">További beállítások</button></div></div></div><div class="MATweaks-settings-window-body-content-buttons"><button class="MATweaks-settings-window-body-content-buttons-button" id="MATweaks-settings-window-body-content-buttons-button-save">Mentés</button><button class="MATweaks-settings-window-body-content-buttons-button" id="MATweaks-settings-window-body-content-buttons-button-cancel">Mégse</button></div><div class="MATweaks-settings-window-body-content-credits"><div class="MATweaks-settings-window-body-content-credits-item"><p>MATweaks készítette: <a href="https://discord.com/users/537718439586955285" target="_blank">TTK987</a></p><p>GitHub: <a href="https://github.com/TTK987/MagyarAnimeTweaks/" target="_blank">MagyarAnimeTweaks</a></p></div><div class="MATweaks-settings-window-body-content-credits-item"><p>Verzió: ${MAT.getVersion()} <span class="eap">EAP</span> </p><p class="eap">Ez egy Early Access Program (Korai hozzáférésű program) verzió, amely még fejlesztés alatt áll.</p></div><div class="MATweaks-settings-window-body-content-credits-item"><p>Weblap: < Fejlesztés alatt... ></p><p>Discord: <a href="https://discord.gg/dJX4tVGZhY" target="_blank">MagyarAnimeTweaks</a></p></div></div></div></div>`;
     }
 
     /**
@@ -469,24 +432,7 @@ class Settings {
      * @private
      */
     _generateSettingsItem(title, id) {
-        return `
-        <div class="MATweaks-settings-window-body-content-item" id="MATweaks-${id}">
-            <p>${title}</p>
-            <div class="MATweaks-settings-window-body-content-item-feature" id="MATweaks-${id}-checkbox">
-                <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-${id}-enabled">Engedélyezve</label>
-                <input class="MATweaks-settings-window-body-content-item-feature-checkbox" type="checkbox" id="MATweaks-${id}-enabled" name="MATweaks-${id}-enabled" ${this.localSettings[id].enabled ? "checked" : ""}>
-                <span class="MATweaks-settings-window-body-content-item-feature-checkbox-custom" id="MATweaks-${id}-enabled-custom"></span>
-            </div>
-            ${this.localSettings[id].time  ? ` <div class="MATweaks-settings-window-body-content-item-feature">
-                <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-${id}-duration">Időtartam</label>
-                <input class="MATweaks-settings-window-body-content-item-feature-input" type="number" id="MATweaks-${id}-duration" name="MATweaks-${id}-duration" value="${this.localSettings[id].time}">
-            </div>` : ""}
-            ${this.localSettings[id].keyBind ? `<div class="MATweaks-settings-window-body-content-item-feature">
-                <label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-${id}-key">Gomb</label>
-                <input class="MATweaks-settings-window-body-content-item-feature-input" type="text" id="MATweaks-${id}-key" name="MATweaks-${id}-key" value="${this._genSCText(this.localSettings[id].keyBind)}">
-            </div>` : ""}
-        </div>
-        `;
+        return `<div class="MATweaks-settings-window-body-content-item" id="MATweaks-${id}"><p>${title}</p><div class="MATweaks-settings-window-body-content-item-feature" id="MATweaks-${id}-checkbox"><label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-${id}-enabled">Engedélyezve</label><input class="MATweaks-settings-window-body-content-item-feature-checkbox" type="checkbox" id="MATweaks-${id}-enabled" name="MATweaks-${id}-enabled" ${this.localSettings[id].enabled ? "checked" : ""}><span class="MATweaks-settings-window-body-content-item-feature-checkbox-custom" id="MATweaks-${id}-enabled-custom"></span></div>${this.localSettings[id].time  ? ` <div class="MATweaks-settings-window-body-content-item-feature"><label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-${id}-duration">Időtartam</label><input class="MATweaks-settings-window-body-content-item-feature-input" type="number" id="MATweaks-${id}-duration" name="MATweaks-${id}-duration" value="${this.localSettings[id].time}"></div>` : ""}${this.localSettings[id].keyBind ? `<div class="MATweaks-settings-window-body-content-item-feature"><label class="MATweaks-settings-window-body-content-item-feature-label" for="MATweaks-${id}-key">Gomb</label><input class="MATweaks-settings-window-body-content-item-feature-input" type="text" id="MATweaks-${id}-key" name="MATweaks-${id}-key" value="${this._genSCText(this.localSettings[id].keyBind)}"></div>` : ""}</div>`;
     }
 
     /**
@@ -546,7 +492,7 @@ class Settings {
     /**
      * Function to set the shortcut
      * @param {Object} x - The shortcut object
-     * @param {KeyboardEvent} e - The keyboard event
+     * @param {KeyboardEvent | Event} e - The keyboard event
      * @since v0.1.8
      * @private
      */
@@ -732,15 +678,8 @@ function setPlayer(playerType) {
  */
 function loadCustomCss() {
     if (settings.advanced.plyr.design.enabled) {
-        MA.addCSS(`
-        :root {
-            --plyr-video-control-color: ${settings.advanced.plyr.design.settings.svgColor};
-            --plyr-video-control-background-hover: ${settings.advanced.plyr.design.settings.hoverBGColor};
-            --plyr-color-main: ${settings.advanced.plyr.design.settings.mainColor};
-            --plyr-video-control-color-hover: ${settings.advanced.plyr.design.settings.hoverColor};
-        }
-        `);
-        logger.log("Custom CSS loaded.");
+    MA.addCSS(`:root {--plyr-video-control-color: ${settings.advanced.plyr.design.settings.svgColor};--plyr-video-control-background-hover: ${settings.advanced.plyr.design.settings.hoverBGColor};--plyr-color-main: ${settings.advanced.plyr.design.settings.mainColor};--plyr-video-control-color-hover: ${settings.advanced.plyr.design.settings.hoverColor};}`);
+    logger.log("Custom CSS loaded.");
     }
 }
 
@@ -835,6 +774,11 @@ function handleA() {
     if (settings.private.hasMAPlayer) {
         logger.log("User has the custom player.");
         if (settings.advanced.forcePlyr === null) {
+            /**
+             * Function to create buttons
+             * @param a - The buttons to create
+             * @returns {HTMLButtonElement[]} The created buttons
+             */
             let buttons = a => {
                 let btns = [];
                 for (let i = 0; i < a.length; i++) {
@@ -919,7 +863,7 @@ function AReplacePlayer() {
 /**
  * Function to ask the user a question
  * @param {string} question - The question to ask the user
- * @param {NodeListOf<HTMLButtonElement>} buttons - The buttons to show the user
+ * @param {HTMLButtonElement[]} buttons - The buttons to show the user
  * @param {function} callback - The callback function to call when the user clicks a button
  */
 function askUser(question, buttons, callback) {
@@ -965,6 +909,11 @@ function initializeExtension() {
     }).catch((error) => {
         logger.error("Error while loading bookmarks: " + error);
     });
+    Resume.loadData().then(() => {
+        logger.log("Resume loaded.");
+    }).catch((error) => {
+        logger.error("Error while loading resume data: " + error);
+    });
     setupEventListeners();
     logger.log("Extension initialized.");
 }
@@ -988,7 +937,7 @@ function setupEventListeners() {
         logger.log("Player replaced.");
         addShortcutsToPage();
         handleReszPage();
-        checkForBookmarks();
+        if (settings.bookmarks.enabled) checkForBookmarks();
         if (settings.resume.enabled) {initializeResumeFeature();}
         player.isReplaced = true;
     });
@@ -1003,35 +952,35 @@ function setupEventListeners() {
  * @param {MessageEvent} event - The message event
  */
 function receiveMessage(event) {
-    if (event.data.plugin === MAT.__NAME) {
+    if (event.data.plugin === MAT.__NAME__) {
         switch (event.data.type) {
-            case MAT.__ACTIONS.FRAME_LOADED:
+            case MAT.__ACTIONS__.FRAME_LOADED:
                 handleIframeLoaded();
                 break;
-            case MAT.__ACTIONS.SOURCE_URL:
+            case MAT.__ACTIONS__.SOURCE_URL:
                 handleSourceUrlReceived(event.data);
                 break;
-            case MAT.__ACTIONS.MEGA.FRAME_LOADED:
+            case MAT.__ACTIONS__.MEGA.FRAME_LOADED:
                 handleMegaIframeLoaded();
                 break;
-            case MAT.__ACTIONS.MEGA.NEXT_EPISODE:
+            case MAT.__ACTIONS__.MEGA.NEXT_EPISODE:
                 nextEpisodeMega();
                 break;
-            case MAT.__ACTIONS.MEGA.PREVIOUS_EPISODE:
+            case MAT.__ACTIONS__.MEGA.PREVIOUS_EPISODE:
                 previousEpisode();
                 break;
-            case MAT.__ACTIONS.MEGA.AUTO_NEXT_EPISODE:
+            case MAT.__ACTIONS__.MEGA.AUTO_NEXT_EPISODE:
                 nextEpisode();
                 break;
-            case MAT.__ACTIONS.MEGA.PLAYER_READY:
+            case MAT.__ACTIONS__.MEGA.PLAYER_READY:
                 logger.log("Mega player ready.");
                 window.dispatchEvent(new Event("MATweaksPlayerReplaced"));
                 break;
-            case MAT.__ACTIONS.SEEK:
+            case MAT.__ACTIONS__.SEEK:
                 player.plyr.currentTime = event.data.time;
                 break;
-            case MAT.__ACTIONS.MEGA.GET_BOOKMARKS:
-                event.source.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.BOOKMARKS, bookmarks: player.getBookmarks()}, "*");
+            case MAT.__ACTIONS__.MEGA.GET_BOOKMARKS:
+                event.source.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.BOOKMARKS, bookmarks: player.getBookmarks()}, "*");
                 break;
             default:
                 break;
@@ -1045,7 +994,7 @@ function receiveMessage(event) {
 function handleIframeLoaded() {
     let iframe = document.querySelector("iframe");
     if (iframe) {
-        iframe.contentWindow.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.GET_SOURCE_URL}, "*");
+        iframe.contentWindow.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.GET_SOURCE_URL}, "*");
         logger.log("Iframe loaded.");
     } else {
         logger.error("Iframe not found.");
@@ -1077,7 +1026,7 @@ function handleMegaIframeLoaded() {
     logger.log("Mega iframe loaded.");
     addShortcutsToPageMega();
     if (checkAdvancedSettings() && settings.advanced.settings.DefaultPlayer.player === "default") return;
-    iframe.contentWindow.postMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.MEGA.REPLACE_PLAYER}, "*");
+    iframe.contentWindow.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.REPLACE_PLAYER}, "*");
     logger.log("Mega player replaced.");
 }
 
@@ -1101,8 +1050,8 @@ function autoNextEpisode() {
     let nextEpisodeButton = document.getElementById("epkovetkezo")
     if (nextEpisodeButton) nextEpisodeButton.click();
     popup.showSuccessPopup("Következő rész betöltése...");
-    ResumePlayBack.removeResumeData(MA.EPISODE.getId()); // Remove the resume data, since the auto next episode is triggered, which means the user has finished the episode
     logger.log("Moved to the next episode automatically.");
+    window.dispatchEvent(new Event("MATweaksAutoNextEpisode"));
 }
 
 /**
@@ -1122,8 +1071,11 @@ function nextEpisode() {
             dataSheetButton.click();
             popup.showSuccessPopup("Adatlap betöltése...");
             logger.log("Moved to the data sheet.");
+            return;
         } else {
+            popup.showErrorPopup("Hiba történt...");
             logger.log("No next episode or data sheet button found.");
+            return;
         }
     }
     popup.showSuccessPopup("Következő rész betöltése...");
@@ -1149,6 +1101,7 @@ function previousEpisode() {
             logger.log("Moved to the data sheet.");
             return;
         } else {
+            popup.showErrorPopup("Hiba történt...");
             logger.log("No previous episode or data sheet button found.");
         }
     }
@@ -1190,7 +1143,7 @@ async function downloadFile(filename) {
             reject("Filename is empty or undefined.");
         }
         logger.log("Starting download...");
-        chrome.runtime.sendMessage({plugin: MAT.__NAME, type: MAT.__ACTIONS.DOWNLOAD, url: url, filename: filename}, (response) => {
+        chrome.runtime.sendMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.DOWNLOAD, url: url, filename: filename}, (response) => {
             console.log(response);
             if (response === "success") {
                 logger.log("Download successful.");
@@ -1217,22 +1170,22 @@ function addShortcutsToPageMega() {
     document.addEventListener("keydown", (event) => {
         if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName) || settingsUI.isOpened) return;
         const actions = [
-            {condition: settings.forwardSkip.enabled && checkShortcut(event, settings.forwardSkip.keyBind), type: MAT.__ACTIONS.MEGA.FORWARD_SKIP, seconds: settings.forwardSkip.time},
-            {condition: settings.backwardSkip.enabled && checkShortcut(event, settings.backwardSkip.keyBind), type: MAT.__ACTIONS.MEGA.BACKWARD_SKIP, seconds: settings.backwardSkip.time},
-            {condition: event.key === "ArrowRight", type: MAT.__ACTIONS.MEGA.FORWARD_SKIP, seconds: 5},
-            {condition: event.key === "ArrowLeft", type: MAT.__ACTIONS.MEGA.BACKWARD_SKIP, seconds: 5},
-            {condition: event.key === " ", type: MAT.__ACTIONS.MEGA.TOGGLE_PLAY},
-            {condition: event.key === "ArrowUp", type: MAT.__ACTIONS.MEGA.VOL_UP},
-            {condition: event.key === "ArrowDown", type: MAT.__ACTIONS.MEGA.VOL_DOWN},
-            {condition: event.key.toLowerCase() === "m", type: MAT.__ACTIONS.MEGA.TOGGLE_MUTE},
-            {condition: event.key.toLowerCase() === "f", type: MAT.__ACTIONS.MEGA.TOGGLE_FULLSCREEN},
-            {condition: Number(event.key) >= 0 && Number(event.key) <= 9, type: MAT.__ACTIONS.MEGA.SEEK_PERCENTAGE, percent: Number(event.key) * 10}
+            {condition: settings.forwardSkip.enabled && checkShortcut(event, settings.forwardSkip.keyBind), type: MAT.__ACTIONS__.MEGA.FORWARD_SKIP, seconds: settings.forwardSkip.time},
+            {condition: settings.backwardSkip.enabled && checkShortcut(event, settings.backwardSkip.keyBind), type: MAT.__ACTIONS__.MEGA.BACKWARD_SKIP, seconds: settings.backwardSkip.time},
+            {condition: event.key === "ArrowRight", type: MAT.__ACTIONS__.MEGA.FORWARD_SKIP, seconds: 5},
+            {condition: event.key === "ArrowLeft", type: MAT.__ACTIONS__.MEGA.BACKWARD_SKIP, seconds: 5},
+            {condition: event.key === " ", type: MAT.__ACTIONS__.MEGA.TOGGLE_PLAY},
+            {condition: event.key === "ArrowUp", type: MAT.__ACTIONS__.MEGA.VOL_UP},
+            {condition: event.key === "ArrowDown", type: MAT.__ACTIONS__.MEGA.VOL_DOWN},
+            {condition: event.key.toLowerCase() === "m", type: MAT.__ACTIONS__.MEGA.TOGGLE_MUTE},
+            {condition: event.key.toLowerCase() === "f", type: MAT.__ACTIONS__.MEGA.TOGGLE_FULLSCREEN},
+            {condition: Number(event.key) >= 0 && Number(event.key) <= 9, type: MAT.__ACTIONS__.MEGA.SEEK_PERCENTAGE, percent: Number(event.key) * 10}
         ];
         for (const action of actions) {
             if (action.condition) {
                 event.preventDefault();
                 iframe.contentWindow.postMessage({
-                    plugin: MAT.__NAME,
+                    plugin: MAT.__NAME__,
                     type: action.type,
                     seconds: action.seconds || 0,
                     percent: action.percent || 0
@@ -1276,14 +1229,14 @@ function addShortcutsToPage() {
 async function getMegaCurrentTime() {
     return  await new Promise((resolve) => {
         window.addEventListener("message", function temp(event) {
-            if (event.data.plugin === MAT.__NAME && event.data.type === MAT.__ACTIONS.MEGA.CURRENT_TIME) {
+            if (event.data.plugin === MAT.__NAME__ && event.data.type === MAT.__ACTIONS__.MEGA.CURRENT_TIME) {
                 window.removeEventListener("message", temp);
                 resolve(event.data.currentTime);
             }
         });
         document.querySelector("iframe").contentWindow.postMessage({
-            plugin: MAT.__NAME,
-            type: MAT.__ACTIONS.MEGA.GET_CURRENT_TIME
+            plugin: MAT.__NAME__,
+            type: MAT.__ACTIONS__.MEGA.GET_CURRENT_TIME
         }, "*");
     });
 }
@@ -1317,7 +1270,6 @@ async function getCurrentTime() {
 }
 /**
  * Function to add a bookmark
- * @returns {Promise<void>} - Returns when the bookmark is added
  */
 async function addBookmark() {
     bookmarks.loadBookmarks().then(() => {
@@ -1366,8 +1318,8 @@ function seekTo(time) {
         if (player.isReplaced) {
             if (player.isMega) {
                 document.querySelector("iframe").contentWindow.postMessage({
-                    plugin: MAT.__NAME,
-                    type: MAT.__ACTIONS.MEGA.SEEK,
+                    plugin: MAT.__NAME__,
+                    type: MAT.__ACTIONS__.MEGA.SEEK,
                     time: time
                 }, "*");
                 clearInterval(interval);
@@ -1399,14 +1351,14 @@ function seekTo(time) {
  * - Remove the bookmark from the temporary storage
  */
 function checkForBookmarks() {
-    chrome.runtime.sendMessage({plugin: MAT.__NAME, type: "getOpenBookmarks"}, (response) => {
+    chrome.runtime.sendMessage({plugin: MAT.__NAME__, type: "getOpenBookmarks"}, (response) => {
         if (response) {
             response.forEach((bookmark) => {
                 if (bookmark.url.split("/")[4] === MA.EPISODE.getId().toString()) {
                     let i = bookmarks.getBookmark(bookmark.id) || 0;
                     if (Number(i.id) !== Number(bookmark.id)) {logger.error("Error while getting the bookmark."); return;}
                     seekTo(i.time);
-                    chrome.runtime.sendMessage({plugin: MAT.__NAME, type: "removeOpenBookmark", id: bookmark.id}, (response) => {
+                    chrome.runtime.sendMessage({plugin: MAT.__NAME__, type: "removeOpenBookmark", id: bookmark.id}, (response) => {
                         if (response) {
                             logger.log("Bookmark opened.");
                             popup.showInfoPopup("Könyvjelző sikeresen megnyitva.");
@@ -1429,57 +1381,11 @@ function checkForBookmarks() {
 
 // ---------------------------- End of Bookmarking ----------------------------
 
-// ---------------------------- Resume feature ----------------------------
-
-
-function checkForResume() {
-    ResumePlayBack.loadResumeData().then(() => {
-        const current = ResumePlayBack.getResumeDataByEpisodeId(MA.EPISODE.getId());
-        if (current) {
-            switch (settings.resume.mode) {
-                case "ask":
-                    let buttons = a => {
-                        let btns = [];
-                        for (let i = 0; i < a.length; i++) {
-                            let btn = document.createElement("button");
-                            btn.innerHTML = a[i];
-                            btn.value = a[i].toLowerCase();
-                            btns.push(btn);
-                        }
-                        return btns;
-                    }
-                    askUser("Szeretnéd folytatni az előzőleg megnézett részt?", buttons(["Igen", "Nem"]), function (value) {
-                        if (value === "igen") {
-                            seekTo(current.time);
-                            logger.log("Resumed playback.");
-                        } else {
-                            logger.log("Playback not resumed.");
-                        }
-                    });
-                    break;
-                case "auto":
-                    seekTo(current.time);
-                    logger.log("Resumed playback.");
-                    break;
-                case "off":
-                    logger.log("Resume feature is turned off.");
-                    break;
-                default:
-                    logger.error("Error while checking for resume data.");
-                    popup.showErrorPopup("Hiba történt a folytatás adatok ellenőrzése közben.");
-            }
-        } else {
-            logger.log("No resume data found for the current episode.");
-        }
-    }).catch((error) => {
-        logger.error("Error while loading resume data: " + error);
-        popup.showErrorPopup("Hiba történt a folytatás adatok betöltése közben.");
-    });
-}
+// ---------------------------- Resume feature --------------------------------
 
 function updateResumeData() {
     getCurrentTime().then((currentTime) => {
-        ResumePlayBack.updateResumeData(
+        Resume.updateData(
             MA.EPISODE.getId(),
             currentTime,
             MA.EPISODE.getDatasheet(),
@@ -1496,40 +1402,76 @@ function updateResumeData() {
 }
 
 function addResumeEventListeners() {
-    document.addEventListener("visibilitychange", handle);
-    window.addEventListener("beforeunload", () => handle);
-    window.addEventListener("unload", () => handle);
     const video = document.querySelector("video");
+    let curResumeData = Resume.getDataByEpisodeId(MA.EPISODE.getId());
+    let isAutoNextEpTriggered = false;
+    let ct = player.plyr.currentTime;
+    let d = player.plyr.duration;
+    const handle = (event) => {
+        if ((d > 100 || ct <= 0) || (ct < 5 || ct > d - 5) || isAutoNextEpTriggered) return;
+        if (curResumeData && (ct > curResumeData.time + 5 || ct < curResumeData.time - 5) || (event.type === "visibilitychange" && document.hidden) || (event.type !== "visibilitychange")) updateResumeData();
+    };
+    document.addEventListener("visibilitychange", handle);
+    window.addEventListener("beforeunload", handle);
+    window.addEventListener("unload", handle);
     video.addEventListener("pause", handle);
     video.addEventListener("ended", () => {
-        ResumePlayBack.removeResumeData(MA.EPISODE.getId());
-        logger.log("Removed resume data.");
+        Resume.removeData(MA.EPISODE.getId()).then(() => {
+            logger.log("Removed resume data.");
+        }).catch((error) => {
+            logger.error("Error while removing resume data: " + error);
+            popup.showErrorPopup("Hiba történt a folytatás adatok törlése közben.");
+        });
     });
-    function handle(event) {
-        if (player.plyr.duration > 0 && player.plyr.currentTime > 0) {
-            if (event.type === "visibilitychange" && document.hidden) {
-                updateResumeData();
-            } else if (event.type !== "visibilitychange") {
-                updateResumeData();
-            }
-        }
-    }
+    window.addEventListener("MATweaksAutoNextEpisode", () => {
+        isAutoNextEpTriggered = true;
+        Resume.removeData(MA.EPISODE.getId()).then(()=>
+            logger.log("Removed resume data.")
+        ).catch(e => {
+            logger.error("Error while removing resume data: " + e);
+            popup.showErrorPopup("Hiba történt a folytatás adatok törlése közben.");
+        });
+    });
 }
 
 function initializeResumeFeature() {
-    if (player.isMega) return; // Resume feature is handled by the Mega player itself
+    if (player.isMega) return;
     checkForResume();
     addResumeEventListeners();
 }
 
-
+function checkForResume() {
+    chrome.runtime.sendMessage({plugin: MAT.__NAME__, type: "getOpenResume"}, (response) => {
+        console.log(response);
+        if (response) {
+            for (let i = 0; i < response.length; i++) {
+                if (response[i].url.split("/")[4] === MA.EPISODE.getId().toString()) {
+                    seekTo(response[i].time);
+                    chrome.runtime.sendMessage({plugin: MAT.__NAME__, type: "removeOpenResume", id: response[i].id}, (r) => {
+                        if (r) {
+                            logger.log("Resumed playback.");
+                            popup.showInfoPopup("Folytatás sikeres.");
+                        } else {
+                            logger.error("Error while resuming playback.");
+                            popup.showErrorPopup("Hiba történt a folytatás közben.");
+                        }
+                    });
+                } else {
+                    logger.log("No resume data found for the current URL.");
+                }
+            }
+        } else {
+            logger.error("Error while getting the resume data.");
+            popup.showErrorPopup("Hiba történt az epizód adatai lekérdezése közben.");
+        }
+    });
+}
 
 
 /**
  * Initialize the extension
  */
 initializeExtension();
-
 
 
 
