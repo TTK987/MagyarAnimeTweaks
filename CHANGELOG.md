@@ -25,6 +25,8 @@
   - Kód átszervezés és optimalizálás.
   - `webpack` használata a kód generálásához.
   - `terser` használata a kód tömörítéséhez.
+  - `declarativeNetRequest` használata, hogy kiküszöböljük az esetleges összeütközéseket a MagyarAnime alap lejátszójával.
+    - Ehhez szükséges megadni az engedélyt a kiegészítő telepítésekor / frissítésekor.
 
 
 ## 0.1.7.1 - 0.1.7.5
