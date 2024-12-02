@@ -121,7 +121,7 @@
 h2 {
     margin: 0;
 }
-#advanced select {
+#advanced select, .dropdown {
     width: 100%;
     padding: .5em;
     margin-top: .5em;
@@ -132,7 +132,7 @@ h2 {
     border-bottom: 1px solid #374151;
     height: fit-content;
 }
-#advanced select:focus {
+#advanced select:focus, .dropdown:focus {
     outline: none;
     border-color: var(--primary-color);
 }

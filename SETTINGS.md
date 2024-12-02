@@ -1,5 +1,7 @@
 # Részletes magyarázat a beállításokhoz
 ![Beállítások](./img/settingspage.png)
+<div align="center"><small><i>Image by Ecsi</i></small></div>
+
 ## Általános beállítások
 
 ### Előre ugrás
@@ -29,6 +31,22 @@
 
 ### Automatikus lejátszás
 - **Engeedélyezve**: Ki/be kapcsolja az automatikus lejátszást.
+
+
+### Könyvjelzők beállításai
+- **Engeedélyezve**: Ki/be kapcsolja a könyvjelzőket.
+
+
+### Előzmények beállításai
+- **Engeedélyezve**: Ki/be kapcsolja a Előzményeket.
+- **Legördülő menü**:
+    - **Kérdezzen rá minden alkalommal**: Mindig kérdezzen rá, hogy folymatassa-e az adott részt.
+    - **Automatikusan folytassa**: Mindig automatikusan folytassa az adott részt, kérdés nélkül.
+
+
+
+
+
 
 ## Haladó beállítások
 
@@ -77,28 +95,38 @@
 
 ![Szín](./img/color.png)
 
-
-# Folytatás ahol abbahagytad
-- **Engeedélyezve**: Ki/be kapcsolja a folytatás ahol abbahagytad funkciót.
-- **Szinkronizálás**: Ki/be kapcsolja az adatok szinkronizálását a böngészőben.
-- **Adatok törlése**: Az adatok törlése a böngészőből/az összes eszközről (Ha be van kapcsolva a szinkronizálás).
-- **Adatok megtekintése**: Az adatok megtekintése egy új ablakban.
-
 # Könyvjelzők
-- **Engeedélyezve**: Ki/be kapcsolja a könyvjelzőket.
-- **Szinkronizálás**: Ki/be kapcsolja az adatok szinkronizálását a böngészőben.
-- **Adatok törlése**: Az adatok törlése a böngészőből/az összes eszközről (Ha be van kapcsolva a szinkronizálás).
-- **Adatok megtekintése**: Az adatok megtekintése egy új ablakban.
+![Könyvjelzők](./img/bookmarks.png)
+- **Keresés**: Itt tudsz keresni a könyvjelzők között.
+    - 500ms után automatikusan keresni fog, ha írsz valamit a keresőbe.
+    - Illetve a `Enter` lenyomásával is keresni fog.
+    - Ha nem talál semmit, akkor egy piros színű üzenetet fog kiírni. (Ezt: `Nincs találat.`)
+- **Könyvjelzők**: Minden egyes könyvjelző leírásában van, hogy melyik animénél, melyik résznél és azon belül hányadik percnél van a könyvjelző.
+- **Gombok**:  
+    - **Törlés**: Törli a könyvjelzőt. (egy kék kuka ikon)
+    - **Elindítás**: Megnyitja az adott könyvjelzőt. (egy lejátszó ikon)
+- **Könyvjelző hozzáadása**: A lejátszó alatt található egy gomb, amit megnyomva hozzáadhatsz egy könyvjelzőt a jelenlegi időponthoz. (`KÖNYVJELZŐ HOZZÁADÁSA` gomb)
+![Könyvjelző hozzáadása](./img/addbookmark.png)
 
-# Beállítások szinkronizálása
-- **Engeedélyezve**: Ki/be kapcsolja az beállítások szinkronizálását a böngészőben.
-> Ez a funkció CSAK a beállításokat szinkronizálja, az adatokat nem. (Pl: Könyvjelzők, Részadatok)
+# Előzmények
+![Előzmények](./img/history.png)
+- **Keresés**: Itt tudsz keresni az előzmények között.
+    - 500ms után automatikusan keresni fog, ha írsz valamit a keresőbe.
+    - Illetve a `Enter` lenyomásával is keresni fog.
+    - Ha nem talál semmit, akkor egy piros színű üzenetet fog kiírni. (Ezt: `Nincs találat.`)
+- **Előzmények**: Itt anime szerint vannak csoportosítva az előzmények, és ezek alatt vannak a részek.
+- **Részek**: Minden egyes rész leírásában van, hogy hanyaadik rész volt és hányadik percnél tartottál.
+- **Gombok**:  
+    - **Törlés**: Törli az adott rész előzményét. (egy kék kuka ikon)
+    - **Elindítás**: Megnyitja az adott részt. (egy lejátszó ikon)
+- **Hozzáadás**: Ez a funkció automatikusan működik, nem kell külön hozzáadni semmit. (Ha a beállításokban engedélyezve van az előzmények funkció)
 
 # Egyéb
-- **Beállítások visszaállítása**: A beállítások visszaállítása az alapértelmezett értékekre.
-- **Beállítások mentése**: A beállítások mentése.
-- **Beállítások importálása**: A beállítások importálása fájlból.
-- **Beállítások exportálása**: A beállítások exportálása fájlba.
+- **Mentés**: A beállítások mentése.
+- **Visszaállítás**: Az utolsó mentett beállítások visszaállítása.
+- **Alapértelmezett**: Az alap beállítások visszaállítása.
+- **Segítség**: Erre az oldalra hoz.
+
 
 
 

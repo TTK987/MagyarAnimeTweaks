@@ -1,5 +1,5 @@
 import { header, footer } from "../commons";
-import {popup, logger, Resume} from "../../API";
+import {Popup, Logger, Resume} from "../../API";
 let resumeData = [];
 function init() {
     document.body.innerHTML = `
@@ -60,7 +60,7 @@ function renderResume(search = '') {
 function search() {
     let timeout;
     function updateIndicator(isLoading) {
-        document.querySelector('.indicator i').className = isLoading ? 'fas fa-spinner spin' : 'fas fa-search';
+        document.querySelector('.indicator').innerHTML = isLoading ? '<i class="fas fa-spinner spin"></i>' : '<i class="fas fa-search"></i>';
     }
     document.getElementById('search').oninput = function () {
         updateIndicator(true);
@@ -87,7 +87,7 @@ function addListeners() {
             if (action === 'delete') {
                 Resume.removeData(parseInt(id)).then((result) => {
                     if (result) {
-                        popup.showSuccessPopup('Epizód törölve.');
+                        Popup.showSuccessPopup('Epizód törölve.');
                         const episodeDiv = button.parentElement.parentElement;
                         const resumeCard = episodeDiv.parentElement.parentElement;
                         episodeDiv.remove();
@@ -99,14 +99,14 @@ function addListeners() {
                         }
 
                     } else {
-                        popup.showErrorPopup('Hiba történt az epizód törlése során.');
+                        Popup.showErrorPopup('Hiba történt az epizód törlése során.');
                     }
                 }).catch((error) => {
-                    logger.error(`Error deleting episode: ${error}`);
-                    popup.showErrorPopup('Hiba történt az epizód törlése során.');
+                    Logger.error(`Error deleting episode: ${error}`);
+                    Popup.showErrorPopup('Hiba történt az epizód törlése során.');
                 });
             } else if (action === 'resume') {
-                popup.showSuccessPopup('Epizód megnyitása...');
+                Popup.showSuccessPopup('Epizód megnyitása...');
                 Resume.openEpisode(parseInt(id));
             }
         };
@@ -119,7 +119,7 @@ window.addEventListener('DOMContentLoaded', () => {
         search();
         addListeners();
     }).catch((error) => {
-        logger.error(`Error loading resume data: ${error}`);
+        Logger.error(`Error loading resume data: ${error}`);
     });
 });
 

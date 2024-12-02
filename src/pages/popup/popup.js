@@ -1,6 +1,4 @@
 import {MAT, Resume} from "../../API";
-
-
 function init() {
     document.body.innerHTML = `
 <div class="container">
@@ -19,7 +17,7 @@ function init() {
 <div class="container">
     <div id="content"><div class="loader"><i class="fas fa-spinner spin"></i></div></div>
 </div>
-<link href="${chrome.runtime.getURL('assets/fa/all.css')}" rel="stylesheet">
+<script src="${chrome.runtime.getURL('assets/fa/all.js')}"></script>
     `;
 }
 
@@ -60,6 +58,16 @@ async function load_latest() {
     </div>
 </div>
         `;
+        let deleteButton = document.getElementById(`delete-${episode.id}`);
+        let resumeButton = document.getElementById(`resume-${episode.id}`);
+        deleteButton.addEventListener('click', () => {
+            Resume.removeData(episode.id).then(() => {
+                load_latest();
+            });
+        });
+        resumeButton.addEventListener('click', () => {
+            Resume.openEpisode(episode.id);
+        });
     }).catch(() => {
         let content = document.getElementById('content');
         content.innerHTML = `

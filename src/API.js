@@ -72,9 +72,34 @@ class MATweaks {
      */
     saveSettings() {
         saveToStorage('settings', this.settings).then(() => {
-            logger.success('Settings saved', true);
+            chrome.declarativeNetRequest.getDynamicRules(rules => {
+                const ruleIdsToRemove = rules.map(rule => rule.id);
+                chrome.declarativeNetRequest.updateDynamicRules({
+                    removeRuleIds: ruleIdsToRemove,
+                    addRules: []
+                }).then(() => {
+                    const newRule = this.settings.advanced.settings.DefaultPlayer.player === 'plyr' ? [{
+                        id: 1,
+                        action: { type: "block" },
+                        condition: { urlFilter: "*://magyaranime.eu/js/magyaranime_player.js*", resourceTypes: ["script"] }
+                    }] : [];
+
+                    chrome.declarativeNetRequest.updateDynamicRules({
+                        addRules: newRule,
+                        removeRuleIds: []
+                    }).then(() => {
+                        Logger.log(`Default player is now "${this.settings.advanced.settings.DefaultPlayer.player}"`);
+                    }).catch(error => {
+                        Logger.error(`Failed to add new dynamic rules: ${error}`, true);
+                    });
+                }).catch(error => {
+                    Logger.error(`Failed to remove existing dynamic rules: ${error}`, true);
+                });
+            });
+
+            Logger.success('Settings saved', true);
         }).catch(() => {
-            logger.error('Error: Settings not saved', true);
+            Logger.error('Error: Settings not saved', true);
             console.log(chrome.runtime.lastError);
         });
     }
@@ -157,12 +182,12 @@ class MATweaks {
             },
             resume: {
                 enabled: true, /* Resume watching (default: true) */
-                mode: 'ask', /* Resume mode (default: "ask") (ask, auto) */ /* TODO: Requires modification of the plyr player */
+                mode: 'ask', /* Resume mode (default: "ask") (ask, auto) */
             },
             advanced: { /* Advanced settings */
-                enabled: /* Developer settings (default: false) */ true, // TODO: Set to false
+                enabled: /* Developer settings (default: false) */ false,
                 settings: { /* Developer settings */
-                    ConsoleLog: { /* Console log (default: false) */ enabled: true}, // TODO: Set to false
+                    ConsoleLog: { /* Console log (default: false) */ enabled: false},
                     DefaultPlayer: { /* Default player (default: "plyr") */ player: 'plyr'}
                 },
                 plyr: { /* Plyr settings */
@@ -188,12 +213,9 @@ class MATweaks {
                         * %quality% - Quality of the video (e.g. "720p")
                         * %group% - Fansub group name (e.g. "Akio Fansub")
                          */
-                forcePlyr: true, /* Force Plyr player for users with the MA player (default: null )
-                (null = the user hasn't decided yet, true = replace the player even if the user has the MA player, false = don't force Plyr) */
             },
             private: { /* Don't touch this! Seriously, don't touch this! */
-                hasMAPlayer: false, /* Has the user the MA player on MagyarAnime? */
-                eap: true, /* Enable Early Access Program (default: false) (Basically useless, adds "EAP" text and that's it xd) */ // TODO: Set to false
+                eap: false, /* Enable Early Access Program (default: false) (Basically useless, adds "EAP" text and that's it xd) */
             },
             version: this.getVersion(), /* Version of the extension */
         };
@@ -225,7 +247,7 @@ class MATweaks {
             SEEK_PERCENTAGE: 'seekPercentage',
             GET_BOOKMARKS: 'getBookmarks',
             BOOKMARKS: 'bookmarks',
-
+            POPUP: 'megaPopup',
         },
         DOWNLOAD: "download",
 
@@ -240,18 +262,9 @@ class MATweaks {
     isEAP() {
         return this.settings.private.eap;
     }
-
-    /**
-     * Returns a JSON object
-     * @param {Number} id - The ID of the setting
-     * @returns {Object} The setting object
-     */
-    getSetting(id) {
-        return this.settings[id] || undefined;
-    }
 }
 const MAT = new MATweaks();
-class Logger {
+class logger {
     constructor() {
         this.enabled = MAT.getSettings().advanced.settings.ConsoleLog.enabled;
         this.styles = {
@@ -325,71 +338,61 @@ class Logger {
     enable() {
         this.enabled = true;
     }
-
-
-    /**
-     * Disable the logger
-     * @since v0.1.7
-     */
-    disable() {
-        this.enabled = false;
-    }
 }
-const logger = new Logger();
-class Bookmarks {
+const Logger = new logger();
+class bookmarks {
     /**
-     * Create a new Bookmarks class
+     * Create a new bkmrks class
      * @since v0.1.8
-     * @constructor Bookmarks - Create a new Bookmarks class
-     * @property {Array<Bookmark>} bookmarks - The bookmarks
+     * @constructor Bookmarks - Create a new bkmrks class
+     * @property {Array<Bookmark>} bookmarks - The bkmrks
      */
     constructor() {
-        this.bookmarks = [];
+        this.bkmrks = [];
     }
 
     /**
-     * Load the bookmarks
-     * @returns {Promise<Array<Bookmark>>} The bookmarks
+     * Load the bkmrks
+     * @returns {Promise<Array<Bookmark>>} The bkmrks
      * @since v0.1.8
      */
     loadBookmarks() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             loadFromStorage('bookmarks').then((bookmarks) => {
-                this.bookmarks = bookmarks;
-                resolve(this.bookmarks);
+                this.bkmrks = bookmarks;
+                resolve(this.bkmrks);
             }).catch(() => {
-                logger.warn('Bookmarks not found', true);
-                resolve(this.bookmarks);
+                Logger.warn('Bookmarks not found', true);
+                resolve(this.bkmrks);
             });
         });
     }
 
     /**
-     * Save the bookmarks
+     * Save the bkmrks
      * @since v0.1.8
      */
     saveBookmarks() {
-        saveToStorage('bookmarks', this.bookmarks).then(() => {
-            logger.success('Bookmarks saved', true);
+        saveToStorage('bookmarks', this.bkmrks).then(() => {
+            Logger.success('Bookmarks saved', true);
         }).catch(() => {
-            logger.error('Error: Bookmarks not saved', true);
+            Logger.error('Error: Bookmarks not saved', true);
             console.log(chrome.runtime.lastError);
         });
     }
 
     /**
-     * Get the bookmarks
-     * @returns {Array<Bookmark>} The bookmarks
+     * Get the bkmrks
+     * @returns {Array<Bookmark>} The bkmrks
      */
     getBookmarks() {
-        return this.bookmarks;
+        return this.bkmrks;
     }
 
     /**
      * Add a new bookmark
      * @param {String} title - Title of the anime
      * @param {Number} episode - Episode number
-     * @param {String} url - URL of the bookmark
      * @param {String} description - Description of the bookmark
      * @param {Number} time - Time in the episode (in seconds)
      * @param {Number} episodeId - Episode number
@@ -398,50 +401,13 @@ class Bookmarks {
      * @method addBookmark - Add a new bookmark
      * @since v0.1.8
      */
-    addBookmark(title, episode, url, description, time, episodeId) {
-        const bookmark = new Bookmark(Date.now(), title, episode, url, description, time, episodeId, MA.EPISODE.getDatasheet());
-        this.bookmarks.push(bookmark);
-        this.saveBookmarks();
-        return bookmark;
-    }
-
-    /**
-     * Clear all bookmarks
-     * @since v0.1.8
-     */
-    clearBookmarks() {
-        this.bookmarks = [];
-        this.saveBookmarks();
-    }
-
-    /**
-     * Check if the bookmark exists
-     * @param {Bookmark} bookmark - The bookmark to check
-     * @returns {boolean} Whether the bookmark exists
-     * @since v0.1.8
-     */
-    hasBookmark(bookmark) {
-        return this.bookmarks.some((b) => b.url === bookmark.url);
-    }
-
-    /**
-     * Get the bookmark by URL
-     * @param {String} url - The URL of the bookmark
-     * @returns {Bookmark} The bookmark
-     * @since v0.1.8
-     */
-    getBookmarkByUrl(url) {
-        return this.bookmarks.find((b) => b.url === url);
-    }
-
-    /**
-     * Get the bookmark by ID
-     * @param {Number} id - The ID of the bookmark
-     * @returns {Bookmark} The bookmark
-     * @since v0.1.8
-     */
-    getBookmarkByEpisodeId(id) {
-        return this.bookmarks.find((b) => Number(b.episodeId) === Number(episodeId));
+    addBookmark(title, episode, description, time, episodeId) {
+        this.loadBookmarks().then(() => {
+            const bookmark = new Bookmark(Date.now(), title, episode, description, time, episodeId, MA.EPISODE.getDatasheet());
+            this.bkmrks.push(bookmark);
+            this.saveBookmarks();
+            return bookmark;
+        });
     }
 
     /**
@@ -451,36 +417,12 @@ class Bookmarks {
      * @since v0.1.8
      */
     deleteBookmark(id) {
-        return new Promise((resolve, reject) => {
-            this.bookmarks = this.bookmarks.filter((b) => Number(b.id) !== Number(id));
-            this.saveBookmarks();
-            resolve(this.getBookmark(Number(id)) === undefined);
-        });
-    }
-
-    /**
-     * Update a bookmark
-     * @param {Number} id - The ID of the bookmark
-     * @param {String} title - Title of the anime
-     * @param {Number} episode - Episode number
-     * @param {String} url - URL of the bookmark
-     * @param {String} description - Description of the bookmark
-     * @param {Number} time - Time in the episode (in seconds)
-     * @param {Number} episodeId - Episode number
-     * @returns {Promise<void>} Whether the bookmark was updated
-     * @since v0.1.8
-     */
-    updateBookmark(id, title, episode, url, description, time, episodeId) {
-        return new Promise((resolve, reject) => {
-            const bookmark = this.bookmarks.find((b) => Number(b.id) === Number(id));
-            bookmark.title = title;
-            bookmark.episode = episode;
-            bookmark.url = url;
-            bookmark.description = description;
-            bookmark.time = time;
-            bookmark.episodeId = episodeId;
-            this.saveBookmarks();
-            resolve();
+        return new Promise((resolve) => {
+            this.loadBookmarks().then(() => {
+                this.bkmrks = this.bkmrks.filter((b) => Number(b.id) !== Number(id));
+                this.saveBookmarks();
+                resolve(this.getBookmark(Number(id)) === undefined);
+            });
         });
     }
 
@@ -490,7 +432,7 @@ class Bookmarks {
      * @since v0.1.8
      */
     openBookmark(id) {
-        logger.log('Opening bookmark with id: ' + id, true);
+        Logger.log('Opening bookmark with id: ' + id, true);
         const bookmark = this.getBookmark(Number(id));
         if (bookmark) {
             chrome.runtime.sendMessage({
@@ -498,15 +440,15 @@ class Bookmarks {
                 type: 'openBookmark',
                 id: bookmark.id,
                 time: bookmark.time,
-                url: bookmark.url,
+                url: `https://magyaranime.eu/resz/${bookmark.episodeId}/`,
             }, (response) => {
                 if (response) {
-                    logger.log('Bookmark opened', true);
+                    Logger.log('Bookmark opened', true);
                 } else {
-                    logger.error('Error: Bookmark not opened', true);
+                    Logger.error('Error: Bookmark not opened', true);
                 }
             });
-        } else { logger.error('Bookmark not found', true); }
+        } else { Logger.error('Bookmark not found', true); }
     }
 
     /**
@@ -515,15 +457,14 @@ class Bookmarks {
      * @returns {Bookmark | undefined} The bookmark
      */
     getBookmark(id) {
-        return this.bookmarks.find((b) => b.id === Number(id));
+        return this.bkmrks.find((b) => b.id === Number(id));
     }
 }
-const bookmarks = new Bookmarks();
+const Bookmarks = new bookmarks();
 class Bookmark {
     /**
      * @param {String} title - Title of the anime
      * @param {Number} episode - Episode number
-     * @param {String} url - URL of the bookmark
      * @param {String} description - Description of the bookmark
      * @param {Number} time - Time in the episode (in seconds)
      * @param {Number} episodeId - Episode number
@@ -532,11 +473,10 @@ class Bookmark {
      * @constructor Bookmark - Create a new bookmark
      * @since v0.1.8
      */
-    constructor(id, title, episode, url, description, time, episodeId, datasheetId) {
+    constructor(id, title, episode, description, time, episodeId, datasheetId) {
         this.id = id;
         this.title = title;
         this.episode = episode;
-        this.url = url;
         this.description = description || '';
         this.time = time;
         this.episodeId = episodeId;
@@ -630,7 +570,7 @@ class MagyarAnime {
          */
         getSeason() {
             if (!MA.isAnimePage()) return "";
-            try{ return document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(4)')?.innerText || ""; } catch(e) { return ""; }
+            try{ return document.querySelectorAll('.gen-single-meta-holder')[1]?.querySelector('ul > li:nth-child(4)')?.innerText || ""; } catch(e) { return ""; }
         },
         /**
          * Get the episode count of the anime
@@ -639,7 +579,7 @@ class MagyarAnime {
          */
         getEpisodeCount() {
             if (!MA.isAnimePage()) return -1;
-            try{ return parseInt(document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(2)')?.innerText.match(/Epizódok: (\d+) /)[1]) || -1; } catch(e) { return -1; }
+            try{ return parseInt(document.querySelectorAll('.gen-single-meta-holder')[1]?.querySelector('ul > li:nth-child(2)')?.innerText.match(/Epizódok: (\d+) /)[1]) || -1; } catch(e) { return -1; }
         },
         /**
          * Get the max episode count of the anime
@@ -648,7 +588,7 @@ class MagyarAnime {
          */
         getMaxEpisodeCount() {
             if (!MA.isAnimePage()) return -1;
-            const maxEpisodes = document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(2)')?.innerText.match(/Epizódok: \d+ \/ (\d+|∞)/)[1];
+            const maxEpisodes = document.querySelectorAll('.gen-single-meta-holder')[1]?.querySelector('ul > li:nth-child(2)')?.innerText.match(/Epizódok: \d+ \/ (\d+|∞)/)[1];
             try{ return maxEpisodes === '∞' ? Infinity : parseInt(maxEpisodes) || -1; } catch(e) { return -1; }
         },
         /**
@@ -658,7 +598,7 @@ class MagyarAnime {
          */
         getReleaseDate() {
             if (!MA.isAnimePage()) return "";
-            try{ return document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(3)')?.innerText || ""; } catch(e) { return ""; }
+            try{ return document.querySelectorAll('.gen-single-meta-holder')[1]?.querySelector('ul > li:nth-child(3)')?.innerText || ""; } catch(e) { return ""; }
         },
         /**
          * Get the views of the anime
@@ -667,7 +607,7 @@ class MagyarAnime {
          */
         getViews() {
             if (!MA.isAnimePage()) return -1;
-            try{ return parseInt(document.querySelector('.gen-single-meta-holder:nth-child(4) > ul > li:nth-child(5) span')?.innerText.replace(',', '')) || -1; } catch(e) { return -1; }
+            try{ return parseInt(document.querySelectorAll('.gen-single-meta-holder')[1]?.querySelector('ul > li:nth-child(5) span')?.innerText.replace(',', '')) || -1; } catch(e) { return -1; }
         },
         /**
          * Get the episodes of the anime
@@ -676,12 +616,14 @@ class MagyarAnime {
          */
         getEpisodes() {
             if (!MA.isAnimePage()) return [];
-            try{ return [...document.querySelectorAll('.owl-item')]?.map(episodeItem => ({
-                title: episodeItem.querySelector('.gen-episode-info a')?.textContent || "",
-                link: episodeItem.querySelector('.gen-episode-info a')?.href || "",
-                date: episodeItem.querySelector('.release-date')?.textContent || "",
-                epNumber: parseInt(episodeItem.querySelector('.gen-episode-info a')?.textContent.match(/(\d+)/)[1]) || -1
-            })) || []; } catch(e) { return []; }
+            try {
+                return [...document.querySelectorAll('.owl-item, .epizod_link_normal')].map(item => ({
+                    title: item.querySelector('.gen-episode-info a')?.textContent || item.textContent || "",
+                    link: item.querySelector('.gen-episode-info a')?.href || item.href || "",
+                    date: item.querySelector('.release-date')?.textContent || "",
+                    epNumber: parseInt(item.querySelector('.gen-episode-info a')?.textContent.match(/(\d+)/)?.[1] || item.textContent.match(/(\d+)/)?.[1]) || -1
+                })) || [];
+            } catch(e) { return []; }
         },
         /**
          * Get the torrent links of each episode
@@ -749,21 +691,6 @@ class MagyarAnime {
                     isEpisodePage: MA.isEpisodePage(),
                     isAnimePage: MA.isAnimePage(),
                 },
-                passes: {
-                    title: MA.ANIME.getTitle() !== "",
-                    description: MA.ANIME.getDescription() !== "",
-                    rating: MA.ANIME.getRating() !== -1,
-                    ageRating: MA.ANIME.getAgeRating() !== "",
-                    season: MA.ANIME.getSeason() !== "",
-                    episodeCount: MA.ANIME.getEpisodeCount() !== -1,
-                    maxEpisodeCount: MA.ANIME.getMaxEpisodeCount() !== -1,
-                    releaseDate: MA.ANIME.getReleaseDate() !== "",
-                    views: MA.ANIME.getViews() !== -1,
-                    episodes: MA.ANIME.getEpisodes().length > 0,
-                    torrents: MA.ANIME.getTorrents().length > 0,
-                    relatedAnime: MA.ANIME.getRelatedAnime().length > 0,
-                    source: MA.ANIME.getSource().length > 0,
-                }
             }
         }
     }
@@ -911,20 +838,6 @@ class MagyarAnime {
                     isEpisodePage: MA.isEpisodePage(),
                     isAnimePage: MA.isAnimePage(),
                 },
-                passes: {
-                    title: MA.EPISODE.getTitle() !== "",
-                    episodeNumber: MA.EPISODE.getEpisodeNumber() !== -1,
-                    releaseDate: MA.EPISODE.getReleaseDate() !== "",
-                    views: MA.EPISODE.getViews() !== -1,
-                    fansub: MA.EPISODE.getFansub().name !== "",
-                    urls: MA.EPISODE.getUrls().length > 0,
-                    previousEpisodeLink: MA.EPISODE.getPreviousEpisodeLink() !== "",
-                    nextEpisodeLink: MA.EPISODE.getNextEpisodeLink() !== "",
-                    animeLink: MA.EPISODE.getAnimeLink() !== "",
-                    allEpisodes: MA.EPISODE.getAllEpisodes().length > 0,
-                    id: MA.EPISODE.getId() !== -1,
-                    datasheetId: MA.EPISODE.getDatasheet() !== -1,
-                }
             };
         },
 
@@ -935,7 +848,7 @@ class MagyarAnime {
     }
 }
 const MA = new MagyarAnime();
-class Popup {
+class popup {
     constructor() {
         this.popups = [];
     }
@@ -1007,9 +920,11 @@ class Popup {
             } else {
                 document.body.appendChild(popup);
             }
+            if (time > 1000) popup.animate([ { left: '-100%' }, { left: '10px' } ], {duration: 750, fill: 'forwards', easing: 'ease-in-out'});
             this.popups.push(popup);
             setTimeout(() => {
                 popup.style.opacity = "0";
+                if (time > 1000) popup.animate([ { left: '10px' }, { left: '-100%' } ], {duration: 750, fill: 'forwards', easing: 'ease-in-out'});
                 setTimeout(() => {
                     this.popups.shift();
                     popup.remove();
@@ -1020,7 +935,7 @@ class Popup {
                             p.style.bottom = `${10 + index * 60}px`;
                         }
                     });
-                }, time);
+                }, time > 1000 ? 750 : time);
             }, time);
         };
 
@@ -1031,7 +946,7 @@ class Popup {
         }
     }
 }
-const popup = new Popup();
+const Popup = new popup();
 class resume {
     /**
      * Create a new Episode class
@@ -1055,13 +970,15 @@ class resume {
      * @since v0.1.8
      */
     addData(episodeId, time, datasheetId, title, url, epnum, currentTime) {
-        let anime = this.animes.find(anime => anime.datasheetId === datasheetId);
-        if (!anime) {
-            anime = new Anime(datasheetId, title);
-            this.animes.push(anime);
-        }
-        anime.addEpisode(new Episode(episodeId, time, url, epnum, currentTime));
-        this.saveData();
+        this.loadData().then(() => {
+            let anime = this.animes.find(anime => anime.datasheetId === datasheetId);
+            if (!anime) {
+                anime = new Anime(datasheetId, title);
+                this.animes.push(anime);
+            }
+            anime.addEpisode(new Episode(episodeId, time, url, epnum, currentTime));
+            this.saveData();
+        });
     }
 
     /**
@@ -1090,9 +1007,8 @@ class resume {
      */
     saveData() {
         saveToStorage('resume', this.animes).then(() => {
-            logger.log('Resume data saved', true);
         }).catch(() => {
-            logger.error('Error: Resume data not saved', true);
+            Logger.error('Error: Resume data not saved', true);
             console.log(chrome.runtime.lastError);
         });
     }
@@ -1103,7 +1019,7 @@ class resume {
      * @since v0.1.8
      */
     loadData() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             loadFromStorage('resume').then((resume) => {
                 this.animes = resume.map(animeData => {
                     const anime = new Anime(animeData.datasheetId, animeData.title);
@@ -1111,7 +1027,9 @@ class resume {
                     return anime;
                 });
                 resolve(this.animes);
-            }).catch(() => {reject(new Error('Resume data not found'))});
+            }).catch(() => {
+                resolve([]);
+            });
         });
     }
 
@@ -1141,19 +1059,21 @@ class resume {
      * @since v0.1.8
      */
     updateData(id, time, datasheetId, title, url, epnum, currentTime) {
-        const anime = this.animes.find(anime => anime.datasheetId === datasheetId);
-        if (anime) {
-            const episode = anime.getEpisodeById(id);
-            if (episode) {
-                episode.time = time;
-                episode.timestamp = Date.now();
+        this.loadData().then(() => {
+            const anime = this.animes.find(anime => anime.datasheetId === datasheetId);
+            if (anime) {
+                const episode = anime.getEpisodeById(id);
+                if (episode) {
+                    episode.time = time;
+                    episode.timestamp = Date.now();
+                } else {
+                    anime.addEpisode(new Episode(id, time, url, epnum, currentTime));
+                }
             } else {
-                anime.addEpisode(new Episode(id, time, url, epnum, currentTime));
+                this.addData(id, time, datasheetId, title, url, epnum, currentTime);
             }
-        } else {
-            this.addData(id, time, datasheetId, title, url, epnum, currentTime);
-        }
-        this.saveData();
+            this.saveData();
+        });
     }
 
     /**
@@ -1193,12 +1113,12 @@ class resume {
                 url: episode.url,
             }, (response) => {
                 if (response) {
-                    logger.log('Episode opened', true);
+                    Logger.log('Episode opened', true);
                 } else {
-                    logger.error('Error: Episode not opened', true);
+                    Logger.error('Error: Episode not opened', true);
                 }
             });
-        } else { logger.error('Episode not found', true); }
+        } else { Logger.error('Episode not found', true); }
     }
 
 }
@@ -1222,11 +1142,11 @@ class Anime {
      * @param {Number} id - The ID of the episode
      */
     removeEpisode(id) {
-        this.episodes = this.episodes.filter(ep => ep.id !== id);
+        this.episodes = this.episodes.filter(ep => Number(ep.id) !== Number(id));
     }
 
     getEpisodeById(id) {
-        return this.episodes.find(ep => ep.id === id) || null;
+        return this.episodes.find(ep => Number(ep.id) === Number(id)) || null;
     }
 
     getLastEpisode() {
@@ -1245,12 +1165,12 @@ class Episode {
 const Resume = new resume();
 if (typeof window !== 'undefined') {
     window.MAT = MAT;
-    window.logger = logger;
-    window.bookmarks = bookmarks;
-    window.popup = popup;
+    window.Logger = Logger;
+    window.Bookmarks = Bookmarks;
+    window.Popup = Popup;
     window.Resume = Resume;
     window.loadFromStorage = loadFromStorage;
     window.saveToStorage = saveToStorage;
 }
-export {MAT, logger, bookmarks, MA, popup, Resume, loadFromStorage, saveToStorage};
+export {MAT, Logger, Bookmarks, MA, Popup, Resume};
 

@@ -74,12 +74,12 @@
     color: var(--button-hover-bg-color)
 }
 
-.resume-card-footer button i {
+.resume-card-footer button svg, .resume-card-footer button i {
     font-size: 1em;
     text-shadow: 1px 1px 0 #374151
 }
 
-.resume-card-footer button:hover i {
+.resume-card-footer button:hover svg, .resume-card-footer button:hover i {
     text-shadow: 1px 1px 0 var(--background-color)
 }
 
@@ -152,7 +152,7 @@ i.fas.fa-image {
     background-color: var(--primarydark-color);
 }
 
-#navbar .nav-link i {
+#navbar .nav-link svg, #navbar .nav-link i {
     margin-left: 0.5em;
 }
 

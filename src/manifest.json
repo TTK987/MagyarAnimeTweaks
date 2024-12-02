@@ -8,7 +8,8 @@
     "contextMenus",
     "downloads",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "declarativeNetRequest"
   ],
   "host_permissions": [
     "*://*.magyaranime.eu/*",
@@ -27,7 +28,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["player.css", "plyr.svg", "MATStyle.css", "logo/MATLogo-128.png", "blank.mp4"],
+      "resources": ["player.css", "plyr.svg", "MATStyle.css", "logo/MATLogo-128.png", "blank.mp4", "assets/popup.css", "assets/all.js"],
       "matches": ["https://*.mega.nz/*", "https://*.magyaranime.eu/*", "https://*.magyaranime.hu/*"],
       "extension_ids": ["*"]
     }
@@ -83,8 +84,8 @@
     },
     {
       "matches": ["*://*.mega.nz/embed/*"],
-      "js": ["player.js", "mega.js"],
-      "css": ["player.css"],
+      "js": ["player.js", "mega.js", "assets/fa/all.js"],
+      "css": ["player.css", "assets/popup.css", "MATStyle.css"],
       "all_frames": true,
       "run_at": "document_end"
     },

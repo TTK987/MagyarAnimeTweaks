@@ -120,12 +120,12 @@
     border-bottom: 1px solid var(--button-hover-bg-color);
 }
 
-.container .bookmark-card-footer button i {
+.container .bookmark-card-footer button svg, .container .bookmark-card-footer button i {
     font-size: 2em;
     text-shadow: 1px 1px 0 #374151;
 }
 
-.container .bookmark-card-footer button:hover i {
+.container .bookmark-card-footer button:hover svg, .container .bookmark-card-footer button:hover i {
     text-shadow: 1px 1px 0 var(--background-color);
 }
 

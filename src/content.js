@@ -1,4 +1,4 @@
-import {MAT, logger, bookmarks, MA, popup, Resume } from "./API";
+import {MAT, Logger, Bookmarks, MA, Popup, Resume } from "./API";
 
 /**
  * Settings object to store the settings (Later loaded from the storage)
@@ -39,7 +39,7 @@ class Player {
         try {
             playerActions[playerType]();
         } catch (error) {
-            logger.error("Invalid player type specified.");
+            Logger.error("Invalid player type specified.");
             this.showErrorMessage("Érvénytelen lejátszó típus.");
             window.dispatchEvent(new Event("MATweaksPlayerReplaceFailed"));
         }
@@ -52,7 +52,7 @@ class Player {
         let playerElement = document.querySelector(this.selector) || document.querySelector("video");
         if (playerElement) {
             if (playerElement.src === this.IframeUrl && !this.isMega) {
-                logger.warn("Player is already the default player.");
+                Logger.warn("Player is already the default player.");
                 return;
             }
             let iframe = document.createElement("iframe");
@@ -64,9 +64,9 @@ class Player {
             iframe.setAttribute("allowfullscreen", "");
             replaceWith(playerElement, iframe);
             this.selector = "#indavideoframe";
-            logger.log("Replaced with default player.");
+            Logger.log("Replaced with default player.");
         } else {
-            logger.error("Player element not found.");
+            Logger.error("Player element not found.");
         }
     }
 
@@ -81,15 +81,14 @@ class Player {
                 return;
             }
             if (typeof Plyr == "undefined") {
-                logger.error("Plyr player not loaded.");
+                Logger.error("Plyr player not loaded.");
                 return;
             }
             if (this.qualityData.length === 0) {
-                logger.error("Invalid source URL.");
+                Logger.error("Invalid source URL.");
                 this.showErrorMessage("Nem sikerült betölteni a videót. (Hibás videó URL)<br>Töltsd újra az oldalt.");
                 return;
             }
-
             let playerElement = document.querySelector(this.selector);
             let videoElement = this.createVideoElement();
             replaceWith(playerElement, videoElement);
@@ -97,10 +96,9 @@ class Player {
             this.setupDownload();
             this.selector = ".plyr";
             loadCustomCss();
-            logger.log("Replaced with Plyr player.");
             window.dispatchEvent(new Event("MATweaksPlayerReplaced"));
         } catch (e) {
-            logger.error("Error while replacing with Plyr player. Error: " + e);
+            Logger.error("Error while replacing with Plyr player. Error: " + e);
             this.showErrorMessage("Hiba történt a videó lejátszása közben. <br>További információk a konzolban.");
             window.dispatchEvent(new Event("MATweaksPlayerReplaceFailed"));
         }
@@ -139,14 +137,14 @@ class Player {
         let autoNextEpisodeTriggered = false;
         videoElement.addEventListener("timeupdate", () => {
             if ((this.plyr.duration - this.plyr.currentTime) <= Number(settings.autoNextEpisode.time) && !autoNextEpisodeTriggered && this.plyr.currentTime !== 0 && this.plyr.duration !== 0) {
-                logger.log("Auto next episode triggered.");
+                Logger.log("Auto next episode triggered.");
                 autoNextEpisode();
                 autoNextEpisodeTriggered = true;
             }
         });
         videoElement.addEventListener("ended", () => {
             if (!autoNextEpisodeTriggered && this.plyr.currentTime !== 0 && this.plyr.duration !== 0) {
-                logger.log("Auto next episode triggered.");
+                Logger.log("Auto next episode triggered.");
                 autoNextEpisode();
                 autoNextEpisodeTriggered = true;
             }
@@ -273,13 +271,13 @@ class Player {
         downloadButton.addEventListener("click", event => {
             event.preventDefault();
             if (cooldown) {
-                popup.showErrorPopup("Kérlek várj egy kicsit, mielőtt újra letöltenéd a videót.");
+                Popup.showErrorPopup("Kérlek várj egy kicsit, mielőtt újra letöltenéd a videót.");
                 return;
             }
             let filename = renderFileName(settings.advanced.downloadName) + ".mp4";
             downloadFile(filename).then(() => {
-                popup.showSuccessPopup("A videó letöltése elkezdődött.");
-                logger.log("Download started.");
+                Popup.showSuccessPopup("A videó letöltése elkezdődött.");
+                Logger.log("Download started.");
             });
             cooldown = true;
             setTimeout(() => cooldown = false, 2000);
@@ -292,17 +290,18 @@ class Player {
      */
     addShortcutsToPlayer(player) {
         window.addEventListener("keydown", (event) => {
-            if (settings.forwardSkip.enabled && checkShortcut(event, settings.forwardSkip.keyBind) && !settingsUI.isOpened) {
+            if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName) || settingsUI.isOpened) return;
+            if (settings.forwardSkip.enabled && checkShortcut(event, settings.forwardSkip.keyBind)) {
                 event.preventDefault();
                 event.stopPropagation();
                 this.skipForward(player)
-            } else if (settings.backwardSkip.enabled && checkShortcut(event, settings.backwardSkip.keyBind) && !settingsUI.isOpened) {
+            } else if (settings.backwardSkip.enabled && checkShortcut(event, settings.backwardSkip.keyBind)) {
                 event.preventDefault();
                 event.stopPropagation();
                 this.skipBackward(player);
             }
         });
-        logger.log("Shortcuts added to the player.");
+        Logger.log("Shortcuts added to the player.");
     }
 
     /**
@@ -310,7 +309,7 @@ class Player {
      * @param {string} message - The error message to show
      */
     showErrorMessage(message) {
-        logger.error("Error while playing video. Message: " + message);
+        Logger.error("Error while playing video. Message: " + message);
         let error = document.createElement("p");
         error.setAttribute("class", "MATweaks-error");
         error.innerHTML = "[MATweaks] Hiba történt a videó lejátszása közben.<br>" + message + "<br>Ha a hiba továbbra is fennáll, kérlek jelentsd a hibát <a href='https://discord.gg/dJX4tVGZhY' target='_blank'>Discordon</a> vagy a <a href='https://github.com/TTK987/MagyarAnimeTweaks/issues' target='_blank'>GitHubon</a>" +
@@ -328,8 +327,8 @@ class Player {
     skipForward(player) {
         if (player === null) player = document.querySelector('video');
         player.currentTime = Number(player.currentTime) + Number(settings.forwardSkip.time);
-        popup.showSuccessPopup("Előreugrás:" + settings.forwardSkip.time + " sec.", 200);
-        logger.log("Skipped forward " + settings.forwardSkip.time + " seconds.");
+        Popup.showSuccessPopup("+" + settings.forwardSkip.time + " sec.", 200);
+        Logger.log("Skipped forward " + settings.forwardSkip.time + " seconds.");
     }
 
     /**
@@ -339,13 +338,13 @@ class Player {
     skipBackward(player) {
         if (player === null) player = document.querySelector('video');
         player.currentTime = Number(player.currentTime) - Number(settings.backwardSkip.time);
-        popup.showSuccessPopup("Visszaugrás:" + settings.backwardSkip.time + " sec.", 200);
-        logger.log("Skipped backward " + settings.backwardSkip.time + " seconds.");
+        Popup.showSuccessPopup("-" + settings.backwardSkip.time + " sec.", 200);
+        Logger.log("Skipped backward " + settings.backwardSkip.time + " seconds.");
     }
 
     getBookmarks() {
         let bmks = [];
-        bookmarks.getBookmarks().forEach(bm => {
+        Bookmarks.getBookmarks().forEach(bm => {
             if (bm.episodeId !== MA.EPISODE.getId()) return
             bmks.push({
                 time: bm.time,
@@ -401,7 +400,7 @@ class Settings {
         if (!this.isOpened) return;
         document.querySelector("#MATweaks-settings-window").remove();
         this.isOpened = false;
-        logger.log("Settings UI closed.");
+        Logger.log("Settings UI closed.");
     }
 
     /**
@@ -450,12 +449,12 @@ class Settings {
             let ch = item.querySelector(`#MATweaks-${id}-enabled`);
             ch.checked = !ch.checked;
             this.localSettings[id].enabled = ch.checked;
-            logger.log(`${id} enabled state changed to ${ch.checked}.`);
+            Logger.log(`${id} enabled state changed to ${ch.checked}.`);
         });
         if (duration) {
             duration.addEventListener("change", () => {
                 this.localSettings[id].time = duration.value;
-                logger.log(`${id} duration changed to ${duration.value}.`);
+                Logger.log(`${id} duration changed to ${duration.value}.`);
             });
         }
         if (key) {
@@ -463,7 +462,7 @@ class Settings {
                 event.preventDefault();
                 this._setShortcut(this.localSettings[id].keyBind, event);
                 this._setText(this.localSettings[id].keyBind, key);
-                logger.log(`${id} key changed to ${this._genSCText(this.localSettings[id].keyBind)}.`);
+                Logger.log(`${id} key changed to ${this._genSCText(this.localSettings[id].keyBind)}.`);
             });
         }
     }
@@ -481,11 +480,11 @@ class Settings {
             document.querySelector(".MATweaks-settings-window-body-content-item-feature-button").addEventListener("click", () => {
                 this._closeNoSave();
                 chrome.runtime.sendMessage({plugin: "MATweaks", type: "openSettings"})
-                    .then(() => logger.log("Opened the settings window."))
-                    .catch(error => logger.error(`Error while opening the settings window: ${error}`));
+                    .then(() => Logger.log("Opened the settings window."))
+                    .catch(error => Logger.error(`Error while opening the settings window: ${error}`));
             });
         } catch (error) {
-            logger.error(`Error while adding event listeners to the settings window: ${error}`);
+            Logger.error(`Error while adding event listeners to the settings window: ${error}`);
         }
     }
 
@@ -532,7 +531,7 @@ class Settings {
      */
     _handleEAP() {
         if (MAT.isEAP()) {
-            logger.log("EAP version detected.");
+            Logger.log("EAP version detected.");
             document.querySelectorAll(".eap").forEach(element => element.style.display = "block");
         }
     }
@@ -545,7 +544,7 @@ class Settings {
     _closeNoSave() {
         this.localSettings = settings;
         this.hide();
-        popup.showInfoPopup("Beállítások nem lettek mentve.");
+        Popup.showInfoPopup("Beállítások nem lettek mentve.");
     }
 
     /**
@@ -558,7 +557,7 @@ class Settings {
         loadSettings();
         this.localSettings = settings;
         this.hide();
-        popup.showSuccessPopup("Beállítások mentve.");
+        Popup.showSuccessPopup("Beállítások mentve.");
     }
 
 }
@@ -588,21 +587,6 @@ function replaceWith(element, newElement) {
 function checkAdvancedSettings() {
     return settings.advanced.enabled;
 }
-
-/**
- * Function to determine whether the user is an admin
- *
- * UNUSED
- * @returns {boolean} Returns true if the user is an admin, otherwise false
- */
-function checkAdmin() {
-    let adminbtn = document.querySelector(".gen-account-menu li a")
-    return adminbtn && adminbtn.textContent.includes("Admin") &&
-        adminbtn.querySelector("i").classList.contains("fa-crown") &&
-        !document.querySelector(".gen-account-menu li a[href='felhasznalo/torles']") &&
-        !!document.querySelector(".logo_third");
-}
-
 
 /**
  * Function to render the filename
@@ -678,8 +662,8 @@ function setPlayer(playerType) {
  */
 function loadCustomCss() {
     if (settings.advanced.plyr.design.enabled) {
-    MA.addCSS(`:root {--plyr-video-control-color: ${settings.advanced.plyr.design.settings.svgColor};--plyr-video-control-background-hover: ${settings.advanced.plyr.design.settings.hoverBGColor};--plyr-color-main: ${settings.advanced.plyr.design.settings.mainColor};--plyr-video-control-color-hover: ${settings.advanced.plyr.design.settings.hoverColor};}`);
-    logger.log("Custom CSS loaded.");
+    MA.addCSS(`:root {--plyr-video-control-color: ${settings.advanced.plyr.design.settings.svgColor} !important;--plyr-video-control-background-hover: ${settings.advanced.plyr.design.settings.hoverBGColor} !important;--plyr-color-main: ${settings.advanced.plyr.design.settings.mainColor} !important;--plyr-video-control-color-hover: ${settings.advanced.plyr.design.settings.hoverColor} !important;`);
+    Logger.log("Custom CSS loaded.");
     }
 }
 
@@ -694,14 +678,13 @@ function loadSettings() {
     MAT.loadSettings().then((data) => {
         settings = data;
         if (data.advanced.enabled && data.advanced.settings.ConsoleLog.enabled) {
-            logger.enable();
+            Logger.enable();
         }
-        logger.log("Settings loaded.");
+        Logger.log("Settings loaded.");
     }).catch((error) => {
         settings = MAT.getDefaultSettings();
-        console.log(error);
-        popup.showErrorPopup("Hiba történt a beállítások betöltése közben. Alapértelmezett beállítások lesznek használva.", 5000);
-        logger.error("Error while loading settings: " + error);
+        Popup.showErrorPopup("Hiba történt a beállítások betöltése közben. Alapértelmezett beállítások lesznek használva.", 5000);
+        Logger.error("Error while loading settings: " + error);
     });
 }
 
@@ -729,7 +712,7 @@ function addSettingsButton() {
         accountMenu.insertBefore(settingsButton, accountMenu.children[4]);
         addSettingsItems();
         document.querySelector("#MATweaks-settings-button").addEventListener("click", openSettings);
-        logger.log("Settings button added.");
+        Logger.log("Settings button added.");
     }
 }
 
@@ -752,7 +735,7 @@ function addSettingsItems() {
  */
 function openSettings() {
     settingsUI.show();
-    logger.log("Settings UI created.");
+    Logger.log("Settings UI created.");
 }
 
 // ---------------------------- End of Settings related functions ----------------------------
@@ -769,52 +752,12 @@ function checkCustomPlayer() {
  * Function to handle MA player replacement
  */
 function handleA() {
-    if (!MA.isEpisodePage()) return;
-    settings.private.hasMAPlayer = checkCustomPlayer();
-    if (settings.private.hasMAPlayer) {
-        logger.log("User has the custom player.");
-        if (settings.advanced.forcePlyr === null) {
-            /**
-             * Function to create buttons
-             * @param a - The buttons to create
-             * @returns {HTMLButtonElement[]} The created buttons
-             */
-            let buttons = a => {
-                let btns = [];
-                for (let i = 0; i < a.length; i++) {
-                    let btn = document.createElement("button");
-                    btn.innerHTML = a[i];
-                    btn.value = a[i].toLowerCase();
-                    btns.push(btn);
-                }
-                return btns;
-            }
-            askUser("Úgy tűnik, hogy a MagyarAnime saját videólejátszóját használod.<br>" +
-                "Szeretnéd, hogy a MATweaks lecserélje a videólejátszót a sajátjára?" +
-                "<br>Előnyök: Letölthető a videó, egységes kinézet, <i>MŰKÖDIK</i>", buttons(["Igen", "Nem", "Később"]), function (value) {
-                if (value === "igen") {
-                    logger.log("User decided to replace the player with the MATweaks player.");
-                    settings.advanced.forcePlyr = true;
-                    AReplacePlayer();
-                    saveSettings(settings);
-                } else if (value === "nem") {
-                    settings.advanced.forcePlyr = false;
-                    logger.log("User decided to keep the default player.");
-                    saveSettings(settings);
-                } else {
-                    settings.advanced.forcePlyr = null;
-                    logger.log("User decided to be asked later.");
-                    saveSettings(settings);
-                }
-            });
-        } else if (settings.advanced.forcePlyr) {
-            logger.log("User decided to force the Plyr player.");
-            AReplacePlayer();
-        } else {
-            logger.log("User decided to keep the default player.");
-        }
+    if (!MA.isEpisodePage() || player.isMega) return;
+    if (checkCustomPlayer()) {
+        Logger.log("User has the custom player.");
+        AReplacePlayer();
     } else {
-        logger.log("User does not have the custom player.");
+        Logger.log("User does not have the custom player.");
     }
 }
 
@@ -822,6 +765,7 @@ function handleA() {
  * Function to replace the player with our own player
  */
 function AReplacePlayer() {
+    if (checkAdvancedSettings() && settings.advanced.settings.DefaultPlayer.player !== "plyr") return;
     player.qualityData = fetchQualityDataA();
     if (player.plyr !== undefined) {
         player.plyr.destroy();
@@ -831,11 +775,7 @@ function AReplacePlayer() {
             playerElement.remove();
         }
     }
-    let message = {
-        plugin: "MATweaks",
-        type: "removePlayer"
-    };
-    document.dispatchEvent(new CustomEvent("MATweaks", {detail: message}));
+    document.dispatchEvent(new CustomEvent("MATweaks", {detail: {plugin: "MATweaks", type: "removePlayer"}}));
     let videoElement = document.createElement("video");
     videoElement.setAttribute("id", "video");
     videoElement.setAttribute("src", player.qualityData[0].url);
@@ -851,38 +791,7 @@ function AReplacePlayer() {
     }
     document.querySelector("#lejatszo").appendChild(videoElement);
     player.selector = "video";
-    if (checkAdvancedSettings() && settings.advanced.settings.DefaultPlayer.player === "default") {
-        // Do nothing
-    } else if (checkAdvancedSettings() && settings.advanced.settings.DefaultPlayer.player === "plyr") {
-        player.replacePlayer("plyr");
-    } else {
-        player.replacePlayer("plyr");
-    }
-}
-
-/**
- * Function to ask the user a question
- * @param {string} question - The question to ask the user
- * @param {HTMLButtonElement[]} buttons - The buttons to show the user
- * @param {function} callback - The callback function to call when the user clicks a button
- */
-function askUser(question, buttons, callback) {
-    let q = document.createElement("div");
-    q.innerHTML = `<p>${question}</p>`;
-    q.classList.add("MATweaks-ask-user");
-    let popup = document.createElement("div");
-    popup.appendChild(q);
-    document.body.appendChild(popup);
-    buttons.forEach((button) => {
-        let btn = document.createElement("button");
-        btn.innerHTML = button.innerHTML;
-        btn.addEventListener("click", () => {
-            callback(button.value);
-            popup.remove();
-        });
-        btn.classList.add("MATweaks-ask-user-button");
-        q.appendChild(btn);
-    });
+    player.replacePlayer("plyr");
 }
 
 /**
@@ -904,18 +813,8 @@ function fetchQualityDataA() { return Array.from(document.querySelectorAll("sour
  */
 function initializeExtension() {
     loadSettings();
-    bookmarks.loadBookmarks().then(() => {
-        logger.log("Bookmarks loaded.");
-    }).catch((error) => {
-        logger.error("Error while loading bookmarks: " + error);
-    });
-    Resume.loadData().then(() => {
-        logger.log("Resume loaded.");
-    }).catch((error) => {
-        logger.error("Error while loading resume data: " + error);
-    });
     setupEventListeners();
-    logger.log("Extension initialized.");
+    Logger.log("Extension initialized.");
 }
 
 
@@ -926,24 +825,23 @@ function initializeExtension() {
 function setupEventListeners() {
     window.addEventListener("message", receiveMessage, false);
     window.addEventListener("load", function () {
+        if (document.body.innerHTML.includes("Karbantartás")) {
+            Logger.error("MagyarAnime is under maintenance.");
+
+            return;
+        }
+        Popup.showErrorPopup("A MagyarAnime karbantartás alatt van. Kérlek próbáld meg később.<br>És lehetőleg légy türelmes, amíg a karbantartás tart.", 100000);
         addSettingsButton();
         handleA();
-        if (MA.isEpisodePage()) console.log(MA.EPISODE.TEST()); // TODO: Remove this line
-        if (MA.isAnimePage()) console.log(MA.ANIME.TEST()); // TODO: Remove this line
-        logger.log("IsAdmin: " + checkAdmin());
     });
-    window.addEventListener("DOMContentLoaded", function () {});  // Useless line
     window.addEventListener("MATweaksPlayerReplaced", function () {
-        logger.log("Player replaced.");
-        addShortcutsToPage();
+        Logger.success("Player replaced.");
         handleReszPage();
-        if (settings.bookmarks.enabled) checkForBookmarks();
-        if (settings.resume.enabled) {initializeResumeFeature();}
         player.isReplaced = true;
     });
     window.addEventListener("MATweaksPlayerReplaceFailed", function () {
-        popup.showErrorPopup("A videólejátszó cseréje sikertelen volt.");
-        logger.error("Player replacement failed.");
+        Popup.showErrorPopup("A videólejátszó cseréje sikertelen volt.");
+        Logger.error("Player replacement failed.");
     });
 }
 
@@ -973,7 +871,6 @@ function receiveMessage(event) {
                 nextEpisode();
                 break;
             case MAT.__ACTIONS__.MEGA.PLAYER_READY:
-                logger.log("Mega player ready.");
                 window.dispatchEvent(new Event("MATweaksPlayerReplaced"));
                 break;
             case MAT.__ACTIONS__.SEEK:
@@ -981,6 +878,22 @@ function receiveMessage(event) {
                 break;
             case MAT.__ACTIONS__.MEGA.GET_BOOKMARKS:
                 event.source.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.BOOKMARKS, bookmarks: player.getBookmarks()}, "*");
+                break;
+            case MAT.__ACTIONS__.MEGA.POPUP:
+                switch (event.data.popupType) {
+                    case "error":
+                        Popup.showErrorPopup(event.data.message, event.data.time);
+                        break;
+                    case "success":
+                        Popup.showSuccessPopup(event.data.message, event.data.time);
+                        break;
+                    case "warning":
+                        Popup.showWarningPopup(event.data.message, event.data.time);
+                        break;
+                    default:
+                        Popup.showInfoPopup(event.data.message, event.data.time);
+                        break;
+                }
                 break;
             default:
                 break;
@@ -995,9 +908,9 @@ function handleIframeLoaded() {
     let iframe = document.querySelector("iframe");
     if (iframe) {
         iframe.contentWindow.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.GET_SOURCE_URL}, "*");
-        logger.log("Iframe loaded.");
+        Logger.log("Iframe loaded.");
     } else {
-        logger.error("Iframe not found.");
+        Logger.error("Iframe not found.");
     }
 }
 
@@ -1023,11 +936,19 @@ function handleMegaIframeLoaded() {
     addShortcutsToPage();
     player.isMega = true;
     player.IframeUrl = iframe.src;
-    logger.log("Mega iframe loaded.");
+    Logger.log("Mega iframe loaded.");
     addShortcutsToPageMega();
     if (checkAdvancedSettings() && settings.advanced.settings.DefaultPlayer.player === "default") return;
-    iframe.contentWindow.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.REPLACE_PLAYER}, "*");
-    logger.log("Mega player replaced.");
+    iframe.contentWindow.postMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.MEGA.REPLACE_PLAYER,
+        videoData: {
+            id: MA.EPISODE.getId(),
+            datasheetId: MA.EPISODE.getDatasheet(),
+            title: MA.EPISODE.getTitle(),
+            url: window.location.href,
+            episodeNumber: MA.EPISODE.getEpisodeNumber()
+        }
+    }, "*");
+    Logger.log("Mega player replaced.");
 }
 
 /**
@@ -1035,7 +956,21 @@ function handleMegaIframeLoaded() {
  */
 function handleReszPage() {
     if (!window.location.href.includes("resz")) return;
-    addBookmarkButton();
+    if (settings.bookmarks.enabled) initializeBookmarksFeature();
+    if (settings.resume.enabled) initializeResumeFeature();
+    addShortcutsToPage();
+    let info = document.querySelector(".gentech-tv-show-img-holder > span");
+    let keyBindRender = (data) => {
+            return `${data.key}${data.altKey ? ' + Alt' : ''}${data.ctrlKey ? ' + Ctrl' : ''}${data.shiftKey ? ' + Shift' : ''}`;
+    }
+    if (info) {
+        info.innerHTML = `
+        <span style="font-size: 10px;">
+            <span style="color: gold">${keyBindRender(settings.backwardSkip.keyBind)}:</span> -${settings.backwardSkip.time} mp ||
+            <span style="color: lime">${keyBindRender(settings.forwardSkip.keyBind)}:</span> +${settings.forwardSkip.time} mp ||
+            <span style="color: cyan">${keyBindRender(settings.previousEpisode.keyBind)} / ${keyBindRender(settings.nextEpisode.keyBind)}:</span> előző/következő epizód
+        </span>`;
+    }
 }
 
 // ---------------------------- End of Initialization ----------------------------
@@ -1049,8 +984,8 @@ function handleReszPage() {
 function autoNextEpisode() {
     let nextEpisodeButton = document.getElementById("epkovetkezo")
     if (nextEpisodeButton) nextEpisodeButton.click();
-    popup.showSuccessPopup("Következő rész betöltése...");
-    logger.log("Moved to the next episode automatically.");
+    Popup.showSuccessPopup("Következő rész betöltése...");
+    Logger.log("Moved to the next episode automatically.");
     window.dispatchEvent(new Event("MATweaksAutoNextEpisode"));
 }
 
@@ -1069,17 +1004,17 @@ function nextEpisode() {
         let dataSheetButton = document.getElementById("adatlap")
         if (dataSheetButton) {
             dataSheetButton.click();
-            popup.showSuccessPopup("Adatlap betöltése...");
-            logger.log("Moved to the data sheet.");
+            Popup.showSuccessPopup("Adatlap betöltése...");
+            Logger.log("Moved to the data sheet.");
             return;
         } else {
-            popup.showErrorPopup("Hiba történt...");
-            logger.log("No next episode or data sheet button found.");
+            Popup.showErrorPopup("Hiba történt...");
+            Logger.log("No next episode or data sheet button found.");
             return;
         }
     }
-    popup.showSuccessPopup("Következő rész betöltése...");
-    logger.log("Moved to the next episode.");
+    Popup.showSuccessPopup("Következő rész betöltése...");
+    Logger.log("Moved to the next episode.");
 }
 
 /**
@@ -1097,16 +1032,16 @@ function previousEpisode() {
         let dataSheetButton = document.getElementById("adatlap")
         if (dataSheetButton) {
             dataSheetButton.click();
-            popup.showSuccessPopup("Adatlap betöltése...");
-            logger.log("Moved to the data sheet.");
+            Popup.showSuccessPopup("Adatlap betöltése...");
+            Logger.log("Moved to the data sheet.");
             return;
         } else {
-            popup.showErrorPopup("Hiba történt...");
-            logger.log("No previous episode or data sheet button found.");
+            Popup.showErrorPopup("Hiba történt...");
+            Logger.log("No previous episode or data sheet button found.");
         }
     }
-    popup.showSuccessPopup("Előző rész betöltése...");
-    logger.log("Moved to the previous episode.");
+    Popup.showSuccessPopup("Előző rész betöltése...");
+    Logger.log("Moved to the previous episode.");
 }
 
 /**
@@ -1115,9 +1050,10 @@ function previousEpisode() {
 function nextEpisodeMega() {
     let nextEpisodeButton = document.getElementById("epkovetkezo")
     if (nextEpisodeButton) {
+        window.dispatchEvent(new Event("MATweaksAutoNextEpisode"));
         nextEpisodeButton.click();
-        popup.showSuccessPopup("Következő rész betöltése...");
-        logger.log("Moved to the next episode.");
+        Popup.showSuccessPopup("Következő rész betöltése...");
+        Logger.log("Moved to the next episode.");
     }
 }
 
@@ -1133,23 +1069,22 @@ async function downloadFile(filename) {
     return new Promise((resolve, reject) => {
         let url = document.querySelector("video").src || document.querySelector("source").src;
         if (!url) {
-            popup.showErrorPopup("Hiba történt a videó letöltése közben. (URL is empty)");
-            logger.error("Download failed: URL is empty or undefined.");
+            Popup.showErrorPopup("Hiba történt a videó letöltése közben. (URL is empty)");
+            Logger.error("Download failed: URL is empty or undefined.");
             reject("URL is empty or undefined.");
         }
         if (!filename) {
-            popup.showErrorPopup("Hiba történt a videó letöltése közben. (Filename is empty)");
-            logger.error("Download failed: filename is empty or undefined.");
+            Popup.showErrorPopup("Hiba történt a videó letöltése közben. (Filename is empty)");
+            Logger.error("Download failed: filename is empty or undefined.");
             reject("Filename is empty or undefined.");
         }
-        logger.log("Starting download...");
+        Logger.log("Starting download...");
         chrome.runtime.sendMessage({plugin: MAT.__NAME__, type: MAT.__ACTIONS__.DOWNLOAD, url: url, filename: filename}, (response) => {
-            console.log(response);
             if (response === "success") {
-                logger.log("Download successful.");
+                Logger.log("Download successful.");
                 resolve(true);
             } else {
-                logger.error("Download failed.");
+                Logger.error("Download failed.");
                 reject("Download failed.");
             }
         });
@@ -1162,12 +1097,12 @@ async function downloadFile(filename) {
 /**
  * Function to add shortcuts to the page
  *
- * Since: v0.1.5
+ * @since v0.1.5
  * @since v0.1.8 - Performance improvements
  */
 function addShortcutsToPageMega() {
     let iframe = document.querySelector("iframe[src*='mega.nz']")
-    document.addEventListener("keydown", (event) => {
+    window.addEventListener("keydown", (event) => {
         if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName) || settingsUI.isOpened) return;
         const actions = [
             {condition: settings.forwardSkip.enabled && checkShortcut(event, settings.forwardSkip.keyBind), type: MAT.__ACTIONS__.MEGA.FORWARD_SKIP, seconds: settings.forwardSkip.time},
@@ -1194,7 +1129,7 @@ function addShortcutsToPageMega() {
             }
         }
     });
-    logger.log("Shortcuts added to the page.");
+    Logger.log("Shortcuts added to the page.");
 }
 
 /**
@@ -1203,18 +1138,17 @@ function addShortcutsToPageMega() {
 function addShortcutsToPage() {
     if (!location.href.includes("resz")) return;
     document.addEventListener("keydown", (event) => {
+        if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA" || settingsUI.isOpened) return;
         if (settings.nextEpisode.enabled &&
-            !settingsUI.isOpened &&
             checkShortcut(event, settings.nextEpisode.keyBind)) {
             nextEpisode();
         } else if (
             settings.previousEpisode.enabled &&
-            !settingsUI.isOpened &&
             checkShortcut(event, settings.previousEpisode.keyBind)) {
             previousEpisode();
         }
     });
-    logger.log("Shortcuts added to the page.");
+    Logger.log("Shortcuts added to the page.");
 }
 
 // ---------------------------- End of Shortcuts ----------------------------
@@ -1251,7 +1185,7 @@ async function getCurrentTime() {
             let time = getMegaCurrentTime().then((time) => {
                 return time;
             }).catch(() => {
-                logger.error("Error while getting the current time.");
+                Logger.error("Error while getting the current time.");
                 reject(0);
             });
             return resolve(time);
@@ -1261,8 +1195,8 @@ async function getCurrentTime() {
             } else if (!player.plyr) {
                 return resolve(document.querySelector("video").currentTime)
             } else {
-                logger.error("Error while getting the current time.");
-                popup.showErrorPopup("Hiba történt a jelenlegi idő lekérdezése közben.");
+                Logger.error("Error while getting the current time.");
+                Popup.showErrorPopup("Hiba történt a jelenlegi idő lekérdezése közben.");
                 reject(0);
             }
         }
@@ -1272,15 +1206,15 @@ async function getCurrentTime() {
  * Function to add a bookmark
  */
 async function addBookmark() {
-    bookmarks.loadBookmarks().then(() => {
+    Bookmarks.loadBookmarks().then(() => {
         getCurrentTime().then((currentTime) => {
-            bookmarks.addBookmark(
+            Bookmarks.addBookmark(
                 MA.EPISODE.getTitle() || "Ismeretlen",
                 MA.EPISODE.getEpisodeNumber() | 0,
-                window.location.href,
                 `${MA.EPISODE.getTitle() || "Ismeretlen"} - ${MA.EPISODE.getEpisodeNumber() | 0}.rész, ${(currentTime % 3600 / 60).toFixed(0).padStart(2, "0")}:${(currentTime % 60).toFixed(0).padStart(2, "0")}`,
                 currentTime,
-                MA.EPISODE.getId()) || popup.showErrorPopup("Hiba történt a könyvjelző hozzáadása közben.");
+                MA.EPISODE.getId()
+            );
         });
     });
 }
@@ -1295,8 +1229,8 @@ function addBookmarkButton() {
     button.addEventListener("click", () => {
         if (cooldown) return;
         addBookmark();
-        popup.showInfoPopup("Könyvjelző hozzáadva.");
-        logger.log("Bookmark added.");
+        Popup.showInfoPopup("Könyvjelző hozzáadva.");
+        Logger.log("Bookmark added.");
         cooldown = true;
         setTimeout(() => {
             cooldown = false;
@@ -1305,7 +1239,7 @@ function addBookmarkButton() {
     button.classList.add("MATweaks-bookmark-button");
     if (document.getElementById("adatlap")) document.getElementById("adatlap")?.after(button)
     else document.querySelector(".gentech-tv-show-img-holder")?.after(button);
-    logger.log("Bookmark button added.");
+    Logger.log("Bookmark button added.");
 }
 
 /**
@@ -1333,8 +1267,8 @@ function seekTo(time) {
                 }
             }
         } else if (tryCount > 10) {
-            logger.error("Error while seeking to the bookmarked time.");
-            popup.showErrorPopup("Hiba történt a könyvjelzőhöz való ugrás közben.");
+            Logger.error("Error while seeking to the bookmarked time.");
+            Popup.showErrorPopup("Hiba történt a könyvjelzőhöz való ugrás közben.");
             clearInterval(interval);
         }
         tryCount++;
@@ -1355,29 +1289,39 @@ function checkForBookmarks() {
         if (response) {
             response.forEach((bookmark) => {
                 if (bookmark.url.split("/")[4] === MA.EPISODE.getId().toString()) {
-                    let i = bookmarks.getBookmark(bookmark.id) || 0;
-                    if (Number(i.id) !== Number(bookmark.id)) {logger.error("Error while getting the bookmark."); return;}
+                    let i = Bookmarks.getBookmark(bookmark.id) || 0;
+                    if (Number(i.id) !== Number(bookmark.id)) {Logger.error("Error while getting the bookmark."); return;}
                     seekTo(i.time);
                     chrome.runtime.sendMessage({plugin: MAT.__NAME__, type: "removeOpenBookmark", id: bookmark.id}, (response) => {
                         if (response) {
-                            logger.log("Bookmark opened.");
-                            popup.showInfoPopup("Könyvjelző sikeresen megnyitva.");
+                            Logger.log("Bookmark opened.");
+                            Popup.showInfoPopup("Könyvjelző sikeresen megnyitva.");
                         } else {
-                            logger.error("Error while opening the bookmark.");
-                            popup.showErrorPopup("Hiba történt a könyvjelző megnyitása közben.");
+                            Logger.error("Error while opening the bookmark.");
+                            Popup.showErrorPopup("Hiba történt a könyvjelző megnyitása közben.");
                         }
                     });
                 } else {
-                    logger.log("No bookmark found for the current URL.");
+                    Logger.log("No bookmark found for the current URL.");
                 }
             });
         } else {
-            logger.error("Error while getting the bookmarks.");
-            popup.showErrorPopup("Hiba történt a könyvjelzők lekérdezése közben.");
+            Logger.error("Error while getting the bookmarks.");
+            Popup.showErrorPopup("Hiba történt a könyvjelzők lekérdezése közben.");
         }
     });
 }
 
+function initializeBookmarksFeature() {
+    Bookmarks.loadBookmarks().then(() => {
+        Logger.log("Bookmarks loaded.");
+        checkForBookmarks();
+        addBookmarkButton();
+    }).catch((error) => {
+        Logger.error("Error while loading bookmarks: " + error);
+    });
+
+}
 
 // ---------------------------- End of Bookmarking ----------------------------
 
@@ -1394,84 +1338,134 @@ function updateResumeData() {
             MA.EPISODE.getEpisodeNumber(),
             Date.now()
         );
-        logger.log("Resume data updated.");
+        Logger.log("Resume data updated.");
     }).catch((error) => {
-        logger.error("Error while updating resume data: " + error);
-        popup.showErrorPopup("Hiba történt a folytatás adatok frissítése közben.");
+        Logger.error("Error while updating resume data: " + error);
+        Popup.showErrorPopup("Hiba történt a folytatás adatok frissítése közben.");
     });
 }
 
 function addResumeEventListeners() {
     const video = document.querySelector("video");
-    let curResumeData = Resume.getDataByEpisodeId(MA.EPISODE.getId());
+    const curResumeData = Resume.getDataByEpisodeId(MA.EPISODE.getId());
     let isAutoNextEpTriggered = false;
-    let ct = player.plyr.currentTime;
-    let d = player.plyr.duration;
-    const handle = (event) => {
-        if ((d > 100 || ct <= 0) || (ct < 5 || ct > d - 5) || isAutoNextEpTriggered) return;
-        if (curResumeData && (ct > curResumeData.time + 5 || ct < curResumeData.time - 5) || (event.type === "visibilitychange" && document.hidden) || (event.type !== "visibilitychange")) updateResumeData();
+    const updateData = () => {
+        if (player.plyr.duration <= 10 || player.plyr.currentTime <= 5 || player.plyr.currentTime >= player.plyr.duration - 5 || isAutoNextEpTriggered) return;
+        if (curResumeData && (player.plyr.currentTime > curResumeData.time + 5 || player.plyr.currentTime < curResumeData.time - 5)) {
+            updateResumeData();
+        } else if (!curResumeData) {
+            updateResumeData();
+        }
     };
-    document.addEventListener("visibilitychange", handle);
-    window.addEventListener("beforeunload", handle);
-    window.addEventListener("unload", handle);
-    video.addEventListener("pause", handle);
-    video.addEventListener("ended", () => {
-        Resume.removeData(MA.EPISODE.getId()).then(() => {
-            logger.log("Removed resume data.");
-        }).catch((error) => {
-            logger.error("Error while removing resume data: " + error);
-            popup.showErrorPopup("Hiba történt a folytatás adatok törlése közben.");
-        });
-    });
-    window.addEventListener("MATweaksAutoNextEpisode", () => {
-        isAutoNextEpTriggered = true;
+    let removeData = () => {
+        isAutoNextEpTriggered = true; // Prevents the resume data from being updated
         Resume.removeData(MA.EPISODE.getId()).then(()=>
-            logger.log("Removed resume data.")
+            Logger.log("Removed resume data.")
         ).catch(e => {
-            logger.error("Error while removing resume data: " + e);
-            popup.showErrorPopup("Hiba történt a folytatás adatok törlése közben.");
+            Logger.error("Error while removing resume data: " + e);
+            Popup.showErrorPopup("Hiba történt a folytatás adatok törlése közben.");
         });
-    });
+    }
+    document.addEventListener("visibilitychange", updateData);
+    window.addEventListener("beforeunload", updateData);
+    window.addEventListener("unload", updateData);
+    video.addEventListener("pause", updateData);
+    video.addEventListener("ended", () => removeData());
+    window.addEventListener("MATweaksAutoNextEpisode", () => removeData());
 }
 
 function initializeResumeFeature() {
     if (player.isMega) return;
-    checkForResume();
-    addResumeEventListeners();
+    Resume.loadData().then(() => {
+        Logger.log("Resume loaded.");
+        checkForResume();
+        addResumeEventListeners();
+    }).catch((error) => {
+        Logger.error("Error while loading resume data: " + error);
+    });
+}
+
+function searchForResumeData() {
+    let curResumeData = Resume.getDataByEpisodeId(MA.EPISODE.getId());
+    if (!curResumeData) return;
+    if (settings.resume.mode === "auto") {
+        seekTo(curResumeData.time);
+        Logger.log("Resumed playback.");
+        Popup.showInfoPopup("Folytatás sikeres.");
+    } else askUserToResume(curResumeData).then((response) => {
+        if (response) {
+            seekTo(curResumeData.time);
+            Logger.log("Resumed playback.");
+            Popup.showInfoPopup("Folytatás sikeres.");
+        } else {
+            Logger.log("User chose not to resume.");
+        }
+    });
 }
 
 function checkForResume() {
     chrome.runtime.sendMessage({plugin: MAT.__NAME__, type: "getOpenResume"}, (response) => {
-        console.log(response);
         if (response) {
             for (let i = 0; i < response.length; i++) {
                 if (response[i].url.split("/")[4] === MA.EPISODE.getId().toString()) {
                     seekTo(response[i].time);
-                    chrome.runtime.sendMessage({plugin: MAT.__NAME__, type: "removeOpenResume", id: response[i].id}, (r) => {
+                    chrome.runtime.sendMessage({
+                        plugin: MAT.__NAME__,
+                        type: "removeOpenResume",
+                        id: response[i].id
+                    }, (r) => {
                         if (r) {
-                            logger.log("Resumed playback.");
-                            popup.showInfoPopup("Folytatás sikeres.");
+                            Logger.log("Resumed playback.");
+                            Popup.showInfoPopup("Folytatás sikeres.");
                         } else {
-                            logger.error("Error while resuming playback.");
-                            popup.showErrorPopup("Hiba történt a folytatás közben.");
+                            Logger.error("Error while resuming playback.");
+                            Popup.showErrorPopup("Hiba történt a folytatás közben.");
                         }
                     });
+                    return;
                 } else {
-                    logger.log("No resume data found for the current URL.");
+                    Logger.log("No resume data found for the current URL.");
                 }
             }
+            searchForResumeData();
         } else {
-            logger.error("Error while getting the resume data.");
-            popup.showErrorPopup("Hiba történt az epizód adatai lekérdezése közben.");
+            Logger.error("Error while getting the resume data.");
+            Popup.showErrorPopup("Hiba történt az epizód adatai lekérdezése közben.");
         }
     });
 }
+
+function askUserToResume(data) {
+    let formatTime = (time) => {
+        return `${Math.floor(time / 60).toString().padStart(2, "0")}:${Math.floor(time % 60).toString().padStart(2, "0")}`;
+    }
+    let div = document.createElement("div");
+    div.setAttribute("id", "MATweaks-resume-popup");
+    let button = document.createElement("button");
+    button.setAttribute("id", "MATweaks-resume-button");
+    button.innerHTML = `Folytatás: ${formatTime(data.time)} <i class="fas fa-play"></i>`;
+    div.appendChild(button);
+    let plyrContainer = document.querySelector(".plyr");
+    plyrContainer.appendChild(div);
+    let resumeButton = document.getElementById("MATweaks-resume-button");
+    return new Promise((resolve) => {
+        resumeButton.addEventListener("click", () => {
+            div.remove();
+            resolve(true);
+        });
+        setTimeout(() => {
+            div.remove();
+            resolve(false);
+        }, 10000);
+    });
+}
+
+
+// ---------------------------- End of Resume feature ----------------------------
 
 
 /**
  * Initialize the extension
  */
 initializeExtension();
-
-
 

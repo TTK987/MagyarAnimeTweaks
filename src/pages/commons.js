@@ -1,7 +1,8 @@
 import {MAT} from "../API";
 
 function header(page) {
-    return `<header>
+    return `
+<header>
     <div class="container">
         <a style="display: flex; text-decoration: none;" href="https://matweaks.hu" target="_blank">
                 <span style="font-weight: bold; font-size: 1.5rem; color: #ffffff;">Magyar</span>
@@ -33,7 +34,6 @@ function footer() {
         </div>
     </div>
 </footer>
-<link href="${chrome.runtime.getURL('assets/fa/all.css')}" rel="stylesheet">
 `;
 }
 

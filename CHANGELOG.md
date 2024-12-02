@@ -4,23 +4,28 @@
 - **Új funkciók**
   - **Könyvjelzők**
     - A animékhez hozzáadható könyvjelző, amivel könnyen visszatérhetsz az adott részhez.
-    - [További információk](BOOKMARKS.md)
+    - [További információk](SETTINGS.md#Könyvjelzők)
   - **Folytatás ahol abbahagytad**
     - Ezzel a funkcióval a kiegészítő megjegyzi, hogy hol hagytad abba az adott animét és részt.
-    - [További információk](SETTINGS.md#folytatás-ahol-abbahagytad)
+    - [További információk](SETTINGS.md#Előzmények)
 - **Új beállítások**
   - **Könyvjelzők** (Alapértelmezett: Engedélyezve)
-    - [További információk](SETTINGS.md#könyvjelzők)
+    - [További információk](SETTINGS.md#Könyvjelzők)
   - **Folytatás ahol abbahagytad** (Alapértelmezett: Engedélyezve)
-    - [További információk](SETTINGS.md#folytatás-ahol-abbahagytad)
-  - **Beállítások szinkronizálása** (Alapértelmezett: Engedélyezve)
-    - [További információk](SETTINGS.md#beállítások-szinkronizálása)
+    - [További információk](SETTINGS.md#Előzmények)
+- **Pop-up ablak**
+    - A felugró ablak kinézete és funkcionalitása megváltozott.
+    - Mostantól a ablakból is elérhetőek a könyvjelzők, az előzmények és a beállítások.
+    - Illetve innen könnyen elérhető a legutóbb nézett rész is (amit egy kattintással folymatathatsz ott, ahol abbahagytad).
+- **Kinézet**
+    - A kiegészítő saját oldalainak kinézete megváltozott.
 - Egyéb változások
   - A "HTML5" lejátszó megszűntetésre került.
     - Ha valaki használta, akkor innentől kezdve a "Plyr" lejátszó lesz használva.
   - Kód átszervezés és optimalizálás.
   - `webpack` használata a kód generálásához.
-  - `terser-webpack-plugin` használata a kód tömörítéséhez.
+  - `terser` használata a kód tömörítéséhez.
+
 
 ## 0.1.7.1 - 0.1.7.5
 - Hibajavítások

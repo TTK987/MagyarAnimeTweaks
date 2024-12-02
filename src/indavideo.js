@@ -1,11 +1,11 @@
-import {MAT, logger} from "./API";
+import {MAT, Logger} from "./API";
 window.addEventListener('message', function (event) {
     if (event.data && event.data.plugin === MAT.__NAME__) {
         if (event.data.type === MAT.__ACTIONS__.GET_SOURCE_URL) {
             let retry = 10;
             let interval = setInterval(function () {
                 if (f720() === false && f360() === false) {
-                    logger.log('[indavideo.js] Retrying to get the source URL... Retry count: ' + retry);
+                    Logger.log('[indavideo.js] Retrying to get the source URL... Retry count: ' + retry);
                 }
                 if (f720() || f360() || retry <= 0) {
                     clearInterval(interval);

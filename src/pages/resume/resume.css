@@ -120,12 +120,12 @@
     border-bottom: 1px solid var(--button-hover-bg-color)
 }
 
-.container .resume-card-footer button i {
+.container .resume-card-footer button svg, .container .resume-card-footer button i {
     font-size: 1em;
     text-shadow: 1px 1px 0 #374151
 }
 
-.container .resume-card-footer button:hover i {
+.container .resume-card-footer button:hover svg, .container .resume-card-footer button:hover i {
     text-shadow: 1px 1px 0 var(--background-color)
 }
 

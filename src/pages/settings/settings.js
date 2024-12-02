@@ -1,5 +1,5 @@
 import {footer, header} from "../commons";
-import {popup, MAT, MA} from "../../API";
+import {Popup, MAT, MA, Logger} from "../../API";
 let currentSettings = MAT.getSettings();
 function init() {
     document.body.innerHTML = `
@@ -10,7 +10,7 @@ function init() {
                     ${renderSettings()}
                 </div>
                 <div id="advanced">
-                    <h2>Fejlesztői beállítások</h2>
+                    <h2>Haladó beállítások</h2>
                     ${renderAdvancedSettings()}
                 </div>
             </div>
@@ -25,30 +25,34 @@ function addMenu() {
         <button id="save">Mentés</button>
         <button id="reset">Visszaállítás</button>
         <button id="default">Alapértelmezett</button>
+        <button id="help">Segítség</button>
     `;
     document.body.appendChild(menu);
     document.getElementById('save').onclick = function () {
         MAT.setSettings(currentSettings);
         MAT.saveSettings();
         resetPage();
-        popup.showSuccessPopup('Beállítások mentve');
-        logger.log('Settings saved');
+        Popup.showSuccessPopup('Beállítások mentve');
+        Logger.log('Settings saved');
     };
     document.getElementById('reset').onclick = function () {
         MAT.loadSettings().then((data) => {
             currentSettings = data;
             resetPage();
-            popup.showSuccessPopup('Beállítások visszaállítva');
-            logger.log('Settings reset');
+            Popup.showSuccessPopup('Beállítások visszaállítva');
+            Logger.log('Settings reset');
         });
     };
     document.getElementById('default').onclick = function () {
         MAT.setSettings(MAT.getDefaultSettings()); // Black magic here...
         currentSettings = MAT.getSettings();
         resetPage();
-        popup.showSuccessPopup('Beállítások alapértelmezettre állítva');
-        logger.log('Settings set to default');
+        Popup.showSuccessPopup('Beállítások alapértelmezettre állítva');
+        Logger.log('Settings set to default');
     };
+    document.getElementById('help').onclick = function () {
+        chrome.tabs.create({url: 'https://github.com/TTK987/MagyarAnimeTweaks/blob/main/SETTINGS.md'});
+    }
 }
 function separateColors(color) {
     return {color: color.slice(0, -2), opacity: parseInt(color.slice(-2), 16) / 255};
@@ -128,21 +132,21 @@ function addAdvancedListeners() {
         currentSettings.advanced.enabled = !currentSettings.advanced.enabled;
         document.querySelector('#advanced').classList.toggle('dimmer');
         document.querySelectorAll(`#advanced input:not(#advanced-enabled), #advanced select, #advanced textarea, #advanced button`).forEach(input => {input.disabled = !currentSettings.advanced.enabled;});
-        logger.log(`Advanced settings are now ${currentSettings.advanced.enabled ? 'enabled' : 'disabled'}`);
+        Logger.log(`Advanced settings are now ${currentSettings.advanced.enabled ? 'enabled' : 'disabled'}`);
     };
     document.querySelector('#advanced .console-log .toggle-control').onchange = function (event) {
         if (currentSettings.advanced.enabled === false) {event.preventDefault();return;}
         currentSettings.advanced.settings.ConsoleLog.enabled = !currentSettings.advanced.settings.ConsoleLog.enabled;
         document.querySelector('#advanced .console-log').classList.toggle('dimmer');
-        logger.log(`Console log is now ${currentSettings.advanced.settings.ConsoleLog.enabled ? 'enabled' : 'disabled'}`);
+        Logger.log(`Console log is now ${currentSettings.advanced.settings.ConsoleLog.enabled ? 'enabled' : 'disabled'}`);
     };
     document.querySelector('#advanced .default-player select').onchange = function () {
         currentSettings.advanced.settings.DefaultPlayer.player = document.querySelector('#advanced .default-player select').value;
-        logger.log(`Default player is now ${currentSettings.advanced.settings.DefaultPlayer.player}`);
+        Logger.log(`Default player is now ${currentSettings.advanced.settings.DefaultPlayer.player}`);
     };
     document.querySelector('#advanced .dlname textarea').oninput = function () {
         currentSettings.advanced.downloadName = document.querySelector('#advanced .dlname textarea').value;
-        logger.log(`Download name is now ${currentSettings.advanced.downloadName}`);
+        Logger.log(`Download name is now ${currentSettings.advanced.downloadName}`);
     };
     document.querySelector('#advanced .plyr-setting .toggle-control').onchange = function (event) {
         if (currentSettings.advanced.enabled === false) {event.preventDefault();return;}
@@ -151,7 +155,7 @@ function addAdvancedListeners() {
         document.getElementById('plyr-design-test').classList.toggle('dimmer');
         document.querySelectorAll(`#advanced .plyr-setting input:not(#plyr-design-enabled),#plyr-design-test button,#plyr-design-test input`).forEach(input => {input.disabled = !currentSettings.advanced.plyr.design.enabled});
         loadCustomCss();
-        logger.log(`Plyr design is now ${currentSettings.advanced.plyr.design.enabled ? 'enabled' : 'disabled'}`);
+        Logger.log(`Plyr design is now ${currentSettings.advanced.plyr.design.enabled ? 'enabled' : 'disabled'}`);
     };
     document.querySelectorAll('#advanced .color input[type="color"]').forEach(input => {
         input.oninput = function () {
@@ -161,7 +165,7 @@ function addAdvancedListeners() {
             const opacity = document.querySelector(`#advanced .color input[type="range"][data-id="${dataid}"]#${id}`).value;
             document.body.style.setProperty(`--${id}`, `${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`);
             currentSettings.advanced.plyr.design.settings[dataid] = `${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`;
-            logger.log(`Plyr design ${dataid} is now ${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`);
+            Logger.log(`Plyr design ${dataid} is now ${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`);
          };
     });
     document.querySelectorAll('#advanced .color input[type="range"]').forEach(input => {
@@ -172,7 +176,7 @@ function addAdvancedListeners() {
             const opacity = input.value;
             document.body.style.setProperty(`--${id}`, `${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`);
             currentSettings.advanced.plyr.design.settings[dataid] = `${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`;
-            logger.log(`Plyr design ${dataid} is now ${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`);
+            Logger.log(`Plyr design ${dataid} is now ${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`);
         };
     });
 }
@@ -233,7 +237,7 @@ function addListeners() {
             document.querySelectorAll(`.${id} input[type="number"], .${id} input[type="text"]`).forEach(input => {
                 input.disabled = !currentSettings[id].enabled;
             });
-            logger.log(`Setting ${id} is now ${currentSettings[id].enabled ? 'enabled' : 'disabled'}`);
+            Logger.log(`Setting ${id} is now ${currentSettings[id].enabled ? 'enabled' : 'disabled'}`);
         };
     });
 
@@ -242,7 +246,7 @@ function addListeners() {
             const id = input.id.split('-')[0];
             currentSettings[id].time = parseInt(input.value) || 0;
             if (currentSettings[id].time < 0) currentSettings[id].time = 0;
-            logger.log(`Setting ${id} time is now ${currentSettings[id].time}`);
+            Logger.log(`Setting ${id} time is now ${currentSettings[id].time}`);
         };
     });
 
@@ -257,7 +261,7 @@ function addListeners() {
                 key: event.key
             };
             input.value = keyBindRender(currentSettings[id].keyBind);
-            logger.log(`Setting ${id} key is now ${keyBindRender(currentSettings[id].keyBind)}`);
+            Logger.log(`Setting ${id} key is now ${keyBindRender(currentSettings[id].keyBind)}`);
         }
     });
 }
@@ -269,6 +273,11 @@ function resetPage() {
     addAdvancedListeners();
     addMenu();
     loadCustomCss();
+    handleResume();
+    if (currentSettings.advanced.enabled === false) {
+        document.querySelectorAll(`#advanced input:not(#advanced-enabled), #advanced select, #advanced textarea, #advanced button`).forEach(input => {input.disabled = true;});
+        document.querySelector('#advanced').classList.add('dimmer');
+    }
 }
 function loadCustomCss() {
     if (currentSettings.advanced.enabled && currentSettings.advanced.plyr.design.enabled) {
@@ -280,10 +289,28 @@ function loadCustomCss() {
             --plyr-video-control-color-hover: ${currentSettings.advanced.plyr.design.settings.hoverColor};
         }
         `);
-        logger.log("Custom CSS loaded.");
+        Logger.log("Custom CSS loaded.");
     } else {
         MA.removeCSS();
-        logger.log("Custom CSS removed.");
+        Logger.log("Custom CSS removed.");
+    }
+}
+function handleResume() {
+    let resume = document.querySelector('.resume .checkbox');
+    if (resume) {
+        let dropdown = document.createElement('select');
+        dropdown.id = 'resume-dropdown';
+        dropdown.className = 'dropdown';
+        resume.after(dropdown);
+        dropdown.innerHTML += `
+            <option value="ask">Kérdezzen rá minden alkalommal</option>
+            <option value="auto">Automatikusan folytassa</option>
+        `;
+        dropdown.value = currentSettings.resume.mode;
+        dropdown.onchange = function () {
+            currentSettings.resume.mode = dropdown.value;
+            Logger.log(`Resume mode is now ${currentSettings.resume.mode}`);
+        };
     }
 }
 window.addEventListener('DOMContentLoaded', () => {

@@ -1,5 +1,5 @@
 import {footer, header} from "../commons";
-import {bookmarks, popup} from "../../API";
+import {Bookmarks, Popup} from "../../API";
 let bookmarksData = [];
 function init() {
     document.body.innerHTML = `
@@ -18,7 +18,7 @@ function init() {
     `;
 }
 function renderBookmarks(search = '') {
-    const bookmarksData = bookmarks.getBookmarks().filter(bookmark => bookmark.title.toLowerCase().includes(search.toLowerCase()));
+    const bookmarksData = Bookmarks.getBookmarks().filter(bookmark => bookmark.title.toLowerCase().includes(search.toLowerCase()));
     let html = '';
     for (const bookmark of bookmarksData) {
         html += `<div class="bookmark-card">
@@ -46,7 +46,7 @@ function renderBookmarks(search = '') {
 function search() {
     let timeout;
     function updateIndicator(isLoading) {
-        document.querySelector('.indicator i').className = isLoading ? 'fas fa-spinner spin' : 'fas fa-search';
+        document.querySelector('.indicator').innerHTML = isLoading ? '<i class="fas fa-spinner spin"></i>' : '<i class="fas fa-search"></i>';
     }
     document.getElementById('search').oninput = function () {
         updateIndicator(true);
@@ -70,23 +70,23 @@ function addListeners() {
         button.onclick = function () {
             const [action, id] = button.id.split('-');
             if (action === 'bookmark') {
-                bookmarks.openBookmark(parseInt(id));
+                Bookmarks.openBookmark(parseInt(id));
             } else if (action === 'delete') {
-                bookmarks.deleteBookmark(parseInt(id)).then(() => {
-                    popup.showSuccessPopup('Könyvjelző törölve.');
-                    bookmarksData = bookmarks.getBookmarks();
+                Bookmarks.deleteBookmark(parseInt(id)).then(() => {
+                    Popup.showSuccessPopup('Könyvjelző törölve.');
+                    bookmarksData = Bookmarks.getBookmarks();
                     button.parentElement.parentElement.remove();
                     addListeners();
                 }).catch(error => {
-                    logger.error(`Hiba történt a könyvjelző törlése során. ${error}`);
-                    popup.showErrorPopup('Hiba történt a könyvjelző törlése során.');
+                    Logger.error(`Hiba történt a könyvjelző törlése során. ${error}`);
+                    Popup.showErrorPopup('Hiba történt a könyvjelző törlése során.');
                 });
             }
         };
     });
 }
 document.addEventListener('DOMContentLoaded', function () {
-    bookmarks.loadBookmarks().then((data) => {
+    Bookmarks.loadBookmarks().then((data) => {
         bookmarksData = data;
         init();
         search();

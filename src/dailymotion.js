@@ -1,4 +1,4 @@
-import {MAT, logger} from "./API";
+import {MAT, Logger} from "./API";
 window.addEventListener('message', async function (event) {
     if (event.data && event.data.plugin === MAT.__NAME__) {
         if (event.data.type === MAT.__ACTIONS__.GET_SOURCE_URL) {
@@ -16,12 +16,12 @@ async function getM3U8FileURL() {
     const url = window.location.href;
     const mediaID = extractMediaID(url);
     if (!mediaID) {
-        logger.error('[dailymotion.js] Media ID could not be extracted');
+        Logger.error('[dailymotion.js] Media ID could not be extracted');
         return null;
     }
     const videoData = await getVideoData(mediaID);
     if (!videoData) {
-        logger.error('[dailymotion.js] Video data could not be fetched');
+        Logger.error('[dailymotion.js] Video data could not be fetched');
         return null;
     }
     return videoData.qualities.auto[0].url;
@@ -93,12 +93,12 @@ function extractMediaID(url) {
 async function getData() {
     let M3U8url = await getM3U8FileURL();
     if (!M3U8url) {
-        logger.error('[dailymotion.js] M3U8 file URL could not be fetched');
+        Logger.error('[dailymotion.js] M3U8 file URL could not be fetched');
         return null;
     }
     let M3U8file = await getM3U8File(M3U8url);
     if (!M3U8file) {
-        logger.error('[dailymotion.js] M3U8 file could not be fetched');
+        Logger.error('[dailymotion.js] M3U8 file could not be fetched');
         return null;
     }
     return parseVideoData(M3U8file);
