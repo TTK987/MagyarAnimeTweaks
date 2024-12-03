@@ -827,10 +827,9 @@ function setupEventListeners() {
     window.addEventListener("load", function () {
         if (document.body.innerHTML.includes("Karbantartás")) {
             Logger.error("MagyarAnime is under maintenance.");
-
+            Popup.showErrorPopup("A MagyarAnime karbantartás alatt van. Kérlek próbáld meg később. És lehetőleg légy türelmes, amíg a karbantartás tart.", 100000);
             return;
         }
-        Popup.showErrorPopup("A MagyarAnime karbantartás alatt van. Kérlek próbáld meg később.<br>És lehetőleg légy türelmes, amíg a karbantartás tart.", 100000);
         addSettingsButton();
         handleA();
     });
