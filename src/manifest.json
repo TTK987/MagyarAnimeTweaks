@@ -8,7 +8,6 @@
     "contextMenus",
     "downloads",
     "tabs",
-    "activeTab",
     "declarativeNetRequest"
   ],
   "host_permissions": [
