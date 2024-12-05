@@ -36,11 +36,11 @@ A kiegészítőt a [MagyarAnime.eu](https://magyaranime.eu/) / [MagyarAnime.hu](
 
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png "Előnézet")
 
-## Jelenlegi Verzió: 0.1.7.5
+## Jelenlegi Verzió: 0.1.8
 
-**v0.1.7.5 Letölthető:**
-- **Firefox: _[v0.1.7.5](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)_** (firefox addons)
-- **Minden más: _[v0.1.7.5](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (chrome web store)
+**v0.1.8 Letölthető:**
+- **Firefox: _[v0.1.8](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)_** (firefox addons)
+- **Minden más: _[v0.1.8](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (chrome web store)
 
 ## Funkciók
 - plyr.io (képen látható) videólejátszó használata, ezzel reklámok nélkül nézheted az animéket.
@@ -52,6 +52,8 @@ A kiegészítőt a [MagyarAnime.eu](https://magyaranime.eu/) / [MagyarAnime.hu](
   - 'Alt + Jobbra nyíl' - Következő rész.
   - 'Alt + Balra nyíl' - Előző rész.
 - Automatikus ugrás a következő részre, ha az előző véget ért. (Vagy X idővel az előző rész vége előtt.)
+- Könyvjelzők.
+- Rész folytatása ahol abbahagytad.
 - Mindent be lehet állítani a kiegészítő beállításaiban. [Beállításokról bővebben](SETTINGS.md)
 - És még sok más...
 
