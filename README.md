@@ -10,7 +10,8 @@
 ![Mozilla Add-on Downloads](https://img.shields.io/amo/dw/magyaranimetweaks?style=flat&logo=firefox&logoColor=3F9FFF&label=Let%C3%B6lt%C3%A9sek&labelColor=182031&color=3F9FFF)
 
 ![GitHub Downloads](https://img.shields.io/github/downloads/TTK987/MagyarAnimeTweaks/total?style=flat&logo=github&logoColor=%233F9FFF&label=Let%C3%B6lt%C3%A9sek&labelColor=%23182031&color=%233F9FFF)
-![GitHub manifest version](https://img.shields.io/github/manifest-json/v/TTK987/MagyarAnimeTweaks?filename=src%2Fmanifest.json&style=flat&logo=github&logoColor=3F9FFF&label=Verzi%C3%B3&labelColor=182031&color=3F9FFF)
+![GitHub Tag](https://img.shields.io/github/v/tag/TTK987/MagyarAnimeTweaks?style=flat&logo=github&logoColor=3F9FFF&label=Verzi%C3%B3&labelColor=182031&color=3F9FFF)
+
 
 ![Chrome Support](https://img.shields.io/badge/Chrome-Támogatott-blue?logo=googlechrome&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
 ![Firefox Support](https://img.shields.io/badge/Firefox-Támogatott-blue?logo=firefox&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
