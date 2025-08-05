@@ -1,0 +1,21 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": false,
+        "jquery": false,
+        "webextensions": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "rules": {
+        "eqeqeq": ["warn", "always"],
+        "indent": ["error", 4],
+        "no-control-regex": "off",
+        "no-empty": "off",
+        "sort-imports": "warn",
+        "strict": "warn"
+    }
+}

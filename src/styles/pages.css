@@ -1,0 +1,100 @@
+@import 'tailwindcss';
+@import 'tailwindcss/utilities';
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap');
+@import 'plyr/dist/plyr.css';
+@tailwind utilities;
+
+:root {
+    --primary-color: #3f9fff;
+    --secondary-color: #60b0ff;
+    --background-color: #182031;
+    --nav-color: #0a0e17;
+    --text-color: #fff;
+    --dark: #000;
+    --light: var(--text-color);
+    --darker-primary: #205daa;
+    --card-color: #182031;
+    --primarydark-color: var(--card-color);
+    --bg-color: #263143;
+    --dark-color: var(--nav-color);
+    --card-bg-color: #1c2533;
+    --card-border-color: var(--primary-color);
+    --button-bg-color: var(--primary-color);
+    --button-hover-bg-color: #1c7ed6;
+    --button-text-color: var(--text-color);
+
+    --primary: 210, 100%, 62%;
+    --muted: 210, 100%, 20%;
+
+    --radius: 8px;
+}
+
+body {
+    margin: 0;
+    font-family: 'Fira Code', monospace;
+    background-color: var(--background-color);
+    color: #f3f4f6;
+}
+
+header .container,
+footer .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+    display: flex;
+    width: 100%;
+    align-content: center;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #4b5563;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+::-webkit-scrollbar-corner {
+    background: #1f2937;
+}
+
+::-webkit-resizer {
+    display: none;
+}
+
+
+@-moz-document url-prefix() {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+    }
+}

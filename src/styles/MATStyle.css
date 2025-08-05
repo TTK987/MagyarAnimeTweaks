@@ -1,0 +1,215 @@
+.plyr__progress__marker,
+.plyr__progress__buffer {
+    top: 9.5px !important;
+}
+
+
+@media (max-width: 992px) {
+    .Btn {
+        width: calc(100% - 10px);
+    }
+}
+@media (max-width: 991px) {
+    .Btn {
+        width: calc(50% - 10px);
+    }
+}
+@media (max-width: 480px) {
+    .Btn {
+        width: calc(100% - 10px);
+    }
+}
+
+
+#DailyLimits {
+    color: #f8f9fa;
+    margin: 0 auto;
+}
+
+#DailyLimits button[id="prevBtn"],
+#DailyLimits button[id="nextBtn"],
+#DailyLimits button[id="datasheetBtn"] {
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    box-sizing: border-box;
+
+    display: inline-block;
+    padding: 2px 5px;
+    min-width: 115px;
+    background-color: #2d2d3f;
+    color: #f8f9fa !important;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    border: 1px solid #3d3d5c;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    margin-bottom: 3px;
+    margin-right: 3px;
+    width: calc(50% - 10px);
+    min-height: 30px;
+}
+
+#DailyLimits button[id="datasheetBtn"] {
+    width: calc(100% - 10px);
+    min-width: 0;
+    margin-right: 0;
+}
+
+#DailyLimits button[id="prevBtn"],
+#DailyLimits button[id="nextBtn"],
+#DailyLimits button[id="datasheetBtn"] {
+    background-color: #0a0e17;
+    border: 1px solid rgba(32, 93, 170, 0.3);
+    color: white;
+}
+
+#DailyLimits button[id="prevBtn"]:hover,
+#DailyLimits button[id="nextBtn"]:hover,
+#DailyLimits button[id="datasheetBtn"]:hover {
+    background-color: #1a1f2e;
+    border-color: rgba(32, 93, 170, 0.5);
+}
+
+/* the "!important" is used to override the default styles, and because I'm too lazy to find a better way to do it */
+.mat-servers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3px;
+    margin-bottom: 1rem;
+}
+
+.mat-server-btn {
+    align-items: center !important;
+    gap: 0.5rem !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    display: inline-block !important;
+    padding: 2px 5px !important;
+    min-width: 115px !important;
+    background-color: #2d2d3f !important;
+    color: #f8f9fa !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    border: 1px solid #3d3d5c !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    white-space: nowrap !important;
+    min-height: 30px !important;
+    width: 100% !important;
+}
+
+.mat-server-btn:hover {
+    background-color: #1a1f2e !important;
+    border-color: rgba(32, 93, 170, 0.5) !important;
+}
+
+.mat-server-btn.mat-server-active {
+    background: #1e40af !important;
+    border: 1px solid #1e40af !important;
+}
+
+.mat-server-btn.mat-server-active:hover {
+    background: #1e3a8a !important;
+    border-color: #1e3a8a !important;
+}
+
+.mat-server-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.mat-server-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mat-server-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.mat-server-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mat-action-buttons {
+    display: flex !important;
+    gap: 0.5rem !important;
+    margin-top: 0.5rem !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+}
+
+.mat-action-btn {
+    align-items: center !important;
+    gap: 0.5rem !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+
+    display: inline-block !important;
+    padding: 2px 5px !important;
+    min-width: 115px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    width:  calc(50% - 10px) !important;
+    min-height: 30px !important;
+}
+
+.mat-download-btn {
+    background: #0891b2 !important;
+    border: 1px solid #0891b2 !important;
+}
+
+.mat-download-btn:hover {
+    background: #0e7490 !important;
+    border-color: #0e7490 !important;
+}
+
+.mat-error-btn {
+    background: #dc2626 !important;
+    border: 1px solid #dc2626 !important;
+}
+
+.mat-error-btn:hover {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
+}
+
+.mat-btn-icon {
+    width: 1rem !important;
+    height: 1rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+    .mat-servers-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .mat-action-buttons {
+        flex-direction: column !important;
+    }
+
+    .mat-action-btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+}
