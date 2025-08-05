@@ -14,7 +14,7 @@
 
 
 ![Chrome Support](https://img.shields.io/badge/Chrome-Támogatott-blue?logo=googlechrome&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
-![Firefox Support](https://img.shields.io/badge/Firefox-Támogatott-blue?logo=firefox&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
+![Firefox Support](https://img.shields.io/badge/Firefox-v0.1.9_Nem_Támogatott-blue?logo=firefox&logoColor=%233F9FFF&labelColor=%23182031&color=%23eb4034&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
 ![Opera Support](https://img.shields.io/badge/Opera-Támogatott-blue?logo=opera&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
 ![Opera GX Support](https://img.shields.io/badge/Opera_GX-Támogatott-blue?logo=operagx&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
 ![Brave Support](https://img.shields.io/badge/Brave-Támogatott-blue?logo=brave&logoColor=%233F9FFF&labelColor=%23182031&color=%23238716&link=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fmagyaranimetweaks%2Fkpaljcmdlnbnebockdplokocfgegiaia)
