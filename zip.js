@@ -57,7 +57,7 @@ function logSuccess(text) {
 
 const require = createRequire(import.meta.url)
 const manifest = require('./build/manifest.json')
-const browser = process.argv[2] || 'chrome'
+const browser = 'chrome'
 const isDev = process.env.NODE_ENV === 'development'
 
 function getFormattedTimestamp(date) {
@@ -66,7 +66,7 @@ function getFormattedTimestamp(date) {
 }
 
 const timestamp = getFormattedTimestamp(new Date())
-const sourceDir = browser === 'firefox' ? 'dist_firefox' : 'dist_chrome'
+const sourceDir = path.resolve('build')
 const outputName = `${manifest.name.replaceAll(' ', '-')}-v${manifest.version}-${browser}${isDev ? '-dev' : ''}-${timestamp}.zip`
 
 logHeader(`${symbols.sparkles}   MagyarAnimeTweaks V${manifest.version}  ${symbols.sparkles} `)
