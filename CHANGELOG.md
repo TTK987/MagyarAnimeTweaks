@@ -1,5 +1,11 @@
 # Verziók
 
+
+## 0.1.9.1
+
+- **Bugfix**:
+    -  Chrome alatt instabil betöltés (bizonyos esetekben nem tudott betöltani a bővítmény)
+
 ## 0.1.9
 
 - **FIREFOX TÁMOGATÁS**
