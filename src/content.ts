@@ -14,7 +14,21 @@ import IFramePlayerComm from "./player/IFrameComm";
 import {download, downloadHLS} from "./downloads";
 
 
-loadSettings().then(() => initializeExtension()).catch((error) => Logger.error('Error while loading settings: ' + error, true))
+
+
+let settings: SettingsV019 = MAT.getDefaultSettings()
+let MA: MagyarAnime = new MagyarAnime(document, window.location.href)
+let isRoadblockCalled = false
+let currentServer = 's1'
+let csrfToken = ''
+let Player: NativePlayer | HLSPlayer | undefined = undefined
+let IFrameComm: IFramePlayerComm | undefined = undefined
+let currentServerData: ServerResponse | undefined = undefined
+let epSwitchCooldown = false
+let downloadCooldown = false
+
+window.addEventListener('load', () => { loadSettings().then(() => initializeExtension()).catch((error) => Logger.error('Error while loading settings: ' + error, true)) })
+
 function loadSettings(): Promise<boolean> {
     return new Promise((resolve: (value: boolean) => void, reject: (reason?: any) => void) => {
         MAT.loadSettings()
@@ -37,17 +51,15 @@ function loadSettings(): Promise<boolean> {
     })
 }
 
-let settings: SettingsV019 = MAT.getDefaultSettings()
-let MA: MagyarAnime = new MagyarAnime(document, window.location.href)
-let isRoadblockCalled = false
-let currentServer = 's1'
-let csrfToken = ''
-let Player: NativePlayer | HLSPlayer | undefined = undefined
-let IFrameComm: IFramePlayerComm | undefined = undefined
-let currentServerData: ServerResponse | undefined = undefined
-let epSwitchCooldown = false
-let downloadCooldown = false
-
+function initializeExtension() {
+    if (MA.isMaintenancePage()) MaintenancePage()
+    else {
+        addSettingsButton()
+        if (MA.isEpisodePage) EpisodePage()
+        else if (MA.isDatasheetPage) DatasheetPage()
+    }
+    Logger.success('Extension initialized.')
+}
 
 const ERROR_CODES = {
     CSRF: {
@@ -135,17 +147,6 @@ function handleError(area: keyof typeof ERROR_CODES, type: string, customMessage
     showError(`Hiba történt: ${message}`, schema);
 }
 
-function initializeExtension() {
-    window.addEventListener('DOMContentLoaded', function () {
-        if (MA.isMaintenancePage()) MaintenancePage()
-        else {
-            addSettingsButton()
-            if (MA.isEpisodePage) EpisodePage()
-            else if (MA.isDatasheetPage) DatasheetPage()
-        }
-    })
-    Logger.success('Extension initialized.')
-}
 
 function MaintenancePage() {
     Logger.error('MagyarAnime is under maintenance.')

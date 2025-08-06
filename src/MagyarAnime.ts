@@ -33,7 +33,7 @@ class MagyarAnime {
      * @returns {Boolean} Whether the page is a maintenance page or not
      */
     isMaintenancePage(): boolean {
-        return /karbantartás/gms.test(<string>this.document.querySelector("h3")?.innerText.toLowerCase())
+        return /karbantartás/gms.test(<string>this.document.querySelector("h3")?.innerText.toLowerCase()) || false
     }
 
     /**
