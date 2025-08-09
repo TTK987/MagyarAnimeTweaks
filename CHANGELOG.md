@@ -9,7 +9,7 @@
     - Videa letöltési hiba javítása.
     - Szerver váltás után az event listenerek egymásra rakódása.
         - Ez azt jelenti, hogy ha a szerver váltás után a háttérben futó kód többször is meg lett hívva.
-    - Az `következő rész` / `előző rész` gombok használata után nem megfelelő muködés a részek számának lekérdezésekor.
+    - A `következő rész` / `előző rész` gombok használata után nem megfelelő muködés a rész számának lekérdezésekor.
 - Egyéb:
   - `következő rész` / `előző rész` gombok használata után várni kell 3 másodpercet, mielőtt újra használhatóak lesznek.
   - A szerver váltás közben egy töltési animáció jelenik meg, amíg a háttérben a kód le nem fut.

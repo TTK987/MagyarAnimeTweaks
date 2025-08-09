@@ -35,7 +35,7 @@ A kiegészítőt a [MagyarAnime.eu](https://magyaranime.eu/) / [MagyarAnime.hu](
 **v0.1.8 Letölthető:**
 
 - **Firefox: _[v0.1.8](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)_** (firefox addons)
-- **Minden más: _[v0.1.9.1](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (chrome web store)
+- **Minden más: _[v0.1.9.2](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (chrome web store)
 
 ## Funkciók
 
