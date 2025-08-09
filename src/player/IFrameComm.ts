@@ -4,6 +4,8 @@ import {EpisodeVideoData, FansubData} from "../global";
 class IFramePlayerComm {
     private isIFrameLoaded: boolean
     public IFrame: Window | null | undefined
+    private messageListener: (event: MessageEvent) => void
+    private activeResponseHandlers: Set<(event: MessageEvent) => void>
 
     /**
      * The IFramePlayerComm class is responsible for handling communication with the IFrame player instance.
@@ -12,7 +14,10 @@ class IFramePlayerComm {
     constructor() {
         this.IFrame = document.querySelector('iframe')?.contentWindow
         this.isIFrameLoaded = true
+        this.activeResponseHandlers = new Set()
 
+        // Bind the message listener to maintain proper 'this' context
+        this.messageListener = this.MSGListeners.bind(this)
         this.addMSGListeners()
     }
 
@@ -20,15 +25,16 @@ class IFramePlayerComm {
      * Adds message event listeners to handle communication with the IFrame.
      */
     addMSGListeners() {
-        window.addEventListener('message', (event: MessageEvent) => {
-            if (event.data && event.data.type) {
-                this.MSGListeners(event)
-            }
-        })
+        window.addEventListener('message', this.messageListener)
     }
 
     removeMSGListeners() {
-        window.removeEventListener('message', this.MSGListeners.bind(this))
+        window.removeEventListener('message', this.messageListener)
+        // Clean up any active response handlers
+        this.activeResponseHandlers.forEach(handler => {
+            window.removeEventListener('message', handler)
+        })
+        this.activeResponseHandlers.clear()
     }
 
     private MSGListeners(event: MessageEvent) {
@@ -256,10 +262,20 @@ class IFramePlayerComm {
                 const result = responseHandler(event)
                 if (result !== undefined) {
                     window.removeEventListener('message', handler)
+                    this.activeResponseHandlers.delete(handler)
                     return result
                 }
             }
+            this.activeResponseHandlers.add(handler)
             window.addEventListener('message', handler)
+
+            // Add timeout to clean up handler if no response is received
+            setTimeout(() => {
+                if (this.activeResponseHandlers.has(handler)) {
+                    window.removeEventListener('message', handler)
+                    this.activeResponseHandlers.delete(handler)
+                }
+            }, 10000) // 10 second timeout
         }
         this.IFrame?.postMessage({type: action, ...data}, '*')
     }

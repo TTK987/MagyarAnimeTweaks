@@ -26,8 +26,40 @@ let IFrameComm: IFramePlayerComm | undefined = undefined
 let currentServerData: ServerResponse | undefined = undefined
 let epSwitchCooldown = false
 let downloadCooldown = false
+let isInitialized = false
+let vData: EpisodeVideoData[] = []
 
-window.addEventListener('load', () => { loadSettings().then(() => initializeExtension()).catch((error) => Logger.error('Error while loading settings: ' + error, true)) })
+if (window.location.href.includes("inda-play")) {
+    loadSettings().then(() => {
+            MA = new MagyarAnime(document, window.location.href)
+            IFrameComm = new IFramePlayerComm();
+            IFrameComm.onFrameLoaded = () => {
+                IFrameComm!.IFrame = (document.querySelector("iframe") as HTMLIFrameElement).contentWindow as Window;
+                IFrameComm!.getVideoData().then((videoData) => {
+                    if (videoData.length === 0) {
+                        handleError("VIDEO", "DATA_ERROR", "Indavideo videó adatok nem találhatók az iframe-ben.");
+                        return;
+                    }
+                    vData = videoData;
+                })
+            }
+        }
+    ).catch((error) => {
+        Logger.error('Error while loading settings: ' + error, true)
+    })
+}
+
+window.addEventListener('load', () => {initializeExtension()})
+window.addEventListener('readystatechange', (event: Event) => {
+    if (document.readyState === 'complete') {
+        Logger.log('Document is fully loaded.');
+        initializeExtension()
+    }
+})
+if (document.readyState === 'complete') {
+    Logger.log('Document is already fully loaded.');
+    initializeExtension()
+}
 
 function loadSettings(): Promise<boolean> {
     return new Promise((resolve: (value: boolean) => void, reject: (reason?: any) => void) => {
@@ -52,13 +84,20 @@ function loadSettings(): Promise<boolean> {
 }
 
 function initializeExtension() {
-    if (MA.isMaintenancePage()) MaintenancePage()
-    else {
-        addSettingsButton()
-        if (MA.isEpisodePage) EpisodePage()
-        else if (MA.isDatasheetPage) DatasheetPage()
-    }
-    Logger.success('Extension initialized.')
+    if (isInitialized) return
+    isInitialized = true
+    loadSettings().then(() => {
+        if (MA.isMaintenancePage()) MaintenancePage()
+        else {
+            addSettingsButton()
+            if (MA.isEpisodePage) EpisodePage()
+            else if (MA.isDatasheetPage) DatasheetPage()
+        }
+        Logger.success('Extension initialized.')
+    }).catch((error) => {
+        Logger.error('Error while initializing extension: ' + error, true)
+        showError('Hiba történt az kiterjesztés inicializálása közben.', 'EP' + MA.EPISODE.getId() + '-INIT-001')
+    })
 }
 
 const ERROR_CODES = {
@@ -128,6 +167,26 @@ function genErrorSchema(area: string, shortcode: string, errorCode: string): str
     return `EP${MA.EPISODE.getId()}-${currentServer.toUpperCase()}-${area}-${shortcode}-${errorCode}`;
 }
 
+
+function clearVideoPlayer() {
+    const videoPlayer = document.querySelector("#VideoPlayer") as HTMLDivElement;
+    if (!videoPlayer) return;
+
+    videoPlayer.innerHTML = `
+        <div class="mat-player-loading" role="status" aria-live="polite" aria-label="Videó betöltése">
+            <div class="mat-pl-shimmer" aria-hidden="true"></div>
+            <div class="mat-pl-spinner" aria-hidden="true"></div>
+            <div class="mat-pl-title">Videó betöltése...</div>
+            <div class="mat-pl-subtitle">Linkek lekérdezése...</div>
+            <div class="mat-pl-dots" aria-hidden="true">
+                <span class="mat-pl-dot"></span>
+                <span class="mat-pl-dot"></span>
+                <span class="mat-pl-dot"></span>
+            </div>
+        </div>
+`;
+}
+
 function handleError(area: keyof typeof ERROR_CODES, type: string, customMessage?: string): void {
     const errorCode = ERROR_CODES[area][type as keyof typeof ERROR_CODES[typeof area]] || "999";
     const message = customMessage || ERROR_MESSAGES[area][type as keyof typeof ERROR_MESSAGES[typeof area]] || "Ismeretlen hiba történt.";
@@ -139,9 +198,6 @@ function handleError(area: keyof typeof ERROR_CODES, type: string, customMessage
     IFrameComm?.removeMSGListeners()
     IFrameComm = undefined;
     removeIFrameEventListeners();
-    document.querySelector("#VideoPlayer")!.innerHTML = "";
-
-
 
     Logger.error(message);
     showError(`Hiba történt: ${message}`, schema);
@@ -212,7 +268,26 @@ function EpisodePage() {
     Resume.loadData().then(() => Logger.success('Resume data loaded.'))
 
     // Fix some CSS issues
-    MA.addCSS(`#lejatszo, #indavideoframe {max-width: 100%;}`)
+    MA.addCSS(`#lejatszo, #indavideoframe {max-width: 100%;} .plyr {max-width: 100%; width: 100%; height: 100%;}`);
+
+    if (vData.length > 0) {
+        Logger.log("Using indavideo/videa iframe data for video playback.");
+        loadHTML5Player({
+            error: '',
+            videoid: 0,
+            servers: [],
+            output: '',
+            hls: false,
+            hls_url: '',
+            needRefleshPage: false,
+            daily_limit: '',
+            download_link: '',
+            button_vid_prev: 0,
+            button_vid_next: 0,
+            button_aid: 0
+        }, vData);
+        return;
+    }
 
     loadVideo(currentServer, Number((document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute('data-vid')))
     let listener = (visibilityEvent: Event) => {
@@ -390,7 +465,7 @@ function loadVideo(server: string, vid: number) {
 
     getServerResponse(server, vid)
         .then((data: ServerResponse) => {
-            handleServerResponse(data, server);
+            handleServerResponse(data);
         })
         .catch((error) => {
             handleError("PLAYER", "LOAD_ERROR", `Videó betöltési hiba: ${error}`);
@@ -419,7 +494,7 @@ function decidePlayerType(data: ServerResponse): "HLS" | "HTML5" | "indavideo" |
     return "Unknown";
 }
 
-function handleServerResponse(data: ServerResponse, server: string) {
+function handleServerResponse(data: ServerResponse) {
     setDailyLimit(data);
     setServers(data);
 
@@ -442,7 +517,7 @@ function handleServerResponse(data: ServerResponse, server: string) {
     IFrameComm?.removeMSGListeners()
     IFrameComm = undefined;
     removeIFrameEventListeners();
-    document.querySelector("#VideoPlayer")!.innerHTML = "";
+    clearVideoPlayer();
 
 
     switch (decidePlayerType(data)) {
@@ -614,7 +689,7 @@ function loadIFramePlayer(data: ServerResponse) {
     iframe.setAttribute('type', 'text/html');
     IFrameComm.IFrame = iframe.contentWindow
 
-    document.querySelector("#VideoPlayer")!.innerHTML = ""
+    document.querySelector("#VideoPlayer")!.innerHTML = '';
     document.querySelector("#VideoPlayer")?.appendChild(iframe);
     IFrameComm.IFrame = (document.querySelector("#indavideoframe") as HTMLIFrameElement).contentWindow as Window;
 
@@ -681,7 +756,9 @@ function loadHTML5Player(data: ServerResponse, qualityData?: EpisodeVideoData[])
         videoData = qualityData;
     }
 
-    document.querySelector("#VideoPlayer")!.innerHTML = genVideoHTML(videoData);
+    let element = document.querySelector("#VideoPlayer") as HTMLDivElement || document.querySelector(".gen-video-holder") as HTMLDivElement;
+
+    element.innerHTML = genVideoHTML(videoData);
     Player = new NativePlayer(
         "#player",
         videoData,
@@ -703,16 +780,17 @@ function loadHTML5Player(data: ServerResponse, qualityData?: EpisodeVideoData[])
             downloadCooldown = false;
         }, 5000);
 
-        let currentVideoData = videoData.find(video => video.quality ===  Player!.plyr.quality);
-        if (!currentVideoData) {
+
+        if (!Player || !Player.curQuality) {
             handleError("VIDEO", "DOWNLOAD_ERROR", "Aktuális videó adatok nem találhatók.");
             return;
         }
+
         download(
-            currentVideoData.url,
+            Player.curQuality.url,
             MA.EPISODE.getTitle(),
             MA.EPISODE.getEpisodeNumber(),
-            currentVideoData.quality,
+            Player.curQuality.quality,
             MA.EPISODE.getFansub(),
             data.output.match(/indavideo/i) ? "Indavideo" : "Videa",
             MAT.settings.advanced.downloadName,
@@ -839,6 +917,11 @@ function setDailyLimit(data: ServerResponse) {
     if (data.daily_limit) {
         dailyLimit.innerHTML = data.daily_limit;
     }
+
+    // Remove any existing navigation buttons to prevent duplicates
+    const existingButtons = dailyLimit.querySelectorAll('.Btn, hr');
+    existingButtons.forEach(button => button.remove());
+
     let html = `
     <hr class="my-2" style="border: none; height: 2px; background: linear-gradient(to right, transparent, var(--primary-color), transparent);">
     ${data.button_vid_prev !== -1 ? `<button class="Btn prevBtn" id="prevBtn"><i class="fas fa-chevron-left"></i> Előző rész</button>` : `<button class="Btn prevBtn MAT_disabled" id="prevBtn"><i class="fas fa-ban"></i></button>`}
@@ -853,6 +936,30 @@ function setDailyLimit(data: ServerResponse) {
         const prevButton = document.querySelector("#prevBtn") as HTMLButtonElement
         if (prevButton) {
             prevButton.onclick = () => {
+                if (epSwitchCooldown) {
+                    Logger.warn("Episode switch cooldown is active, skipping previous episode action.");
+                    Toast.warning("Kérlek várj egy kicsit, mielőtt váltasz a részek között.", "", { duration: 3000 });
+                    return;
+                }
+                epSwitchCooldown = true;
+                setTimeout(() => {
+                    epSwitchCooldown = false;
+                }, 3000);
+
+                // "list-group-item videoChange active" move the "active" class to the previous button
+                const activeButton = document.querySelector(".videoChange.active") as HTMLButtonElement;
+                if (activeButton) {
+                    const epTags = activeButton.querySelector(".episode-tags");
+                    if (epTags && !epTags.querySelector(".watched")) {
+                        epTags.innerHTML += `<span class="watched">Láttam</span>`;
+                    }
+                    activeButton.classList.remove("active");
+                }
+                const prevButton = document.querySelector(".videoChange[data-vid='" + data.button_vid_prev + "']") as HTMLButtonElement;
+                if (prevButton) {
+                    prevButton.classList.add("active");
+                }
+
                 loadVideo(currentServer, data.button_vid_prev)
             }
         }
@@ -862,6 +969,30 @@ function setDailyLimit(data: ServerResponse) {
         const nextButton = document.querySelector("#nextBtn") as HTMLButtonElement
         if (nextButton) {
             nextButton.onclick = () => {
+                if (epSwitchCooldown) {
+                    Logger.warn("Episode switch cooldown is active, skipping next episode action.");
+                    Toast.warning("Kérlek várj egy kicsit, mielőtt váltasz a részek között.", "", { duration: 3000 });
+                    return;
+                }
+                epSwitchCooldown = true;
+                setTimeout(() => {
+                    epSwitchCooldown = false;
+                }, 3000);
+
+                // "list-group-item videoChange active" move the "active" class to the next button
+                const activeButton = document.querySelector(".videoChange.active") as HTMLButtonElement;
+                if (activeButton) {
+                   const epTags = activeButton.querySelector(".episode-tags");
+                   if (epTags && !epTags.querySelector(".watched")) {
+                       epTags.innerHTML += `<span class="watched">Láttam</span>`;
+                   }
+                    activeButton.classList.remove("active");
+                }
+                const nextButton = document.querySelector(".videoChange[data-vid='" + data.button_vid_next + "']") as HTMLButtonElement;
+                if (nextButton) {
+                    nextButton.classList.add("active");
+                }
+
                 loadVideo(currentServer, data.button_vid_next)
             }
         }

@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
-import terser from '@rollup/plugin-terser'
 
 // @ts-ignore
 import manifest from './src/manifest'
@@ -10,6 +9,7 @@ import manifest from './src/manifest'
 export default defineConfig(() => {
     return {
         build: {
+            minify: "esbuild",
             chunkSizeWarningLimit: 750,
             emptyOutDir: true,
             outDir: 'build',
@@ -37,12 +37,10 @@ export default defineConfig(() => {
         css: {
             postcss: './postcss.config.cjs',
         },
-        plugins: [crx({ manifest }), react(),
-        terser({
-            format: {
-                comments: false,
-            },
-        })],
+        plugins: [
+            crx({ manifest }),
+            react(),
+            ],
         legacy: {
             skipWebSocketTokenCheck: true,
         },

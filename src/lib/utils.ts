@@ -22,7 +22,8 @@ export function prettyFileSize(size: number): string {
 
 
 export function showError(text: string, errorId: string) {
-    const errorContainer = document.querySelector('#VideoPlayer')
+    const errorContainer = document.querySelector('#VideoPlayer') || document.querySelector('.gen-video-holder')
+
 
     if (!errorContainer) {
         Toast.error('Error', 'Error container not found. Please check your HTML structure.', {duration: 5000})

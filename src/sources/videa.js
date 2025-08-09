@@ -8,12 +8,28 @@ window.addEventListener('message', async function (event) {
         if (!qualityData || qualityData.length === 0) {
             Logger.warn('Quality data not found, trying to get it from the player', true);
             qualityData = await getQualityData();
-            window.parent.postMessage({type: MAT.__ACTIONS__.SOURCE_URL, data: qualityData}, '*');
+            window.parent.postMessage({type: MAT.__ACTIONS__.SOURCE_URL, data: makeQualityDataUrlNormal(qualityData)}, '*');
         } else {
-            window.parent.postMessage({type: MAT.__ACTIONS__.SOURCE_URL, data: qualityData}, '*');
+            window.parent.postMessage({type: MAT.__ACTIONS__.SOURCE_URL, data: makeQualityDataUrlNormal(qualityData)}, '*');
         }
     }
 });
+
+/**
+ * Function to make the quality data url normal
+ */
+function makeQualityDataUrlNormal(qualityData) {
+    let data = [];
+    qualityData.forEach((item) => {
+        if (item.url && item.quality) {
+            data.push({
+                url: item.url.startsWith('//') ? `https:${item.url}` : item.url,
+                quality: item.quality,
+            });
+        }
+    });
+    return data;
+}
 
 /**
  * Function to get the quality data
@@ -103,64 +119,56 @@ class VideaExtractor {
      * @param {String} url - The url to extract
      * @returns {Promise<Array>} The array of quality data
      */
-    extract(url) {
+    async extract(url) {
         try {
-            return this._download_webpage(url).then(video_page => {
-                let player_url;
-                if (url.includes('videa.hu/player')) {
-                    player_url = url;
-                } else {
-                    player_url = this._search_regex(/<iframe.*?src="(\/player\?[^"]+)"/, video_page, 'player url');
-                    player_url = new URL(player_url, url).href;
+            const video_page = await this._download_webpage(url);
+            let player_url;
+            if (url.includes('videa.hu/player')) {
+                player_url = url;
+            } else {
+                player_url = this._search_regex(/<iframe.*?src="(\/player\?[^"]+)"/, video_page, 'player url');
+                player_url = new URL(player_url, url).href;
+            }
+            const player_page = await this._download_webpage(player_url);
+            const nonce = this._search_regex(/_xt\s*=\s*"([^"]+)"/, player_page, 'nonce');
+            const l = nonce.slice(0, 32);
+            const s = nonce.slice(32);
+            let result = '';
+            for (let i = 0; i < 32; i++) {
+                result += s[i - (this._STATIC_SECRET.indexOf(l[i]) - 31)];
+            }
+            const query = Object.fromEntries(new URLSearchParams(player_url.split('?')[1]));
+            const random_seed = Array.from({length: 8}, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 52)]).join('');
+            query['_s'] = random_seed;
+            query['_t'] = result.slice(0, 16);
+            const [b64_info, handle] = await this._download_webpage_handle('https://videa.hu/player/xml', query);
+            let info;
+            if (b64_info.startsWith('<?xml')) {
+                info = this._parse_xml(b64_info);
+            } else {
+                const key = result.slice(16) + random_seed + handle.headers.get('x-videa-xs');
+                info = this._parse_xml(this.rc4(atob(b64_info), key));
+            }
+            const video = info.querySelector('video');
+            if (!video) throw new Error('Video not found');
+            const formats = [];
+            info.querySelectorAll('video_sources > video_source').forEach(source => {
+                let source_url = source.textContent;
+                const source_name = source.getAttribute('name');
+                const source_exp = source.getAttribute('exp');
+                if (!source_url || !source_name) return;
+
+                const hash_value = info.querySelector(`hash_values > hash_value_${source_name}`)?.textContent;
+                if (hash_value && source_exp) {
+                    source_url = `${source_url}?md5=${hash_value}&expires=${source_exp}`;
                 }
 
-                return this._download_webpage(player_url).then(player_page => {
-                    const nonce = this._search_regex(/_xt\s*=\s*"([^"]+)"/, player_page, 'nonce');
-                    const l = nonce.slice(0, 32);
-                    const s = nonce.slice(32);
-                    let result = '';
-                    for (let i = 0; i < 32; i++) {
-                        result += s[i - (this._STATIC_SECRET.indexOf(l[i]) - 31)];
-                    }
-
-                    const query = Object.fromEntries(new URLSearchParams(player_url.split('?')[1]));
-                    const random_seed = Array.from({length: 8}, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 52)]).join('');
-                    query['_s'] = random_seed;
-                    query['_t'] = result.slice(0, 16);
-
-                    return this._download_webpage_handle('https://videa.hu/player/xml', query).then(([b64_info, handle]) => {
-                        let info;
-                        if (b64_info.startsWith('<?xml')) {
-                            info = this._parse_xml(b64_info);
-                        } else {
-                            const key = result.slice(16) + random_seed + handle.headers.get('x-videa-xs');
-                            info = this._parse_xml(this.rc4(atob(b64_info), key));
-                        }
-
-                        const video = info.querySelector('video');
-                        if (!video) throw new Error('Video not found');
-
-                        const formats = [];
-                        info.querySelectorAll('video_sources > video_source').forEach(source => {
-                            let source_url = source.textContent;
-                            const source_name = source.getAttribute('name');
-                            const source_exp = source.getAttribute('exp');
-                            if (!source_url || !source_name) return;
-
-                            const hash_value = info.querySelector(`hash_values > hash_value_${source_name}`)?.textContent;
-                            if (hash_value && source_exp) {
-                                source_url = `${source_url}?md5=${hash_value}&expires=${source_exp}`;
-                            }
-
-                            formats.push({
-                                url: source_url,
-                                quality: parseInt(source.getAttribute('height'), 10) || null,
-                            });
-                        });
-                        return formats.sort((a, b) => b.quality - a.quality);
-                    });
+                formats.push({
+                    url: source_url,
+                    quality: parseInt(source.getAttribute('height'), 10) || null,
                 });
             });
+            return formats.sort((a, b) => b.quality - a.quality);
         } catch (error) {
             Logger.error(`Error while extracting video source: ${error.message}`);
             return Promise.resolve([]);
@@ -168,8 +176,6 @@ class VideaExtractor {
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.FRAME_LOADED}, '*');
-});
+window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.FRAME_LOADED}, '*');
 
 Logger.log('[videa.js] Script loaded');

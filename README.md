@@ -30,7 +30,7 @@ A kiegészítőt a [MagyarAnime.eu](https://magyaranime.eu/) / [MagyarAnime.hu](
 
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png 'Előnézet')
 
-## Jelenlegi Verzió: 0.1.9.1
+## Jelenlegi Verzió: 0.1.9.2
 
 **v0.1.8 Letölthető:**
 

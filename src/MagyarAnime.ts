@@ -22,7 +22,7 @@ class MagyarAnime {
         this.url = url
         this.isDatasheetPage = /leiras\/.*/.test(this.url)
         this.isEpisodePage =
-            /resz(-s\d)?\/.*|inda-play\/.*/.test(this.url) ||
+                /resz(?:-s\d)?\/.*|inda-play(?:-\d+)?\/.*/.test(this.url) ||
             this.document.querySelector('#lejatszo') !== null
         this.ANIME = new Anime(this.document, this.url)
         this.EPISODE = new Episode(this.document, this.url)
@@ -467,13 +467,20 @@ class Episode {
 
     /**
      * Returns the id of the episode
-     * @returns {number}
+     * @returns {number} The id of the episode (if the episode is from indavideo, it offsets the id by 100000)
      */
     getId(): number {
         try {
-            const match = window.location.pathname.match(/(-s\d+)?\/(\d+)\//)
-            if (match) {
-                return parseInt(match[2]) || -1
+            const path = window.location.pathname
+            const dataMatch = path.match(/(-s\d+)?\/(\d+)\//)
+            const playMatch = path.match(/\/inda-play-(\d+)\//)
+            if (playMatch) {
+                const id = parseInt(playMatch[1]) || -1
+                const PLAY_OFFSET = 100000
+                return id + PLAY_OFFSET
+            }
+            if (dataMatch) {
+                return parseInt(dataMatch[2]) || -1
             }
             return -1
         } catch {

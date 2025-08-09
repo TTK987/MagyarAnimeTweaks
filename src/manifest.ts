@@ -137,7 +137,7 @@ export default defineManifest({
             matches: ['*://*.videa.hu/player?*'],
             js: ['src/sources/videa.js'],
             all_frames: true,
-            run_at: 'document_start',
+            run_at: 'document_end',
         },
         {
             matches: ['*://*.videa.hu/player?*'],

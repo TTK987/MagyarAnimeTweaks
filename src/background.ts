@@ -9,7 +9,8 @@ chrome.runtime.onInstalled.addListener((details) => {
     if (details.reason === "install" || details.reason === "update") {
         const version = chrome.runtime.getManifest().version;
         if (details.reason === "update") {
-            chrome.tabs.create({url: `https://matweaks.hu/changelog#${MAT.getVersion().replace(/\./g, '')}`})
+            // Temporarily disabled the changelog link. It will be re-enabled for the next major release.
+            //chrome.tabs.create({url: `https://matweaks.hu/changelog#${MAT.getVersion().replace(/\./g, '')}`})
             Logger.log(`[background.js]: Updated from version ${details.previousVersion ?? "unknown"}`, true);
             if (details.previousVersion && version) {
                 migrateSettings(details.previousVersion, version);

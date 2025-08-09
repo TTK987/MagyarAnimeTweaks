@@ -2,6 +2,8 @@ import BasePlayer from "./BasePlayer";
 import {SettingsV019, EpisodeVideoData} from "../global";
 
 class NativePlayer extends BasePlayer {
+    curQuality: EpisodeVideoData | null
+
     /**
      * Create a new NativePlayer instance, which is used in the main player
      * @param {String} selector - The selector for the video element
@@ -24,12 +26,17 @@ class NativePlayer extends BasePlayer {
         epNum: number
     ) {
         super(selector, qualityData, isDownloadable, settings, epID, animeID, animeTitle, epNum);
+        this.curQuality = null
     }
 
     changeQuality(quality: number, videoElement: HTMLVideoElement) {
         let currentTime = videoElement.currentTime;
-        videoElement.src = <string>this.epData.find(data => data.quality === quality)?.url;
-        videoElement.currentTime = currentTime;
+        const selectedQuality = this.epData.find(data => data.quality === quality);
+        if (selectedQuality) {
+            this.curQuality = selectedQuality;
+            videoElement.src = selectedQuality.url;
+        }
+        videoElement.currentTime = currentTime;        videoElement.currentTime = currentTime;
     }
 }
 

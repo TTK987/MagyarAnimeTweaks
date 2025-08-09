@@ -383,8 +383,17 @@ export default class BasePlayer {
         chrome.runtime.sendMessage({ type: 'getOpenBookmarks' }, (response) => {
             if (response) {
                 for (let i = 0; i < response.length; i++) {
-                    if (response[i].epURL.split('/')[4] !== String(this.epID)) {
-                        Logger.log('No bookmark found for the current URL.')
+                    const path = new URL(response[i].epURL).pathname
+                    const playMatch = path.match(/\/inda-play-(\d+)\//)
+                    const dataMatch = path.match(/(-s\d+)?\/(\d+)\//)
+                    const idFromUrl = playMatch
+                        ? parseInt(playMatch[1], 10) + 100000
+                        : dataMatch
+                            ? parseInt(dataMatch[2], 10)
+                            : -1
+
+                    if (idFromUrl !== this.epID) {
+                        Logger.log('No bookmark data found for the current URL.')
                         continue
                     }
                     let bookmark = Bookmarks.getBookmark(response[i].epID)
@@ -392,8 +401,8 @@ export default class BasePlayer {
                         Logger.error('Error while getting the bookmark. (bookmark is null)')
                         return
                     }
-                    if (Number(bookmark.epID) !== Number(response[i].epURL.split('/')[4])) {
-                        Logger.error('Error while getting the bookmark. (episodeId mismatch)')
+                    if (Number(bookmark.epID) !== this.epID) {
+                        Logger.error('Error while getting the bookmark. (epID mismatch)')
                         return
                     }
                     this.seekTo(Number(bookmark.epTime))
@@ -668,7 +677,16 @@ export default class BasePlayer {
             chrome.runtime.sendMessage({ type: 'getOpenResume' }, (response) => {
                 if (response) {
                     for (let i = 0; i < response.length; i++) {
-                        if (response[i].epURL.split('/')[4] !== String(this.epID)) {
+                        const path = new URL(response[i].epURL).pathname
+                        const playMatch = path.match(/\/inda-play-(\d+)\//)
+                        const dataMatch = path.match(/(-s\d+)?\/(\d+)\//)
+                        const idFromUrl = playMatch
+                            ? parseInt(playMatch[1], 10) + 100000
+                            : dataMatch
+                                ? parseInt(dataMatch[2], 10)
+                                : -1
+
+                        if (idFromUrl !== this.epID) {
                             Logger.log('No resume data found for the current URL.')
                             continue
                         }
