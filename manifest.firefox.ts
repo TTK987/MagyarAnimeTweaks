@@ -62,8 +62,7 @@ export default () => {return {
         open_in_tab: true,
     },
     background: {
-        scripts: ['src/background.ts'],
-        persistent: false as const
+        scripts: ['src/background.ts']
     },
     content_scripts: [
         {
