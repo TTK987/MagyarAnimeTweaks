@@ -79,7 +79,7 @@ function getIndavideoToken() {
             if (!isResolved) {
                 reject(new Error('Script load timeout'));
             }
-        }, 1000);
+        }, 5000);
     });
 }
 

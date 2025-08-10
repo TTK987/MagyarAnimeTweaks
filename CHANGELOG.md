@@ -1,6 +1,20 @@
 # Verziók
 
 
+## 0.1.9.3
+
+- **Firefox támogatás**
+    - A kiegészítő most már újra támogatja a Firefoxot.
+- **Bugfix**:
+    - Ha a settings még nem lett elmentve, akkor egy hiba miatt nem működött a kiegészítő.
+    - CSS módosítások a Firefoxhoz.
+    - `indavideo.hu` forrásnál `1000 ms`-ről (1 másodpercről) `5000 ms`-re (5 másodpercre) növelve a várakozási időt, hogy a videó betöltődjön.
+        - A lassabb internetkapcsolattal rendelkezők számára ez segíthet, hogy ne akadjon el a videó betöltése.
+- **Egyéb**:
+    - Firefox támogatása és az ezzel járó build rendszer és fájlok.
+    - Error üzenetek módosítása.
+
+
 ## 0.1.9.2
 
 - **Bugfix**:
@@ -11,10 +25,10 @@
         - Ez azt jelenti, hogy ha a szerver váltás után a háttérben futó kód többször is meg lett hívva.
     - A `következő rész` / `előző rész` gombok használata után nem megfelelő muködés a rész számának lekérdezésekor.
 - Egyéb:
-  - `következő rész` / `előző rész` gombok használata után várni kell 3 másodpercet, mielőtt újra használhatóak lesznek.
-  - A szerver váltás közben egy töltési animáció jelenik meg, amíg a háttérben a kód le nem fut.
-  - Frissítés után a `matweaks.hu/changelog#<verziószám>` oldalra való átirányítás átmenetileg kikapcsolva (hogy ne legyen zavaró a felhasználók számára).
-  - `terser` helyett a `esbuild` használata a kód tömörítéséhez.
+    - `következő rész` / `előző rész` gombok használata után várni kell 3 másodpercet, mielőtt újra használhatóak lesznek.
+    - A szerver váltás közben egy töltési animáció jelenik meg, amíg a háttérben a kód le nem fut.
+    - Frissítés után a `matweaks.hu/changelog#<verziószám>` oldalra való átirányítás átmenetileg kikapcsolva (hogy ne legyen zavaró a felhasználók számára).
+    - `terser` helyett a `esbuild` használata a kód tömörítéséhez.
 
 
 ## 0.1.9.1
@@ -47,8 +61,6 @@
     - A kiegészítő mostantól a `vite` build rendszert használja a kód generálásához (előzőleg `webpack` volt használva).
     - `React` és `TypeScript` használata.
 - És ennyire emlékszem, olyan rég óta nem volt frissítés és annyi sok változás történt, hogy nem tudom már felidézni az összeset. :D
-
-
 
 
 ## 0.1.8
@@ -85,6 +97,7 @@
 - Hibajavítások
     - A kiegészítő nem tudta megfelelően betölteni a beállításokat frissítés után.
 
+
 ## 0.1.7
 
 - **Tovább bővült a támogatott források listája.**
@@ -103,11 +116,13 @@
         - Egyedi kinézet
         - [További információk](SETTINGS.md#plyr)
 
+
 ## 0.1.6.2
 
 - Hibajavítások
     - A kiegészítő nem tudta megfelelően betölteni a beállításokat.
     - Mega.nz esetén a részek közötti ugrás nem működött megfelelően.
+
 
 ## 0.1.6.1
 
@@ -119,6 +134,7 @@
 - Egyéb változások
     - A kód rendezettebb lett és több kommentet tartalmaz a könnyebb olvashatóság érdekében.
 
+
 ## 0.1.6
 
 - **MyAnimeList Keresés**
@@ -129,15 +145,18 @@
 - Hibajavítások
     - Memória szivárgás javítása letöltésnél.
 
+
 ## 0.1.5.3
 
 - _Firefox jogok kérése telepítés után._
     > Az megoldás `emburcke` ötlete volt. Köszönöm neki.
 
+
 ## 0.1.5.2
 
 - Hibajavítások
     - Letöltés hiba javítása firefoxon. (Jelentette: emburcke ) (Még mindig nem működött)
+
 
 ## 0.1.5.1
 
@@ -145,6 +164,7 @@
     - Mega.nz mute gomb hiba javítása.
     - Letöltés hiba javítása firefoxon. (Jelentette: emburcke )
     - Invalid manifest hiba javítása.
+
 
 ## 0.1.5
 
@@ -158,6 +178,7 @@
     > Ez azért került kivételre, mert mostantól a MA alapból a jó linkre továbbít.
 - Firefox támogatás.
 - Egy kezdetleges Discord szerver, ahol segítséget kérhetsz és értesülhetsz a legújabb fejlesztésekről és hiba bejelentést tehetsz. [Kattints ide](https://discord.gg/dJX4tVGZhY)
+
 
 ## 0.1.4
 
@@ -178,6 +199,7 @@
     - (background.js és indavideo.js kommentezése)
     - (A kódok átszervezése)
 
+
 ## 0.1.3
 
 - **Első nyilvános verzió**
@@ -186,15 +208,18 @@
     > (Valamiért a MA úgy döntött, hogy alkalmaz egy disable-devtools nevezetű scriptet, ami letiltja a devtools-t. <3)
 - Hibajavítások
 
+
 ## 0.1.2 (Nem publikus)
 
 - Hibajavítások
     - Nem cserélte le a videólejátszót, ha a videó csak 360p-ben volt elérhető.
 
+
 ## 0.1.1 (Nem publikus)
 
 - Hibajavítások
 - Megbízhatóbb link keresés a videókhoz
+
 
 ## 0.1.0 (Nem publikus)
 

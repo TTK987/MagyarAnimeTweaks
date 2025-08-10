@@ -56,8 +56,12 @@ function logSuccess(text) {
 }
 
 const require = createRequire(import.meta.url)
-const manifest = require('./build/manifest.json')
-const browser = 'chrome'
+
+// Get browser type from command line argument, default to chrome
+const browser = process.argv[2] || 'chrome'
+const buildDir = browser === 'firefox' ? 'build-firefox' : 'build'
+const manifest = require(`./${buildDir}/manifest.json`)
+
 const isDev = process.env.NODE_ENV === 'development'
 
 function getFormattedTimestamp(date) {
@@ -66,7 +70,7 @@ function getFormattedTimestamp(date) {
 }
 
 const timestamp = getFormattedTimestamp(new Date())
-const sourceDir = path.resolve('build')
+const sourceDir = path.resolve(buildDir)
 const outputName = `${manifest.name.replaceAll(' ', '-')}-v${manifest.version}-${browser}${isDev ? '-dev' : ''}-${timestamp}.zip`
 
 logHeader(`${symbols.sparkles}   MagyarAnimeTweaks V${manifest.version}  ${symbols.sparkles} `)
@@ -87,7 +91,7 @@ const progressInterval = setInterval(() => {
     dots++
 }, 100)
 
-gulp.src('build/**', { encoding: false })
+gulp.src(`${buildDir}/**`, { encoding: false })
     .pipe(zip(outputName))
     .pipe(gulp.dest('package'))
     .on('end', () => {

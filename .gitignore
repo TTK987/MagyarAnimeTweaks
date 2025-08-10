@@ -62,6 +62,7 @@ web_modules/
 .cache
 .parcel-cache
 dist
+build-firefox
 .cache/
 .vuepress/dist
 .temp
@@ -77,4 +78,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 package-lock.json
+pnpm-lock.yaml
+pnpm-workspace.yaml
 package/

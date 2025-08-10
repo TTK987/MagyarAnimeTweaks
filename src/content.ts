@@ -31,7 +31,6 @@ let vData: EpisodeVideoData[] = []
 
 if (window.location.href.includes("inda-play")) {
     loadSettings().then(() => {
-            MA = new MagyarAnime(document, window.location.href)
             IFrameComm = new IFramePlayerComm();
             IFrameComm.onFrameLoaded = () => {
                 IFrameComm!.IFrame = (document.querySelector("iframe") as HTMLIFrameElement).contentWindow as Window;
@@ -131,35 +130,36 @@ const ERROR_CODES = {
         TYPE_ERROR: "003"
     }
 } as const;
+
 const ERROR_MESSAGES = {
     CSRF: {
-        NOT_FOUND: "CSRF token nem található.",
-        EXPIRED: "CSRF token lejárt, oldal újratöltése..."
+        NOT_FOUND: "A CSRF-token nem található.",
+        EXPIRED: "A CSRF-token lejárt, az oldal újratöltése szükséges..."
     },
     SERVER: {
-        NOT_FOUND: "Videó lejátszó nem található.",
+        NOT_FOUND: "A videólejátszó nem található.",
         INVALID: "Érvénytelen szerver.",
-        DATA_MISSING: "Szerver adatok nem találhatók.",
-        RESPONSE_ERROR: "Szerver válasz hiba."
+        DATA_MISSING: "A szerver adatai nem találhatók.",
+        RESPONSE_ERROR: "Hiba történt a szerver válaszában."
     },
     VIDEO: {
-        PLAYER_NOT_FOUND: "Videó lejátszó nem található.",
-        NO_SOURCES: "Videó források nem találhatók.",
-        IFRAME_MISSING: "IFrame nem található.",
-        DATA_ERROR: "Videó adatok betöltési hiba.",
-        INVALID_TYPE: "Támogatatlan lejátszó típus.",
-        DOWNLOAD_ERROR: "Videó letöltési hiba."
+        PLAYER_NOT_FOUND: "A videólejátszó nem található.",
+        NO_SOURCES: "Nem találhatók videóforrások.",
+        IFRAME_MISSING: "Az iframe nem található.",
+        DATA_ERROR: "Hiba történt a videóadatok betöltése közben.",
+        INVALID_TYPE: "Nem támogatott lejátszótípus.",
+        DOWNLOAD_ERROR: "Hiba történt a videó letöltése közben."
     },
     REQUEST: {
         INVALID_ARGS: "Érvénytelen argumentumok.",
-        FETCH_ERROR: "Hálózati hiba.",
-        RESPONSE_ERROR: "Szerver kommunikációs hiba.",
-        TIMEOUT: "Kérés időtúllépés."
+        FETCH_ERROR: "Hálózati hiba történt.",
+        RESPONSE_ERROR: "Hiba a szerverrel való kommunikáció során.",
+        TIMEOUT: "A kérés időtúllépés miatt megszakadt."
     },
     PLAYER: {
-        INIT_ERROR: "Lejátszó inicializálási hiba.",
-        LOAD_ERROR: "Videó betöltési hiba.",
-        TYPE_ERROR: "Lejátszó típus hiba."
+        INIT_ERROR: "Hiba történt a lejátszó inicializálásakor.",
+        LOAD_ERROR: "Hiba történt a videó betöltése közben.",
+        TYPE_ERROR: "Érvénytelen lejátszótípus."
     }
 } as const;
 

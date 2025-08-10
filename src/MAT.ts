@@ -88,7 +88,7 @@ class MAT {
     loadSettings(): Promise<SettingsV019> {
         return new Promise((resolve) => {
             chrome.storage.sync.get('settings', (result) => {
-                if (result.settings) {
+                if (result && result.settings) {
                     this.settings = result.settings
                     Logger.success('Settings loaded from storage', true)
                     resolve(this.settings)
@@ -113,11 +113,12 @@ class MAT {
                     addRules: [],
                 })
                 .then(async () => {
+                    const randomId = Math.floor(Math.random() * 1000)
                     const newRule =
                         this.settings.advanced.player === 'plyr'
                             ? ([
                                   {
-                                      id: 1001,
+                                      id: randomId,
                                       action: { type: 'block' },
                                       condition: {
                                           urlFilter: '*://magyaranime.eu/js/magyaranime_player.js*',
@@ -125,7 +126,7 @@ class MAT {
                                       },
                                   },
                                   {
-                                      id: 1002,
+                                      id: randomId + 1,
                                       action: { type: 'block' },
                                       condition: {
                                           urlFilter: '*://magyaranime.eu/js/player/*',
@@ -133,7 +134,7 @@ class MAT {
                                       },
                                   },
                                   {
-                                      id: 1003,
+                                      id: randomId + 2,
                                       action: { type: 'block' },
                                       condition: {
                                           urlFilter: '*://cdn.jsdelivr.net/npm/disable-devtool*',

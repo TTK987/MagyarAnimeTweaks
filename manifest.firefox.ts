@@ -1,10 +1,8 @@
 import { defineManifest } from '@crxjs/vite-plugin'
-import packageData from '../package.json'
+import packageData from './package.json'
 
-const isDev = process.env.NODE_ENV == 'development'
-
-export default defineManifest({
-    name: `${packageData.displayName || packageData.name}${isDev ? ` EAP` : ''}`,
+export default () => {return {
+    name: `${packageData.displayName || packageData.name}`,
     description: packageData.description,
     version: packageData.version,
     manifest_version: 3,
@@ -31,7 +29,6 @@ export default defineManifest({
         64: 'img/MATLogo-64.png',
         128: 'img/MATLogo-128.png',
     },
-
     web_accessible_resources: [
         {
             resources: [
@@ -51,7 +48,6 @@ export default defineManifest({
             ],
         },
     ],
-
     action: {
         default_popup: 'src/pages/popup/index.html',
         default_icon: {
@@ -61,17 +57,14 @@ export default defineManifest({
             128: 'img/MATLogo-128.png',
         },
     },
-
     options_ui: {
         page: 'src/pages/settings/index.html',
         open_in_tab: true,
     },
-
     background: {
-        type: 'module',
-        service_worker: 'src/background.js',
+        scripts: ['src/background.ts'],
+        persistent: false as const
     },
-
     content_scripts: [
         {
             matches: ['*://*.magyaranime.eu/*', '*://*.magyaranime.hu/*'],
@@ -148,4 +141,11 @@ export default defineManifest({
             world: 'MAIN',
         },
     ],
-})
+
+    browser_specific_settings: {
+        gecko: {
+            id: "{7b0929ca-1c4a-4374-873e-8af3106c8b96}",
+            strict_min_version: "128.0"
+        }
+    },
+}}
