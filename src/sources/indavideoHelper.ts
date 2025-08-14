@@ -1,18 +1,19 @@
-const observer = new MutationObserver(async (mutations, obs) => {
+let obs: MutationObserver = new MutationObserver(async (mutations, obs) => {
     if (document.head.querySelector('matweaksget')) {
         try {
             obs.disconnect();
-            document.head.querySelector('matweaksget').remove();
-            let videoId = window.location.href.match(/https?:\/\/(?:(?:embed\.)?indavideo\.hu\/player\/video\/|assets\.indavideo\.hu\/swf\/player\.swf\?.*\bv(?:ID|id)=)([\da-f]+)/)[1];
+            (document.head.querySelector('matweaksget') as HTMLElement).remove();
+            let match = window.location.href.match(/https?:\/\/(?:(?:embed\.)?indavideo\.hu\/player\/video\/|assets\.indavideo\.hu\/swf\/player\.swf\?.*\bv(?:ID|id)=)([\da-f]+)/);
+            let videoId = match ? match[1] : "";
             let timestamp = Date.now();
             const script = document.createElement('script');
             script.src = `https://amfphp.indavideo.hu/SYm0json.php/player.playerHandler.getVideoData/${videoId}/12////?directlink&callback=JQuery_${timestamp}&_=${Math.floor(timestamp / 1000)}`;
             document.head.appendChild(script);
-            let response = await new Promise((resolve, reject) => {
+            let response: { data: any } = await new Promise((resolve, reject) => {
                 let timeout = setTimeout(() => {
                     reject(new Error('Script load timeout'));
                 }, 5000);
-                window[`JQuery_${timestamp}`] = (data) => {
+                (window as any)[`JQuery_${timestamp}`] = (data: { data: any }) => {
                     clearTimeout(timeout);
                     resolve(data);
                 }
@@ -31,5 +32,5 @@ const observer = new MutationObserver(async (mutations, obs) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    observer.observe(document.head, { childList: true, subtree: true });
+    obs.observe(document.head, { childList: true, subtree: true });
 });

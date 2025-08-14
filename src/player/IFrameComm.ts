@@ -158,10 +158,12 @@ class IFramePlayerComm {
      * @returns {Promise<EpisodeVideoData[]>} A promise that resolves with the video data.
      */
     getVideoData(): Promise<EpisodeVideoData[]> {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             this.sendAction(MAT.__ACTIONS__.GET_SOURCE_URL, {}, (event: MessageEvent) => {
                 if (event.data.type === MAT.__ACTIONS__.SOURCE_URL) {
                     resolve(event.data.data)
+                } else if (event.data.type === MAT.__ACTIONS__.INDA_NO_VIDEO) {
+                    reject("No video available")
                 }
             })
         })
@@ -283,6 +285,7 @@ class IFramePlayerComm {
     /**
      * Delays execution until the IFrame is loaded.
      * @returns {Promise<void>} A promise that resolves when the IFrame is loaded.
+     * @deprecated
      */
     private delayUntilIFrameLoaded(): Promise<void> {
         return new Promise<void>((resolve) => {

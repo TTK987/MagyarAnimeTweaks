@@ -5,9 +5,6 @@ import MegaPlayer from "../player/MegaPlayer";
 import Resume from "../Resume";
 
 
-// TEST URL: https://magyaranime.eu/resz/12029/
-
-
 let  Player = new MegaPlayer("", MAT.settings, 0, 0, "", 0);
 Logger.success('[mega.js] Script loaded successfully', true);
 

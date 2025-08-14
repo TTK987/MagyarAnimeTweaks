@@ -1,10 +1,11 @@
 import MAT from "../MAT";
 import Logger from "../Logger";
+import { EpisodeVideoData } from '../global'
 
 window.addEventListener('message', async function (event) {
     if (event.data?.type === MAT.__ACTIONS__.GET_SOURCE_URL) {
         const extractor = new VideaExtractor();
-        let qualityData = await extractor.extract(window.location.href);
+        let qualityData: EpisodeVideoData[] = await extractor.extract(window.location.href);
         if (!qualityData || qualityData.length === 0) {
             Logger.warn('Quality data not found, trying to get it from the player', true);
             qualityData = await getQualityData();
@@ -18,17 +19,17 @@ window.addEventListener('message', async function (event) {
 /**
  * Function to make the quality data url normal
  */
-function makeQualityDataUrlNormal(qualityData) {
-    let data = [];
+function makeQualityDataUrlNormal(qualityData: EpisodeVideoData[]) {
+    let data: EpisodeVideoData[] = [];
     qualityData.forEach((item) => {
         if (item.url && item.quality) {
             data.push({
                 url: item.url.startsWith('//') ? `https:${item.url}` : item.url,
                 quality: item.quality,
-            });
+            })
         }
-    });
-    return data;
+    })
+    return data
 }
 
 /**
@@ -38,10 +39,10 @@ function makeQualityDataUrlNormal(qualityData) {
  * @function getQualityData
  * @since v0.1.7
  */
-async function getQualityData() {
+async function getQualityData(): Promise<EpisodeVideoData[]> {
     return new Promise((resolve) => {
         document.addEventListener('MATweaksSourceUrl', () => {
-            let qualityData = JSON.parse(document.querySelector('matweaks.matweaks-data').getAttribute('data-video-data'));
+            let qualityData = JSON.parse((document.querySelector('matweaks.matweaks-data') as HTMLElement).getAttribute('data-video-data') || '[]') as EpisodeVideoData[];
             resolve(qualityData);
         });
         document.dispatchEvent(new Event('MATweaksGetSourceUrl'));
@@ -51,13 +52,13 @@ async function getQualityData() {
     });
 }
 
-
 class VideaExtractor {
+    private _STATIC_SECRET: string;
     constructor() {
         this._STATIC_SECRET = 'xHb0ZvME5q8CBcoQi6AngerDu3FGO9fkUlwPmLVY_RTzj2hJIS4NasXWKy1td7p';
     }
 
-    rc4(cipherText, key) {
+    rc4(cipherText: string, key: string): string {
         let res = '';
         const keyLen = key.length;
         let S = Array.from({ length: 256 }, (_, i) => i);
@@ -82,22 +83,25 @@ class VideaExtractor {
         return res;
     }
 
-    _download_webpage(url) {
-        return fetch(url).then(response => {
+    _download_webpage(url: string | URL | Request): Promise<string> {
+        return fetch(url).then((response) => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.text();
         });
     }
 
-    _download_webpage_handle(url, query) {
-        const queryString = new URLSearchParams(query).toString();
-        return fetch(`${url}?${queryString}`).then(response => {
+    _download_webpage_handle(
+        url: string,
+        query: string | string[][] | Record<string, string> | URLSearchParams | undefined,
+    ): Promise<[string, Response]> {
+        const queryString = new URLSearchParams(query as Record<string, string>).toString();
+        return fetch(`${url}?${queryString}`).then((response) => {
             if (!response.ok) throw new Error('Network response was not ok');
-            return response.text().then(text => [text, response]);
+            return response.text().then((text) => [text, response]);
         });
     }
 
-    _search_regex(pattern, string, name) {
+    _search_regex(pattern: RegExp, string: string, name: string): string {
         const match = string.match(pattern);
         if (!match) {
             throw new Error(`Could not find ${name}`);
@@ -105,10 +109,10 @@ class VideaExtractor {
         return match[1];
     }
 
-    _parse_xml(xmlString) {
+    _parse_xml(xmlString: string): Document {
         let xml = new window.DOMParser().parseFromString(xmlString, 'application/xml');
         if (xml.querySelector('error')) {
-            throw new Error(xml.querySelector('error').textContent);
+            throw new Error((xml.querySelector('error') as HTMLElement).textContent ?? 'Unknown XML error');
         } else {
             return xml;
         }
@@ -117,16 +121,20 @@ class VideaExtractor {
     /**
      * Extracts the video source from the given url
      * @param {String} url - The url to extract
-     * @returns {Promise<Array>} The array of quality data
+     * @returns {Promise<EpisodeVideoData[]>} The array of quality data
      */
-    async extract(url) {
+    async extract(url: string): Promise<EpisodeVideoData[]> {
         try {
             const video_page = await this._download_webpage(url);
-            let player_url;
+            let player_url: string;
             if (url.includes('videa.hu/player')) {
                 player_url = url;
             } else {
-                player_url = this._search_regex(/<iframe.*?src="(\/player\?[^"]+)"/, video_page, 'player url');
+                player_url = this._search_regex(
+                    /<iframe.*?src="(\/player\?[^"]+)"/,
+                    video_page,
+                    'player url',
+                );
                 player_url = new URL(player_url, url).href;
             }
             const player_page = await this._download_webpage(player_url);
@@ -138,44 +146,66 @@ class VideaExtractor {
                 result += s[i - (this._STATIC_SECRET.indexOf(l[i]) - 31)];
             }
             const query = Object.fromEntries(new URLSearchParams(player_url.split('?')[1]));
-            const random_seed = Array.from({length: 8}, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 52)]).join('');
+            const random_seed = Array.from(
+                { length: 8 },
+                () =>
+                    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'[
+                        Math.floor(Math.random() * 52)
+                    ],
+            ).join('');
             query['_s'] = random_seed;
             query['_t'] = result.slice(0, 16);
-            const [b64_info, handle] = await this._download_webpage_handle('https://videa.hu/player/xml', query);
-            let info;
-            if (b64_info.startsWith('<?xml')) {
+            const [b64_info, handle] = await this._download_webpage_handle(
+                'https://videa.hu/player/xml',
+                query,
+            );
+            let info: Document;
+            if (b64_info?.startsWith('<?xml')) {
                 info = this._parse_xml(b64_info);
             } else {
-                const key = result.slice(16) + random_seed + handle.headers.get('x-videa-xs');
+                const xVideaXs = handle.headers.get('x-videa-xs') ?? '';
+                const key = result.slice(16) + random_seed + xVideaXs;
                 info = this._parse_xml(this.rc4(atob(b64_info), key));
             }
             const video = info.querySelector('video');
             if (!video) throw new Error('Video not found');
-            const formats = [];
-            info.querySelectorAll('video_sources > video_source').forEach(source => {
-                let source_url = source.textContent;
+            const formats: EpisodeVideoData[] = [];
+            info.querySelectorAll('video_sources > video_source').forEach((source) => {
+                const source_url = source.textContent;
                 const source_name = source.getAttribute('name');
                 const source_exp = source.getAttribute('exp');
                 if (!source_url || !source_name) return;
 
-                const hash_value = info.querySelector(`hash_values > hash_value_${source_name}`)?.textContent;
+                const hash_value = info.querySelector(
+                    `hash_values > hash_value_${source_name}`,
+                )?.textContent;
+                let final_url = source_url;
                 if (hash_value && source_exp) {
-                    source_url = `${source_url}?md5=${hash_value}&expires=${source_exp}`;
+                    final_url = `${source_url}?md5=${hash_value}&expires=${source_exp}`;
                 }
 
+                const heightAttr = source.getAttribute('height');
+                if (!heightAttr) return;
+                const quality = parseInt(heightAttr, 10);
+
                 formats.push({
-                    url: source_url,
-                    quality: parseInt(source.getAttribute('height'), 10) || null,
+                    url: final_url,
+                    quality: quality,
                 });
             });
-            return formats.sort((a, b) => b.quality - a.quality);
+            return formats
+                .filter((item) => !isNaN(item.quality))
+                .sort((a, b) => b.quality - a.quality);
         } catch (error) {
-            Logger.error(`Error while extracting video source: ${error.message}`);
-            return Promise.resolve([]);
+            if (error instanceof Error) {
+                Logger.error(`Error while extracting video source: ${error.message}`);
+            } else {
+                Logger.error('Error while extracting video source: Unknown error');
+            }
+            return [];
         }
     }
 }
-
 window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.FRAME_LOADED}, '*');
 
 Logger.log('[videa.js] Script loaded');

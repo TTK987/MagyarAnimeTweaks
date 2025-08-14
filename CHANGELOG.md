@@ -1,6 +1,16 @@
 # Verziók
 
 
+## 0.1.9.4
+
+- **Bugfix**:
+    - Indavideo.hu forrásnál törölt videó esetén a kiegészítő nem működött.
+        - Emellett egy hibaüzenetet is kiír, hogy a videó nem található.
+    - HLS videók esetében a linkeket nem tudta megfelelően kiszedni.
+- **Egyéb**:
+    - Pár korábbi JavaScript fájl került átírásra TypeScript-re.
+
+
 ## 0.1.9.3
 
 - **Firefox támogatás**

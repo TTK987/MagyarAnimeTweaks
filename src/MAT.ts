@@ -8,6 +8,7 @@ class MAT {
         GET_SOURCE_URL: string
         FRAME_LOADED: string
         LOAD_BOOKMARK: string
+        INDA_NO_VIDEO: string
         IFRAME: {
             FRAME_LOADED: string
             AUTO_NEXT_EPISODE: string
@@ -42,6 +43,7 @@ class MAT {
             GET_SOURCE_URL: 'getSourceUrl',
             FRAME_LOADED: 'frameLoaded',
             LOAD_BOOKMARK: 'loadBookmark',
+            INDA_NO_VIDEO: 'indaNoVideo',
             IFRAME: {
                 FRAME_LOADED: 'FrameLoaded',
                 AUTO_NEXT_EPISODE: 'AutoNextEpisode',

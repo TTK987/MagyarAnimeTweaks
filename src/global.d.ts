@@ -247,7 +247,7 @@ type ServerResponse = {
     error: string // Error message if there's an issue
     videoid: number // ID of the video
     servers: {
-        server: string // Server name
+        server: "s1" | "s2" | "s3" | "s4" // Server identifier
         hq: string // Quality (e.g., "240", "360", etc.)
         title: string // Server title
         active: number // Indicates if the server is active (1 for active)

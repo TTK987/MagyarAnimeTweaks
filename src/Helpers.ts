@@ -67,21 +67,30 @@ export async function getVideoData(mediaID: string | null): Promise<any> {
         xhr.send()
     })
 }
-
 export async function parseVideoData(url: string | URL): Promise<EpisodeVideoData[]> {
     return new Promise((resolve, reject) => {
         fetch(url)
             .then((response) => response.text())
             .then((videoData) => {
                 const lines = videoData.split('\n')
-                let data: EpisodeVideoData[] = []
-                for (const line of lines) {
+                const data: EpisodeVideoData[] = []
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim()
                     if (line.startsWith('#EXT-X-STREAM-INF:')) {
-                        const qualityMatch = line.match(/RESOLUTION=(\d+)x(\d+),NAME="(\d+)"/)
-                        if (qualityMatch) {
-                            const quality = qualityMatch[3]
-                            const url = lines[lines.indexOf(line) + 1]
-                            data.push({ quality: Number(quality), url: url })
+                        // Prefer NAME if present, otherwise use RESOLUTION height as quality
+                        let quality: number | null = null
+                        const nameMatch = line.match(/(?:^|,)NAME="?(\d+)"?(?:,|$)/i)
+                        if (nameMatch) {
+                            quality = Number(nameMatch[1])
+                        } else {
+                            const resMatch = line.match(/RESOLUTION=\s*\d+\s*x\s*(\d+)/i)
+                            if (resMatch) {
+                                quality = Number(resMatch[1])
+                            }
+                        }
+                        const nextUrl = lines[i + 1]?.trim()
+                        if (quality && nextUrl && !nextUrl.startsWith('#')) {
+                            data.push({ quality, url: nextUrl })
                         }
                     }
                 }

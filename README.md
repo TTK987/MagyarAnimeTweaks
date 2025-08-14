@@ -30,12 +30,12 @@ A kiegészítőt a [MagyarAnime.eu](https://magyaranime.eu/) / [MagyarAnime.hu](
 
 ![Az oldal előnézete a kiegészítővel.](/img/Preview.png 'Előnézet')
 
-## Jelenlegi Verzió: 0.1.9.2
+## Jelenlegi Verzió: 0.1.9.4
 
 **v0.1.8 Letölthető:**
 
-- **Firefox: _[v0.1.8](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)_** (firefox addons)
-- **Minden más: _[v0.1.9.2](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (chrome web store)
+- **Firefox: _[v0.1.9.4](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)_** (firefox addons)
+- **Minden más: _[v0.1.9.4](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (chrome web store)
 
 ## Funkciók
 
@@ -73,8 +73,8 @@ A kiegészítőt a [MagyarAnime.eu](https://magyaranime.eu/) / [MagyarAnime.hu](
 
 ## Beállítások
 
-![Beállítások](/img/Settings.png 'Beállítások')
-A beállításokat a profilodra kattintva éred el, ami egy előugró ablakban jelenik meg. Itt tudod beállítani a kiegészítőt.
+A beállításokat a profilodra kattintva éred el, ami egy új ablakban jelenik meg.
+Itt tudod személyre szabni a kiegészítőt.
 
 Részletes leírás a beállításokról: **[ITT](SETTINGS.md)**
 
@@ -84,6 +84,12 @@ Részletes leírás a beállításokról: **[ITT](SETTINGS.md)**
 - A kiegészítő NEM küld semmilyen adatot se a fejlesztőnek, se senkinek.
 
 ## Gyakran Ismételt Kérdések
+
+- ***"Miért megy ez a sz@r?"***
+
+    - Ha nem működik valami, akkor 99% hogy nem tudok róla, tehát kérlek valahogy jelezd nekem, hogy minél hamarabb javíthassam.
+    - Ha hibát találsz a kiegészítőben, akkor azt [itt, GitHub-on](https://github.com/TTK987/MagyarAnimeTweaks/issues/) vagy a [Discord szerveren](https://discord.gg/dJX4tVGZhY) tudod jelenteni.
+
 
 - Milyen böngészőkön használható a kiegészítő?
 
@@ -95,16 +101,21 @@ Részletes leírás a beállításokról: **[ITT](SETTINGS.md)**
         - Opera GX
         - Brave
         - Microsoft Edge
-        - Kiwi Browser (Android)
+        - Lemur Browser (Android)
+        - Kiwi Browser (Android) (már nem elérhető a Play Áruházban)
+
 
 - **Tudom használni a kiegészítőt telefonon?**
 
-    - **Igen! A kiegészítőt telefonon is használhatod, de nem fognak működni például a gyorsgombok (mert nincs billentyűzet) és a beállítások is furcsán fognak kinézni.**
-    - A kiegészítőt csak Androidon teszteltem a Kiwi böngészőben. ([Kiwi Browser](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser))
+    - **Igen! A kiegészítőt telefonon is használhatod, de nem fognak működni például a gyorsgombok (mert nincs billentyűzet), illetve a UI egyáltalán nincs optimalizálva telefonra.**
+    - A kiegészítőt csak Androidon teszteltem a Lemur böngészővel és a Kiwi böngészővel. (A Kiwi böngésző már nem elérhető a Play Áruházban, így ezt nem tudom ajánlani)
     - **A kiegészítő nem támogatott a Safari böngészőben.**
 
 - Miért készítettem ezt a kiegészítőt?
     - Mert szeretem az animéket és az oldal használhatóságát szerettem volna növelni. (Habár az oldal már így is nagyon jó.)
+    - A kiegészítőt eredetileg magamnak készítettem, de úgy döntöttem, hogy megosztom másokkal is, hátha másoknak is hasznos lesz.
+    - Szóval én is a felhasználók közé tartozom, így elsőkézből tapasztalom az esetleges hibákat.
+
 
 ## Hibajelentés
 

@@ -12,14 +12,13 @@ import {parseVideoData} from './Helpers'
 import HLSPlayer from "./player/HLSPlayer";
 import IFramePlayerComm from "./player/IFrameComm";
 import {download, downloadHLS} from "./downloads";
-
-
+import { showVideoRemovedError } from './lib/video-error-utils'
 
 
 let settings: SettingsV019 = MAT.getDefaultSettings()
 let MA: MagyarAnime = new MagyarAnime(document, window.location.href)
 let isRoadblockCalled = false
-let currentServer = 's1'
+let currentServer: "s1" | "s2" | "s3" | "s4" = "s1";
 let csrfToken = ''
 let Player: NativePlayer | HLSPlayer | undefined = undefined
 let IFrameComm: IFramePlayerComm | undefined = undefined
@@ -28,6 +27,7 @@ let epSwitchCooldown = false
 let downloadCooldown = false
 let isInitialized = false
 let vData: EpisodeVideoData[] = []
+let activeServer: "s1" | "s2" | "s3" | "s4" | undefined = undefined;
 
 if (window.location.href.includes("inda-play")) {
     loadSettings().then(() => {
@@ -40,6 +40,13 @@ if (window.location.href.includes("inda-play")) {
                         return;
                     }
                     vData = videoData;
+                }).catch(error => {
+                    showVideoRemovedError(
+                        MA.EPISODE.getTitle(),
+                        MA.EPISODE.getEpisodeNumber(),
+                        activeServer,
+                        MA.EPISODE.getId()
+                    )
                 })
             }
         }
@@ -319,7 +326,7 @@ function EpisodePage() {
         return;
     }
 
-    currentServer = server;
+    currentServer = server as "s1" | "s2" | "s3" | "s4";
 
     document.querySelectorAll('.videoChange').forEach((button) => {
         button.addEventListener('click', (event) => {
@@ -454,7 +461,7 @@ function loadVideo(server: string, vid: number) {
         return;
     }
 
-    currentServer = server;
+    currentServer = server as "s1" | "s2" | "s3" | "s4";
 
     window.history.replaceState({}, '', `https://magyaranime.eu/${server === 's1' ? 'resz' : `resz-${server.toLowerCase()}`}/${vid}/`);
     document.querySelector('#VideoPlayer')!.setAttribute('data-server', server);
@@ -629,6 +636,14 @@ function getQualityDataFromIFrame(data: ServerResponse): Promise<EpisodeVideoDat
                 }
                 iframe.remove()
                 resolve(videoData);
+            }).catch(error => {
+                iframe.remove()
+                showVideoRemovedError(
+                    MA.EPISODE.getTitle(),
+                    MA.EPISODE.getEpisodeNumber(),
+                    activeServer,
+                    MA.EPISODE.getId()
+                );
             })
         };
     })
@@ -1071,10 +1086,11 @@ function setServers(data: ServerResponse) {
     }
 
     // Add error report button
-    const activeServer = servers.find((server) => server.active === 1)
-    if (activeServer) {
+    const activeServerData = servers.find((server) => server.active === 1)
+    if (activeServerData) {
+        activeServer = activeServerData.server
         serversHTML += `
-      <button class="mat-action-btn mat-error-btn" data-error-report="${data.videoid}/${activeServer.server.replace("s", "")}" ${(!data.download_link || data.download_link === "") ? 'style="width: 100% !important;"' : ""}>
+      <button class="mat-action-btn mat-error-btn" data-error-report="${data.videoid}/${activeServerData.server.replace("s", "")}" ${(!data.download_link || data.download_link === "") ? 'style="width: 100% !important;"' : ""}>
         <div class="mat-server-content">
           <div class="mat-server-icon">
             <svg class="mat-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1085,7 +1101,7 @@ function setServers(data: ServerResponse) {
         </div>
       </button>
     `
-    }
+    } else activeServer = undefined
 
     serversHTML += `
     </div>
