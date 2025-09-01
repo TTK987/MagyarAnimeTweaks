@@ -67,7 +67,7 @@ export default () => {return {
     content_scripts: [
         {
             matches: ['*://*.magyaranime.eu/*', '*://*.magyaranime.hu/*'],
-            js: ['src/content.ts'],
+            js: ['src/content.ts', 'src/search.ts'],
             css: [
                 'src/styles/player.css',
                 'src/styles/MATStyle.css',

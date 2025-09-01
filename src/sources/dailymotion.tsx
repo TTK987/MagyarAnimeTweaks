@@ -4,7 +4,7 @@ import HLSPlayer from '../player/HLSPlayer'
 import Bookmark from '../Bookmark'
 import Resume from '../Resume'
 import { EpisodeVideoData } from '../global'
-import { renderFileName, getQualityData } from '../Helpers'
+import { renderFileName, getQualityData } from '../lib/utils'
 import {downloadHLS} from "../downloads";
 import {prettyFileSize} from "../lib/utils";
 

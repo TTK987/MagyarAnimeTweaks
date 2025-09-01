@@ -36,7 +36,7 @@ class NativePlayer extends BasePlayer {
             this.curQuality = selectedQuality;
             videoElement.src = selectedQuality.url;
         }
-        videoElement.currentTime = currentTime;        videoElement.currentTime = currentTime;
+        videoElement.currentTime = currentTime;
     }
 }
 

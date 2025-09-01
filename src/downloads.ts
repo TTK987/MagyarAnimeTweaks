@@ -1,5 +1,5 @@
 import {FansubData} from './global'
-import {renderFileName} from './Helpers'
+import {renderFileName} from './lib/utils'
 import MAT from "./MAT";
 
 
@@ -41,6 +41,21 @@ async function downloadHLS(
     const totalPackets = segmentUrls.length
     let downloadedSegments = 0
 
+    if (url.includes("magyaranime")) {
+        const baseUrl = new URL(url);
+        const token = baseUrl.searchParams.get('token');
+        const expiry = baseUrl.searchParams.get('expires');
+        if (!token || !expiry) {
+            onError(new Error('Missing token or expiry in the URL.'))
+            return
+        }
+        for (let i = 0; i < segmentUrls.length; i++) {
+            const segmentUrl = new URL(segmentUrls[i]);
+            segmentUrl.searchParams.set('token', token);
+            segmentUrl.searchParams.set('expires', expiry);
+            segmentUrls[i] = segmentUrl.toString();
+        }
+    }
 
     let blobParts: BlobPart[] = []
     let fileSize = 0
@@ -71,6 +86,30 @@ async function downloadHLS(
     for (const segmentUrl of segmentUrls) {
         const segmentResponse = await fetch(segmentUrl)
         if (!segmentResponse.ok) {
+            if (segmentResponse.status === 403) {
+                onError(new Error('Access to the video segment is forbidden (403). The token may have expired. Please try downloading again.'))
+            } else if (segmentResponse.status === 429) {
+                await new Promise(resolve => setTimeout(resolve, 10000));
+                const retryResponse = await fetch(segmentUrl);
+                if (!retryResponse.ok) {
+                    onError(new Error(`Failed to download segment after retry: ${segmentUrl}`));
+                    return;
+                }
+                blobParts.push(await retryResponse.arrayBuffer());
+                downloadedSegments++;
+                const progress = Math.round(
+                    (downloadedSegments / segmentUrls.length) * 100,
+                );
+
+                onStatusUpdate({
+                    percentage: progress,
+                    packets: downloadedSegments,
+                    totalPackets: totalPackets,
+                    size: Math.round((fileSize / 10) * downloadedSegments),
+                    totalSize: Math.round(fileSize / 10) * segmentUrls.length
+                });
+                continue;
+            }
             onError(new Error(`Failed to download segment: ${segmentUrl}`))
             return
         }

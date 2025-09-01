@@ -1,8 +1,8 @@
-import Bookmark from "../Bookmark";
-import Logger from "../Logger";
-import MAT from "../MAT"
-import MegaPlayer from "../player/MegaPlayer";
-import Resume from "../Resume";
+import Bookmark from '../Bookmark'
+import Logger from '../Logger'
+import MAT from '../MAT'
+import MegaPlayer from '../player/MegaPlayer'
+import Resume from '../Resume'
 
 
 let  Player = new MegaPlayer("", MAT.settings, 0, 0, "", 0);
@@ -32,6 +32,6 @@ window.addEventListener('message', (event) => {
             });
         });
     }
-});
+})
 
 window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.FRAME_LOADED}, "*");

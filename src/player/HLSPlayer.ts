@@ -47,6 +47,10 @@ class HLSPlayer extends BasePlayer {
         this.addEventListeners()
     }
 
+    onTokenExpired() {}
+
+    onRateLimit() {}
+
     addEventListeners() {
         window.addEventListener('message', (event) => {
             switch (event.data.type) {
@@ -143,7 +147,7 @@ class HLSPlayer extends BasePlayer {
         this.hls.once(Hls.Events.MANIFEST_PARSED, () => {
             Logger.log('HLS manifest loaded, starting playback.')
             videoElement.currentTime = currentTime
-            videoElement.play()
+            if (this.settings.autoplay.enabled) videoElement.play()
         })
     }
 
@@ -192,12 +196,31 @@ class HLSPlayer extends BasePlayer {
         })
 
         if (Hls.isSupported()) {
-            this.hls = new Hls()
+            if (this.epData[0].url.includes("magyaranime")){
+                let url = new URL(this.epData[0].url);
+                let token = url.searchParams.get('token')
+                let expires = url.searchParams.get("expires");
+                this.hls = new Hls({
+                    xhrSetup: (xhr: XMLHttpRequest, url: string) => {
+                        if (url.endsWith(".ts")){
+                            let newUrl = new URL(url);
+                            newUrl.searchParams.set("token", token || "");
+                            newUrl.searchParams.set("expires", expires || "");
+                            xhr.open("GET", newUrl.toString());
+                        }
+                    }
+                });
+            } else this.hls = new Hls()
             this.hls.loadSource(this.epData[0].url)
             this.hls.attachMedia(videoElement)
             this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
                 Logger.log('HLS manifest loaded, starting playback.')
                 videoElement.play()
+            })
+            this.hls.on(Hls.Events.ERROR, (event, data) => {
+                const responseCode = data?.response?.code
+                if (responseCode === 403) this.onTokenExpired()
+                else if (responseCode === 429) this.onRateLimit()
             })
         } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
             videoElement.src = this.epData[0].url

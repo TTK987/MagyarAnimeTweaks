@@ -1,7 +1,15 @@
+let sessionID;
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
             if (node.tagName === 'SCRIPT' && node.innerText.includes('const icons = {')) {
+                const match = node.innerText.match(/Session ID:\s*([\d,]+)/);
+                if (match && match[1]) {
+                    sessionID = Number(match[1].trim().replace(/,/g, ''));
+                    console.log('Session ID found:', sessionID);
+                } else {
+                    console.warn('Session ID not found in the script.');
+                }
                 node.parentNode.removeChild(node);
                 observer.disconnect();
             }
@@ -17,6 +25,11 @@ Object.defineProperty(window, 'currentPlyr', {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (sessionID) {
+        let element = document.createElement("mat-data")
+        element.setAttribute("session-id", sessionID);
+        document.body.appendChild(element);
+    }
     let list = $('#epizodlista');
     let watchedItems = list.find('li .watched');
     if (watchedItems.length > 0) {
@@ -27,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 })
 
-// Used to copy error ID to clipboard, if there is an error ( utils.ts -> showError )
+// Used to copy error ID to clipboard, if there is an error
 window.copyToClipboard = (text, btn) => {
     navigator.clipboard.writeText(text).then(() => {
         const original = btn.innerHTML

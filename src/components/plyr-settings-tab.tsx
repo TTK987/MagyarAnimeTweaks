@@ -179,7 +179,7 @@ export default function PlyrSettingsTab({settings, onSettingsChange, onCSSChange
                                             <span className="font-medium">Figyelem!</span>
                                         </div>
                                         <p className="text-yellow-300 text-xs mt-1">
-                                            Közeledel a 10,000 karakteres korláthoz.
+                                            Közeledsz a 10,000 karakteres korláthoz.
                                         </p>
                                     </div>
                                 )}

@@ -6,7 +6,6 @@
 import MAT from '../MAT'
 import { EpisodeVideoData } from '../global'
 
-// TEST URL: https://magyaranime.eu/resz/58476/
 
 window.addEventListener('message', async function (event) {
     if (event.data) {

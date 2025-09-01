@@ -1,5 +1,5 @@
 import MAT from '../MAT'
-import {EpisodeVideoData, FansubData} from "../global";
+import { EpisodeVideoData, FansubData } from '../global'
 
 class IFramePlayerComm {
     private isIFrameLoaded: boolean
@@ -31,7 +31,7 @@ class IFramePlayerComm {
     removeMSGListeners() {
         window.removeEventListener('message', this.messageListener)
         // Clean up any active response handlers
-        this.activeResponseHandlers.forEach(handler => {
+        this.activeResponseHandlers.forEach((handler) => {
             window.removeEventListener('message', handler)
         })
         this.activeResponseHandlers.clear()
@@ -77,32 +77,27 @@ class IFramePlayerComm {
     /**
      * Handler for when the IFrame is loaded.
      */
-    onFrameLoaded() {
-    }
+    onFrameLoaded() {}
 
     /**
      * Handler for auto-playing the next episode.
      */
-    autoNextEpisode() {
-    }
+    autoNextEpisode() {}
 
     /**
      * Handler for playing the next episode.
      */
-    nextEpisode() {
-    }
+    nextEpisode() {}
 
     /**
      * Handler for playing the previous episode.
      */
-    previousEpisode() {
-    }
+    previousEpisode() {}
 
     /**
      * Handler for when the player is ready.
      */
-    onPlayerReady() {
-    }
+    onPlayerReady() {}
 
     /**
      * Handler for displaying a popup message.
@@ -120,20 +115,17 @@ class IFramePlayerComm {
             duration?: number
             id?: string
         } = {},
-    ) {
-    }
+    ) {}
 
     /**
      * Handler for when the player is replaced.
      */
-    onPlayerReplaced() {
-    }
+    onPlayerReplaced() {}
 
     /**
      * Handler for when the player replacement fails.
      */
-    onPlayerReplaceFailed() {
-    }
+    onPlayerReplaceFailed() {}
 
     /**
      * Gets the current playback time of the IFrame player.
@@ -141,15 +133,11 @@ class IFramePlayerComm {
      */
     getCurrentTime() {
         return new Promise((resolve) => {
-            this.sendAction(
-                MAT.__ACTIONS__.IFRAME.GET_CURRENT_TIME,
-                {},
-                (event: MessageEvent) => {
-                    if (event.data.type === MAT.__ACTIONS__.IFRAME.CURRENT_TIME) {
-                        resolve(event.data.currentTime)
-                    }
-                },
-            )
+            this.sendAction(MAT.__ACTIONS__.IFRAME.GET_CURRENT_TIME, {}, (event: MessageEvent) => {
+                if (event.data.type === MAT.__ACTIONS__.IFRAME.CURRENT_TIME) {
+                    resolve(event.data.currentTime)
+                }
+            })
         })
     }
 
@@ -163,7 +151,7 @@ class IFramePlayerComm {
                 if (event.data.type === MAT.__ACTIONS__.SOURCE_URL) {
                     resolve(event.data.data)
                 } else if (event.data.type === MAT.__ACTIONS__.INDA_NO_VIDEO) {
-                    reject("No video available")
+                    reject('No video available')
                 }
             })
         })
@@ -227,7 +215,7 @@ class IFramePlayerComm {
      * @param {number} time - The time to seek to in seconds.
      */
     seek(time: number) {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.SEEK, {time})
+        this.sendAction(MAT.__ACTIONS__.IFRAME.SEEK, { time })
     }
 
     /**
@@ -235,7 +223,7 @@ class IFramePlayerComm {
      * @param {number} percentage - The percentage to seek to.
      */
     seekPercentage(percentage: number) {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.SEEK_PERCENTAGE, {percentage})
+        this.sendAction(MAT.__ACTIONS__.IFRAME.SEEK_PERCENTAGE, { percentage })
     }
 
     /**
@@ -285,7 +273,6 @@ class IFramePlayerComm {
     /**
      * Delays execution until the IFrame is loaded.
      * @returns {Promise<void>} A promise that resolves when the IFrame is loaded.
-     * @deprecated
      */
     private delayUntilIFrameLoaded(): Promise<void> {
         return new Promise<void>((resolve) => {

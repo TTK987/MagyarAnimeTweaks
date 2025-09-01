@@ -142,7 +142,15 @@ class MAT {
                                           urlFilter: '*://cdn.jsdelivr.net/npm/disable-devtool*',
                                           resourceTypes: ['script'],
                                       },
-                                },
+                                  },
+                                  {
+                                        id: randomId + 3,
+                                        action: { type: 'block' },
+                                        condition: {
+                                            urlFilter: '*://magyaranime.eu/data/search/search.js*',
+                                            resourceTypes: ['script'],
+                                        },
+                                  }
                               ] as chrome.declarativeNetRequest.Rule[])
                             : ([] as chrome.declarativeNetRequest.Rule[])
                     chrome.declarativeNetRequest

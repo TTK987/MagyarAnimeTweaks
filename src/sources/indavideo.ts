@@ -3,6 +3,7 @@ import Logger from "../Logger";
 import { EpisodeVideoData } from '../global'
 
 window.addEventListener('message', async (event) => {
+    console.log(event);
     if (event.data?.type === MAT.__ACTIONS__.GET_SOURCE_URL) {
         Logger.log('[indavideo.js] Received GET_SOURCE_URL message', true);
 
@@ -189,21 +190,17 @@ let isInitialized = false;
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    Logger.log('[indavideo.js] Sending message to get source URL', true);
     init()
 });
 window.addEventListener('load', () => {
-    Logger.log('[indavideo.js] Document loaded', true);
     init()
 })
 window.addEventListener('readystatechange', (event) => {
     if (document.readyState === 'complete') {
-        Logger.log('[indavideo.js] Document ready state is complete', true);
         init();
     }
 })
 if (document.readyState === 'complete') {
-    Logger.log('Document is already fully loaded.');
     init();
 }
 

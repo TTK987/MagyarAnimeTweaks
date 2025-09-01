@@ -1,6 +1,24 @@
 # Verziók
 
 
+## 0.1.9.5
+
+- **Keresés**
+    - Az anime kereső használatának javítása.
+        - `/` billentyű lenyomásakor megnyílik a kereső, és `Esc`-el bezárható.
+        - Keresés támogatja az anime nevét, illetve a myanimelist.net-es url-t is.
+        - A kereső támogatja az id alapú keresést is (pl.: `#12345`).
+        - Keresési eredmények relevancia alapján vannak rendezve.
+        - Billentyűzet navigáció a keresési eredmények között (`fel/le` nyilak, `Enter`).
+- **Új funkció**
+    - Fullscreen módban a videó nem lép ki a fullscreen módból, ha következő/előző részre lépsz.
+    - Ez működik az automatikus következő rész funkcióval is.
+- **Bugfix**:
+    - Bizonyos kiegészítők mellett nem működött a kiegészítő.
+    - Szerver #4 videó betöltés és letöltés.
+    - Letöltési hibák rész váltás után.
+
+
 ## 0.1.9.4
 
 - **Bugfix**:

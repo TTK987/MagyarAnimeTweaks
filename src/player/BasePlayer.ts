@@ -90,32 +90,9 @@ export default class BasePlayer {
         this.epNum = epNum
         this.isANEpTrigger = false
 
-        let videoElement = document.querySelector(this.selector) as HTMLVideoElement
-        if (!videoElement) {
-            Logger.error('Video element not found. Selector: ' + this.selector)
-            return
-        }
-        videoElement.src = this.epData[0].url
-        videoElement.innerHTML = this.epData
-            .map((data) => `<source src="${data.url}" size="${data.quality}">`)
-            .join('')
+        this.plyr.destroy(()=> {},true)
 
-        // Remove markers if they exist
-        document.querySelectorAll('.plyr__progress__marker').forEach((marker) => {
-            marker.remove()
-        })
-
-        // Add new markers if bookmarks are enabled
-        if (this.settings.bookmarks.enabled) {
-            document.querySelector('.plyr__progress')?.append(
-                ...this.getBookmarks().map((bookmark) => {
-                    let marker = document.createElement('span')
-                    marker.className = 'plyr__progress__marker'
-                    marker.style.left = `${(bookmark.time / videoElement.duration) * 100}%`
-                    return marker
-                }),
-            )
-        }
+        this.replace()
 
         this.BookmarkFeature()
         this.ResumeFeature()
@@ -202,7 +179,26 @@ export default class BasePlayer {
                 window.dispatchEvent(new Event('PlayerReplaceFailed'))
                 return
             }
-            playerElement.replaceWith(videoElement)
+
+            if (!document.getElementById('MATweaks-player-wrapper')) {
+                let wrapper = document.createElement('div')
+                wrapper.id = 'MATweaks-player-wrapper'
+                wrapper.style.height = '100%'
+                wrapper.style.width = '100%'
+                wrapper.style.maxWidth = '1200px'
+                wrapper.style.margin = '0 auto'
+                let style = document.createElement('style')
+                style.innerHTML = `
+                #MATweaks-player-wrapper .plyr {
+                    max-width: 100% !important;
+                    height: 100% !important;
+                `
+                wrapper.append(style, videoElement)
+                playerElement.replaceWith(wrapper)
+            } else {
+                playerElement.replaceWith(videoElement)
+            }
+
             this.setupPlyr(videoElement)
             this.selector = '.plyr'
             this.loadCustomCss()
@@ -336,6 +332,9 @@ export default class BasePlayer {
     setupPlyr(videoElement: HTMLVideoElement) {
         if (this.plyr) this.plyr.destroy()
         this.plyr = new Plyr(videoElement, {
+            fullscreen: {
+                container: "#MATweaks-player-wrapper"
+            },
             controls: [
                 'play-large',
                 'play',
@@ -563,10 +562,8 @@ export default class BasePlayer {
      */
     download() {}
 
-    /**
-     * Add keyboard shortcuts to the Plyr player
-     */
-    addShortcutsToPlyr() {
+
+    private addDownloadButton() {
         document
             .querySelector('.plyr__controls__item[data-plyr="download"]')
             ?.addEventListener('click', (e) => {
@@ -575,6 +572,14 @@ export default class BasePlayer {
                 e.stopImmediatePropagation()
                 this.download()
             })
+    }
+
+    /**
+     * Add keyboard shortcuts to the Plyr player
+     */
+    addShortcutsToPlyr() {
+
+        this.addDownloadButton()
 
         document.addEventListener('keydown', (event) => {
             this.handleShortcutEvent(event, this.settings.forwardSkip, this.skipForward.bind(this))
@@ -723,7 +728,7 @@ export default class BasePlayer {
      * @param {number} time - The time to seek to
      */
     seekTo(time: number) {
-        const video = document.querySelector(this.selector) as HTMLVideoElement
+        const video = document.querySelector("video") as HTMLVideoElement
         let target: Plyr | HTMLVideoElement = this.plyr || video
         const seekHandler = () => {
             if (target.duration > 0) {

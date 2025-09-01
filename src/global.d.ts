@@ -203,10 +203,6 @@ interface FansubData {
     link: string
 }
 
-interface UrlData {
-    site: string
-    link: string
-}
 
 interface EpisodeData {
     episodeNumber: number
@@ -276,10 +272,8 @@ export {
     SettingsV019,
     SettingsV018,
     SettingsV017,
-    Settings,
     keyBind,
     FansubData,
-    UrlData,
     EpisodeData,
     EpisodeListItem,
     SourceData,
