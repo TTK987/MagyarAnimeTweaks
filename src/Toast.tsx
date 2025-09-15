@@ -2,6 +2,13 @@ import { createElement, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Bell, X, CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react'
 
+interface Options {
+    icon?: ReactNode
+    position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center'
+    duration?: number // in milliseconds, 0 means no auto-dismiss
+    id?: string // optional ID to update existing toast
+}
+
 /**
  * Toast - A simple, customizable toast notification system
  *
@@ -555,12 +562,7 @@ class Toast {
         type: 'success' | 'info' | 'warning' | 'error' | 'default' = 'default',
         title: string,
         description?: string,
-        options: {
-            icon?: ReactNode
-            position?: string
-            duration?: number
-            id?: string
-        } = {},
+        options: Options = {},
     ): string {
         const instance = Toast.getInstance()
         const id = options.id || Math.random().toString(36).substring(2, 9)
@@ -707,21 +709,22 @@ class Toast {
     }
 
     // Convenience methods for common toast types
-    public static success(title: string, description?: string, options = {}): string {
+    public static success(title: string, description?: string, options: Options = {}): string {
         return Toast.show('success', title, description, options)
     }
 
-    public static info(title: string, description?: string, options = {}): string {
+    public static info(title: string, description?: string, options: Options = {}): string {
         return Toast.show('info', title, description, options)
     }
 
-    public static warning(title: string, description?: string, options = {}): string {
+    public static warning(title: string, description?: string, options: Options = {}): string {
         return Toast.show('warning', title, description, options)
     }
 
-    public static error(title: string, description?: string, options = {}): string {
+    public static error(title: string, description?: string, options: Options = {}): string {
         return Toast.show('error', title, description, options)
     }
 }
 
 export default Toast
+export type { Options }

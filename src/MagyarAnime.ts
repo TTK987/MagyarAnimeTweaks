@@ -1,4 +1,5 @@
 import { EpisodeListItem, EpisodeData, SourceData, FansubData } from './global'
+import MAT from './MAT'
 
 /**
  * This class is responsible for fetching Data from the MagyarAnime page by scraping it.
@@ -51,14 +52,6 @@ class MagyarAnime {
         style.id = 'MAT_CSS'
         document.head.appendChild(style)
     }
-
-    /**
-     * Removes custom CSS from the page
-     * @since v0.1.8
-     */
-    removeCSS() {
-        document.querySelectorAll('#MAT_CSS').forEach((e) => e.remove())
-    }
 }
 
 /**
@@ -77,6 +70,21 @@ class Anime {
     constructor(document: Document, url: string) {
         this.document = document
         this.url = url
+    }
+
+
+    getMALLink(): string {
+        try {
+            return (
+                (
+                    this.document.querySelector(
+                        '.gen-button.gen-button-dark.adatlap_gomb2'
+                    ) as HTMLAnchorElement
+                )?.href || ''
+            )
+        } catch {
+            return ''
+        }
     }
 
     /**
@@ -260,7 +268,7 @@ class Anime {
     getEpisodes(): EpisodeListItem[] {
         try {
             return (
-                [...this.document.querySelectorAll('.owl-item, .item')].map((item) => ({
+                [...this.document.querySelectorAll('.owl-stage > .owl-item, .owl-stage > .item')].map((item) => ({
                     title: item.querySelector('.gen-episode-info h3 a')?.textContent || '',
                     link:
                         (item.querySelector('.gen-episode-info h3 a') as HTMLAnchorElement)?.href ||
@@ -325,6 +333,44 @@ class Episode {
     }
 
     /**
+     * Get the MyAnimeList ID of the anime
+     *
+     * ALERT: This function is expensive, as it makes a network request, should be used only when necessary and only once.
+     * @returns {Promise<Number>} The MyAnimeList ID of the anime (or -1 if not found)
+     * @since v0.1.9.6
+     */
+    getMALId(): Promise<number> {
+        return new Promise((resolve, reject) => {
+            try {
+                fetch(this.getAnimeLink(), {
+                    method: 'GET',
+                    headers: {
+                        "MagyarAnimeTweaks": "v"+MAT.getVersion(),
+                        "x-requested-with": "XMLHttpRequest"
+                    },
+                    credentials: 'include',
+                })
+                .then(response => response.text())
+                .then(html => {
+                    let tempMA = new MagyarAnime(new DOMParser().parseFromString(html, 'text/html'), this.getAnimeLink());
+                    const malLink = tempMA.ANIME.getMALLink();
+                    if (malLink) {
+                        const malMatch = malLink.match(/myanimelist.net\/anime\/(\d+)\//);
+                        if (malMatch) {
+                            resolve(parseInt(malMatch[1]) || -1);
+                        }
+                    } else {
+                        resolve(-1);
+                    }
+                })
+                .catch(() => resolve(-1));
+            } catch {
+                resolve(-1);
+            }
+        });
+    }
+
+    /**
      * Get the title of the episode
      * @returns {String} The title of the episode
      * @since v0.1.8
@@ -340,7 +386,7 @@ class Episode {
      */
     getEpisodeNumber(): number {
         try {
-            const match = (
+            let match = (
                 this.document.querySelector(
                     '#epizodlista .active .episode-title',
                 ) as HTMLParagraphElement
@@ -348,6 +394,16 @@ class Episode {
             if (match) {
                 return parseInt(match[1]) || -1
             }
+
+            match = (
+                this.document.querySelector(
+                    "#DailyLimits"
+                ) as HTMLDivElement
+            )?.innerText.match(/(\d+)\.?\s?[rR]ész/)
+            if (match) {
+                return parseInt(match[1]) || -1
+            }
+
             return -1
         } catch {
             return -1
@@ -467,21 +523,15 @@ class Episode {
 
     /**
      * Returns the id of the episode
-     * @returns {number} The id of the episode (if the episode is from indavideo, it offsets the id by 100000)
+     * @returns {number} The id of the episode (if the episode is from /inda-play-<...>/, it offsets the id by 100000)
      */
     getId(): number {
         try {
             const path = window.location.pathname
             const dataMatch = path.match(/(-s\d+)?\/(\d+)\//)
             const playMatch = path.match(/\/inda-play-(\d+)\//)
-            if (playMatch) {
-                const id = parseInt(playMatch[1]) || -1
-                const PLAY_OFFSET = 100000
-                return id + PLAY_OFFSET
-            }
-            if (dataMatch) {
-                return parseInt(dataMatch[2]) || -1
-            }
+            if (playMatch) return (parseInt(playMatch[1]) || -1) + 100000
+            if (dataMatch) return parseInt(dataMatch[2]) || -1
             return -1
         } catch {
             return -1

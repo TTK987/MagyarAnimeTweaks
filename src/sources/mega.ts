@@ -5,7 +5,7 @@ import MegaPlayer from '../player/MegaPlayer'
 import Resume from '../Resume'
 
 
-let  Player = new MegaPlayer("", MAT.settings, 0, 0, "", 0);
+let  Player = new MegaPlayer("", MAT.settings, 0, 0, "", 0, 0);
 Logger.success('[mega.js] Script loaded successfully', true);
 
 window.addEventListener('message', (event) => {
@@ -15,6 +15,7 @@ window.addEventListener('message', (event) => {
         Player.epNum = Number(event.data.epNum);
         Player.epID = Number(event.data.epID);
         Player.animeID = Number(event.data.animeID);
+        Player.malId = Number(event.data.malId);
         MAT.loadSettings().then((settings) => {
             if (settings.advanced.consoleLog) Logger.enable(); else Logger.disable();
             Bookmark.loadBookmarks().then(() => {

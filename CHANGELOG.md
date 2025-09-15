@@ -1,6 +1,15 @@
 # Verziók
 
 
+## 0.1.9.6
+
+- **Kisérleti jelleggel AniSkip integráció**
+    - Ez a funkció még fejlesztés alatt áll, és nem biztos, hogy minden esetben megfelelően működik.
+    - Bekapcsolásához menj a kiegészítő beállításaihoz, nyisd meg a "Fejlesztői beállítások" részt, és kapcsold be az "Early Access Program (EAP)" opciót.
+- **Kisebb bugfixek**:
+    - Következő / előző rész váltásnál az anime adatlapjára ugrás nem működött.
+
+
 ## 0.1.9.5
 
 - **Keresés**
@@ -77,10 +86,10 @@
 - **Új beállítások**
     - **Alapértelmezett ugrás hossza** (Alapértelmezett: 5 másodperc)
         - Ez az alapértelmezett ugrás hossza, amikor simán a nyilakkal előre vagy hátra ugrasz.
-        - [További információk](SETTINGS.md#Ugrás)
+        - [További információk](SETTINGS.md)
     - **Előzmények**
         - Új beállítás, amivel be lehet állítani, hogy az előzmények mennyi ideig legyenek megőrizve.
-        - [További információk](SETTINGS.md#Előzmények)
+        - [További információk](SETTINGS.md)
 - **A felugró beállítások ablak kivételre került**
     - A beállítások mostantól csak a kiegészítő oldalán érhetőek el.
 - **Bugfixek**
@@ -96,15 +105,15 @@
 - **Új funkciók**
     - **Könyvjelzők**
         - A animékhez hozzáadható könyvjelző, amivel könnyen visszatérhetsz az adott részhez.
-        - [További információk](SETTINGS.md#Könyvjelzők)
+        - [További információk](BOOKMARKS.md)
     - **Folytatás ahol abbahagytad**
         - Ezzel a funkcióval a kiegészítő megjegyzi, hogy hol hagytad abba az adott animét és részt.
-        - [További információk](SETTINGS.md#Előzmények)
+        - [További információk](HISTORY.md)
 - **Új beállítások**
     - **Könyvjelzők** (Alapértelmezett: Engedélyezve)
-        - [További információk](SETTINGS.md#Könyvjelzők)
+        - [További információk](SETTINGS.md)
     - **Folytatás ahol abbahagytad** (Alapértelmezett: Engedélyezve)
-        - [További információk](SETTINGS.md#Előzmények)
+        - [További információk](SETTINGS.md)
 - **Pop-up ablak**
     - A felugró ablak kinézete és funkcionalitása megváltozott.
     - Mostantól a ablakból is elérhetőek a könyvjelzők, az előzmények és a beállítások.
@@ -139,10 +148,10 @@
 - **Új beállítások**
     - **Letöltési név** (Alapértelmezett: `%title% - %episode% - %MAT%`)
         - A letöltött fájl neve.
-        - [További információk](SETTINGS.md#letöltési-név)
+        - [További információk](SETTINGS.md)
     - **Plyr** (Alapértelmezett: Kikapcsolva)
         - Egyedi kinézet
-        - [További információk](SETTINGS.md#plyr)
+        - [További információk](SETTINGS.md)
 
 
 ## 0.1.6.2
@@ -253,4 +262,3 @@
 
 - Első verzió
 - A kiegészítő működik a magyaranime.eu oldalon.
-

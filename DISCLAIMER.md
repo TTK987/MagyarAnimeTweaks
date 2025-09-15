@@ -1,28 +1,50 @@
-## Nyilatkozat
+## Nyilatkozat / Disclaimer (v1.1 – 2025-09-02)
 
-- A kiegészítő NEM áll kapcsolatban sem a Mega.nz, sem az indavideo.hu, sem a dailymotion.com, sem a videa.hu, sem a rumble.com oldalakkal.
-- A programot az MIT licensz védi.
-- A kiégészítő csak a magyaranime.eu oldalon használható.
-- A fejlesztők nem vállalnak felelősséget a kiegészítő használatából eredő károkért.
-- A kiegészítő a Magyar Anime oldalon található "Az oldalon található tartalom szabadon felhasználható" feltételeknek megfelelően készült.
-- A kiegészítő a Magyar Anime oldal DMCA szabályainak megfelelően készült. [MA DMCA](https://magyaranime.eu/web/dmca/)
-- A kiegészítő fejlesztője (/fejlesztői) fenntartják a jogot, hogy bármikor módosítsák a kiegészítőt.
-- A Magyar Anime fejlesztőjének (/fejlesztőinek) kérése esetén a kiegészítőt eltávolítom a GitHubról és minden más platformról.
-- A kiegészítőnek NEM célja a magyaranime oldal szervereinek terhelése (!) vagy a magyaranime oldal szervereinek károsítása (!).
-- A kiegészítő nem használható a magyaranime oldal szervereinek szándékos terhelésére (!) vagy a magyaranime oldal szervereinek károsítására (!), ellenkező esetben a kiegészítő használata tilos és a fejlesztők nem vállalnak felelősséget a kiegészítő használatából eredő károkért (pl.: IP tiltás, stb.).
-- Az itt leírtak változhatnak bármikor anélkül, hogy erről értesítés történne.
-- A kiegészítő használatával elfogadod a fentebb felsoroltakat.
+Hungarian and English texts are intended to be equivalent. In case of ambiguity, the Hungarian version prevails.
 
-## Disclaimer
+---
 
-- The add-on is NOT affiliated with Mega.nz, indavideo.hu, dailymotion.com, videa.hu, rumble.com.
-- The program is protected by the MIT license.
-- The add-on can only be used on the magyaranime.eu website.
-- The developers are not responsible for any damages caused by the use of the add-on.
-- The add-on was created in accordance with the terms of use of the Magyar Anime website. [MA DMCA](https://magyaranime.eu/web/dmca/)
-- The developer (/s) of the add-on reserve the right to modify the add-on at any time.
-- At the request of the developer (/s) of the Magyar Anime, I will remove the add-on from GitHub and any other platform.
-- The add-on is NOT intended to overload the servers of the magyaranime website (!) or to damage the servers of the magyaranime website (!).
-- The add-on cannot be used to intentionally overload the servers of the magyaranime website (!) or to damage the servers of the magyaranime website (!), otherwise the use of the add-on is prohibited and the developers are not responsible for any damages caused by the use of the add-on (e.g. IP ban, etc.).
-- The above may change at any time without notice.
-- By using the add-on, you accept the above.
+### Magyar (HU)
+
+Ez a böngésző-kiegészítő (a "Szoftver") független, nyílt forráskódú projekt, és nincs kapcsolatban a Mega.nz, indavideo.hu, dailymotion.com, videa.hu, rumble.com vagy a MagyarAnime üzemeltetőivel.
+
+A Szoftver kizárólag a magyaranime.eu oldalon való jogszerű használatra készült, olyan módon, amely nem terheli túl, nem zavarja és nem károsítja az oldal infrastruktúráját. Tilos a Szoftvert:
+- védelmi / hozzáférés-szabályozási mechanizmusok megkerülésére,
+- az oldal szolgáltatásainak túlterhelésére, szondázására, hibakeresés címén történő agresszív lekérdezésére,
+- az oldal működésének megzavarására vagy károsítására
+használni. E tilalmak megszegése a használat azonnali tiltását vonhatja maga után (pl. IP tiltás), amelyért a fejlesztők felelősséget nem vállalnak.
+
+A Szoftver NEM célja a szolgáltatások bármilyen formájú terheléses tesztje vagy sérülékenységkeresése.
+
+A Szoftver az MIT licenc alatt érhető el (lásd: [LICENSE](LICENSE)).
+
+Hivatkozott irányelvek: [MA DMCA](https://magyaranime.eu/web/dmca/) • [MA Szabályzat](https://magyaranime.eu/szabalyzat/).
+
+A fejlesztők / karbantartók fenntartják a jogot, hogy a Szoftvert bármikor előzetes értesítés nélkül módosítsák, felfüggesszék, eltávolítsák, vagy – a MagyarAnime üzemeltetőinek kérése esetén – a nyilvánosan elérhető árúházakból (Google Chrome Web Store, Mozilla Add-ons) visszavonják.
+
+A feltételek bármikor, értesítés nélkül változhatnak. A Szoftver használatával elfogadod a `LICENSE` fájlban található MIT licenc feltételeit és jelen Nyilatkozatot.
+
+
+---
+
+### English (EN)
+
+This browser add-on (the "Software") is an independent, open-source project and is not affiliated with Mega.nz, indavideo.hu, dailymotion.com, videa.hu, rumble.com, or the operators of MagyarAnime.
+
+The Software is intended solely for lawful use on the magyaranime.eu website in a manner that does not overload, disrupt, probe, or damage its infrastructure. You must not use the Software to:
+- bypass security / access-control mechanisms,
+- stress, probe, aggressively enumerate, or otherwise overload the service,
+- disrupt or harm the operation of the site.
+Violation of these prohibitions may result in immediate denial of use (e.g., IP ban), for which the maintainers assume no responsibility.
+
+The Software is NOT intended for any form of load testing or vulnerability scanning against the service.
+
+The Software is provided under the MIT License (see: [LICENSE](LICENSE)).
+
+Referenced site policies: [MA DMCA](https://magyaranime.eu/web/dmca/) • [MA Rules](https://magyaranime.eu/szabalyzat/).
+
+The maintainers reserve the right to modify, suspend, or remove the Software at any time without notice and, upon request of the MagyarAnime operators, to withdraw it from publicly accessible stores (Google Chrome Web Store, Mozilla Add-ons).
+
+Terms may change at any time without notice. By using the Software you accept the MIT License terms in `LICENSE` and this Disclaimer.
+
+---

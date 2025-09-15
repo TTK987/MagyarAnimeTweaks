@@ -1,12 +1,13 @@
 import Plyr from 'plyr'
 import Bookmarks from '../Bookmark'
-import Resume, {Episode} from '../Resume'
+import Resume, { Episode } from '../Resume'
 import Logger from '../Logger'
 import MAT from '../MAT'
-import Toast from '../Toast'
+import Toast, { Options } from '../Toast'
 import { SettingsV019, EpisodeVideoData, keyBind } from '../global'
 import 'plyr/dist/plyr.css'
 import {formatTime} from "../lib/time-utils";
+import AniSkip, { SkipInterval } from '../AniSkip'
 
 export default class BasePlayer {
     selector: string
@@ -18,9 +19,14 @@ export default class BasePlayer {
     animeTitle: string
     epNum: number
     animeID: number
+    malId: number
     private skipForwardCooldown: number | undefined
     private skipBackwardCooldown: number | undefined
     private isANEpTrigger: boolean
+    private aniSkip?: AniSkip
+    private aniSkipSegments: { op?: SkipInterval; ed?: SkipInterval } = {}
+    private aniSkipCycleShown: { op?: boolean; ed?: boolean } = {}
+    private aniSkipTimers: { op?: number; ed?: number } = {}
     /**
      * Base player class
      *
@@ -39,6 +45,7 @@ export default class BasePlayer {
      * @param {number} animeID - The ID of the anime
      * @param {string} animeTitle - The title of the anime
      * @param {number} epNum - The episode number
+     * @param {number} malId - The MyAnimeList ID of the anime
      * @constructor
      */
     constructor(
@@ -50,6 +57,7 @@ export default class BasePlayer {
         animeID: number = 0,
         animeTitle: string = '',
         epNum: number = 0,
+        malId: number = 0,
     ) {
         this.selector = selector
         this.epData = qualityData
@@ -59,45 +67,44 @@ export default class BasePlayer {
         this.settings = settings
         this.epID = epID
         this.animeTitle = animeTitle
+        this.malId = malId
         this.epNum = epNum
         this.animeID = animeID
         this.isANEpTrigger = false
-        Logger.log(JSON.stringify({
-            selector: this.selector,
-            qualityData: this.epData,
-            isDownloadable: this.isDownloadable,
-            settings: this.settings,
-            epID: this.epID,
-            animeID: this.animeID,
-            animeTitle: this.animeTitle,
-            epNum: this.epNum,
-        }))
+        Logger.log(
+            JSON.stringify({
+                selector: this.selector,
+                qualityData: this.epData,
+                isDownloadable: this.isDownloadable,
+                settings: this.settings,
+                epID: this.epID,
+                animeID: this.animeID,
+                animeTitle: this.animeTitle,
+                epNum: this.epNum,
+                malId: this.malId,
+            }),
+        )
     }
 
     /**
      * Currently not used. An attempt to load a new video without reloading the plyr instance.
      */
-    loadNewVideo( data: EpisodeVideoData[],
-                  epID: number,
-                  epNum: number
-    ) {
+    loadNewVideo(data: EpisodeVideoData[], epID: number, epNum: number) {
         if (data.length === 0) {
             Logger.error('No video data provided.')
             return
         }
         this.epData = data
-        this.epID = epID
+        this.plyr.destroy(() => {Logger.log('Plyr instance destroyed')}, false)
+
+        document.querySelector('.plyr')?.remove()
         this.epNum = epNum
         this.isANEpTrigger = false
 
-        this.plyr.destroy(()=> {},true)
+        document.querySelector('.plyr')?.remove()
 
         this.replace()
-
-        this.BookmarkFeature()
-        this.ResumeFeature()
     }
-
 
     /**
      * Go to the previous episode
@@ -107,9 +114,7 @@ export default class BasePlayer {
     /**
      * Go to the next episode
      */
-    nextEpisode() {
-
-    }
+    nextEpisode() {}
 
     /**
      * Change the quality of the video
@@ -130,11 +135,7 @@ export default class BasePlayer {
         type: 'success' | 'info' | 'warning' | 'error' | 'default' = 'default',
         title: string,
         description?: string,
-        options: {
-            position?: string
-            duration?: number
-            id?: string
-        } = {},
+        options: Options = {},
     ): void {
         if (window.parent !== window && window.document.fullscreenElement === null) {
             window.parent.postMessage(
@@ -172,7 +173,7 @@ export default class BasePlayer {
                 window.dispatchEvent(new Event('PlayerReplaceFailed'))
                 return
             }
-            let playerElement = document.querySelector(this.selector)
+            let playerElement = document.querySelector(this.selector) || document.querySelector('video')
             let videoElement = this.createVideoElement()
             if (!playerElement) {
                 Logger.error('Player element not found. Selector: ' + this.selector)
@@ -240,29 +241,29 @@ export default class BasePlayer {
      */
     adjustAspectRatio(videoElement: HTMLVideoElement) {
         videoElement.addEventListener('loadedmetadata', () => {
-            const width = videoElement.videoWidth;
-            const height = videoElement.videoHeight;
-            const plyrContainer = videoElement.closest('.plyr') as HTMLElement;
+            const width = videoElement.videoWidth
+            const height = videoElement.videoHeight
+            const plyrContainer = videoElement.closest('.plyr') as HTMLElement
             if (plyrContainer) {
-                plyrContainer.style.aspectRatio = '16 / 9';
-                plyrContainer.style.maxWidth = '';
-                plyrContainer.style.width = '100%';
-                plyrContainer.style.height = '';
-                if (width && height && Math.abs(width / height - 4/3) < 0.05) {
-                    videoElement.style.aspectRatio = '4 / 3';
-                    videoElement.style.margin = '0 auto';
-                    plyrContainer.style.display = 'flex';
-                    plyrContainer.style.alignItems = 'center';
-                    plyrContainer.style.justifyContent = 'center';
+                plyrContainer.style.aspectRatio = '16 / 9'
+                plyrContainer.style.maxWidth = ''
+                plyrContainer.style.width = '100%'
+                plyrContainer.style.height = ''
+                if (width && height && Math.abs(width / height - 4 / 3) < 0.05) {
+                    videoElement.style.aspectRatio = '4 / 3'
+                    videoElement.style.margin = '0 auto'
+                    plyrContainer.style.display = 'flex'
+                    plyrContainer.style.alignItems = 'center'
+                    plyrContainer.style.justifyContent = 'center'
                 } else {
-                    videoElement.style.aspectRatio = '16 / 9';
-                    videoElement.style.margin = '0';
-                    plyrContainer.style.display = 'block';
-                    plyrContainer.style.alignItems = '';
-                    plyrContainer.style.justifyContent = '';
+                    videoElement.style.aspectRatio = '16 / 9'
+                    videoElement.style.margin = '0'
+                    plyrContainer.style.display = 'block'
+                    plyrContainer.style.alignItems = ''
+                    plyrContainer.style.justifyContent = ''
                 }
             }
-        });
+        })
     }
 
     /**
@@ -333,7 +334,7 @@ export default class BasePlayer {
         if (this.plyr) this.plyr.destroy()
         this.plyr = new Plyr(videoElement, {
             fullscreen: {
-                container: "#MATweaks-player-wrapper"
+                container: '#MATweaks-player-wrapper',
             },
             controls: [
                 'play-large',
@@ -360,7 +361,7 @@ export default class BasePlayer {
                 default: Math.max(...this.epData.map((data) => data.quality)),
                 options: [...this.epData.map((data) => data.quality).sort((a, b) => b - a)],
                 forced: true,
-                onChange: (quality) => this.changeQuality(quality, videoElement),
+                onChange: (quality: number) => this.changeQuality(quality, videoElement),
             },
             speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] },
             markers: {
@@ -372,6 +373,7 @@ export default class BasePlayer {
         this.addShortcutsToPlyr()
         if (this.settings.resume.enabled) this.ResumeFeature()
         if (this.settings.bookmarks.enabled) this.BookmarkFeature()
+        if (this.settings.eap) this.initAniSkip(videoElement)
     }
 
     /**
@@ -518,8 +520,7 @@ export default class BasePlayer {
             return
         }
         this.skipForwardCooldown = Date.now()
-        this.plyr.currentTime =
-            Number(this.plyr.currentTime) + Number(this.settings.forwardSkip.time)
+        this.plyr.currentTime += Number(this.settings.forwardSkip.time)
         this.Toast('info', '+' + this.settings.forwardSkip.time + ' sec.', '', { duration: 500 })
         Logger.log('Skipped forward ' + this.settings.forwardSkip.time + ' seconds.')
     }
@@ -534,8 +535,7 @@ export default class BasePlayer {
             return
         }
         this.skipBackwardCooldown = Date.now()
-        this.plyr.currentTime =
-            Number(this.plyr.currentTime) - Number(this.settings.backwardSkip.time)
+        this.plyr.currentTime -= Number(this.settings.backwardSkip.time)
         this.Toast('info', '-' + this.settings.backwardSkip.time + ' sec.', '', { duration: 500 })
         Logger.log('Skipped backward ' + this.settings.backwardSkip.time + ' seconds.')
     }
@@ -562,7 +562,6 @@ export default class BasePlayer {
      */
     download() {}
 
-
     private addDownloadButton() {
         document
             .querySelector('.plyr__controls__item[data-plyr="download"]')
@@ -578,12 +577,15 @@ export default class BasePlayer {
      * Add keyboard shortcuts to the Plyr player
      */
     addShortcutsToPlyr() {
-
         this.addDownloadButton()
 
         document.addEventListener('keydown', (event) => {
             this.handleShortcutEvent(event, this.settings.forwardSkip, this.skipForward.bind(this))
-            this.handleShortcutEvent(event, this.settings.backwardSkip, this.skipBackward.bind(this))
+            this.handleShortcutEvent(
+                event,
+                this.settings.backwardSkip,
+                this.skipBackward.bind(this),
+            )
         })
         document.addEventListener('keyup', (event) => {
             this.handleShortcutEvent(event, this.settings.nextEpisode, () => {
@@ -635,42 +637,45 @@ export default class BasePlayer {
      * Setup the resume feature
      */
     ResumeFeature() {
-        Resume.loadData().then(() => {
-            if (this.epID === undefined) return
-            this.addResumeEventListeners()
-            this.checkResume().then((response) => {
-                if (response) return
-                this.addCSS(` #MATweaks-resume-Toast { left: 50%; transform: translateX(-50%); background: var(--black-color); color: white; border-radius: 5px; z-index: 1000; transition: opacity 1s; justify-content: center; display: flex; position: absolute; width: auto; bottom: 4em; background: #00000069; align-items: center; padding: 3px; } #MATweaks-resume-button { border-radius: 5px; box-shadow: 3px 3px 3px 2px rgb(0 0 0 / 20%); cursor: pointer; color: var(--white-color); border: none; height: auto; line-height: 2; text-transform: uppercase; -webkit-border-radius: 5px; -moz-border-radius: 5px; transition: all 0.5s ease-in-out; -moz-transition: all 0.5s ease-in-out; -ms-transition: all 0.5s ease-in-out; -o-transition: all 0.5s ease-in-out; -webkit-transition: all 0.5s ease-in-out; text-shadow: 1px 1px #000; font-weight: 500; background: #ffffff26; font-size: x-small; margin: 3px; display: flex; align-items: center; justify-content: space-between; width: 120px; padding: 5px; } #MATweaks-resume-button:hover { background: #ffffff4d; }#MATweaks-resume-button svg { width: 16px; height: 16px; margin-left: 5px; }`)
-                let curResumeData = Resume.getDataByEpisodeId(this.epID)
-                if (!curResumeData) return
-                if (this.settings.resume.mode === 'auto') {
-                    this.seekTo(curResumeData.epTime)
-                    Logger.log('Resumed playback.')
-                    this.Toast('success', 'Folytatás sikeres.')
-                } else if (this.settings.resume.mode === 'ask')
-                    this.askUserToResume(curResumeData).then((response) => {
-                        if (response) {
-                            this.seekTo(curResumeData?.epTime)
-                            Logger.log('Resumed playback.')
-                            this.Toast('success', 'Folytatás sikeres.')
-                        } else {
-                            Logger.log('User chose not to resume.')
-                        }
-                    })
-                else {
-                    Logger.error('Invalid resume mode: ' + this.settings.resume.mode)
-                    this.Toast(
-                        'error',
-                        'Hiba történt',
-                        'Érvénytelen folytatás mód: ' + this.settings.resume.mode,
+        Resume.loadData()
+            .then(() => {
+                if (this.epID === undefined) return
+                this.addResumeEventListeners()
+                this.checkResume().then((response) => {
+                    if (response) return
+                    this.addCSS(
+                        ` #MATweaks-resume-Toast { left: 50%; transform: translateX(-50%); background: var(--black-color); color: white; border-radius: 5px; z-index: 1000; transition: opacity 1s; justify-content: center; display: flex; position: absolute; width: auto; bottom: 4em; background: #00000069; align-items: center; padding: 3px; } #MATweaks-resume-button { border-radius: 5px; box-shadow: 3px 3px 3px 2px rgb(0 0 0 / 20%); cursor: pointer; color: var(--white-color); border: none; height: auto; line-height: 2; text-transform: uppercase; -webkit-border-radius: 5px; -moz-border-radius: 5px; transition: all 0.5s ease-in-out; -moz-transition: all 0.5s ease-in-out; -ms-transition: all 0.5s ease-in-out; -o-transition: all 0.5s ease-in-out; -webkit-transition: all 0.5s ease-in-out; text-shadow: 1px 1px #000; font-weight: 500; background: #ffffff26; font-size: x-small; margin: 3px; display: flex; align-items: center; justify-content: space-between; width: 120px; padding: 5px; } #MATweaks-resume-button:hover { background: #ffffff4d; }#MATweaks-resume-button svg { width: 16px; height: 16px; margin-left: 5px; }`,
                     )
-                }
+                    let curResumeData = Resume.getDataByEpisodeId(this.epID)
+                    if (!curResumeData) return
+                    if (this.settings.resume.mode === 'auto') {
+                        this.seekTo(curResumeData.epTime)
+                        Logger.log('Resumed playback.')
+                        this.Toast('success', 'Folytatás sikeres.')
+                    } else if (this.settings.resume.mode === 'ask')
+                        this.askUserToResume(curResumeData).then((response) => {
+                            if (response) {
+                                this.seekTo(curResumeData?.epTime)
+                                Logger.log('Resumed playback.')
+                                this.Toast('success', 'Folytatás sikeres.')
+                            } else {
+                                Logger.log('User chose not to resume.')
+                            }
+                        })
+                    else {
+                        Logger.error('Invalid resume mode: ' + this.settings.resume.mode)
+                        this.Toast(
+                            'error',
+                            'Hiba történt',
+                            'Érvénytelen folytatás mód: ' + this.settings.resume.mode,
+                        )
+                    }
+                })
             })
-        })
-        .catch((error) => {
-            Logger.error('Error while loading resume data: ' + error)
-            this.Toast('error', 'Hiba történt', 'Hiba a folytatás adatok betöltése közben.')
-        })
+            .catch((error) => {
+                Logger.error('Error while loading resume data: ' + error)
+                this.Toast('error', 'Hiba történt', 'Hiba a folytatás adatok betöltése közben.')
+            })
     }
 
     /**
@@ -688,8 +693,8 @@ export default class BasePlayer {
                         const idFromUrl = playMatch
                             ? parseInt(playMatch[1], 10) + 100000
                             : dataMatch
-                                ? parseInt(dataMatch[2], 10)
-                                : -1
+                              ? parseInt(dataMatch[2], 10)
+                              : -1
 
                         if (idFromUrl !== this.epID) {
                             Logger.log('No resume data found for the current URL.')
@@ -728,7 +733,7 @@ export default class BasePlayer {
      * @param {number} time - The time to seek to
      */
     seekTo(time: number) {
-        const video = document.querySelector("video") as HTMLVideoElement
+        const video = document.querySelector('video') as HTMLVideoElement
         let target: Plyr | HTMLVideoElement = this.plyr || video
         const seekHandler = () => {
             if (target.duration > 0) {
@@ -785,7 +790,9 @@ export default class BasePlayer {
             this.plyr.currentTime,
             this.animeID,
             this.animeTitle,
-            window.location.href.startsWith('https://magyaranime.eu') ? window.location.href : `https://magyaranime.eu/resz/${this.epID}/`,
+            window.location.href.startsWith('https://magyaranime.eu')
+                ? window.location.href
+                : `https://magyaranime.eu/resz/${this.epID}/`,
             this.epNum,
             Date.now(),
         )
@@ -831,7 +838,212 @@ export default class BasePlayer {
         video.addEventListener('ended', removeData)
         window.addEventListener('beforeunload', updateData)
         window.addEventListener('unload', updateData)
-        window.addEventListener('MATweaksAutoNextEpisode', removeData)
         document.addEventListener('visibilitychange', updateData)
+    }
+
+    private async initAniSkip(videoElement: HTMLVideoElement) {
+        if (!this.malId || this.malId <= 0) {
+            Logger.error('AniSkip disabled (missing malId).')
+            return
+        }
+
+        Logger.log(`AniSkip: initializing (malId=${this.malId}, ep=${this.epNum})`)
+        this.injectAniSkipCss()
+
+        const duration = videoElement.duration || this.plyr?.duration || 0
+
+        if (!this.aniSkip) this.aniSkip = new AniSkip()
+
+        let resp: any
+        try {
+            resp = await this.aniSkip.getMalSkipTimes(this.malId, this.epNum, {
+                types: ['op', 'ed'],
+                episodeLength: duration,
+            })
+        } catch (err: any) {
+            if (err?.message?.includes('404')) {
+                Logger.warn('AniSkip: no skip segments found (404).')
+                return
+            }
+            Logger.error('AniSkip: failed to fetch skip times. Error: ' + err)
+            return
+        }
+
+        if (!resp || !resp.results || resp.results.length === 0) {
+            Logger.warn('AniSkip: OP/ED segments array empty after processing.')
+            return
+        }
+
+        Logger.log(`AniSkip: ${resp.results.length} segment(s) returned.`)
+
+        // Ensure internal state objects exist
+        this.aniSkipSegments = this.aniSkipSegments || { op: undefined, ed: undefined }
+        this.aniSkipCycleShown = this.aniSkipCycleShown || { op: false, ed: false }
+        this.aniSkipTimers = this.aniSkipTimers || { op: undefined, ed: undefined }
+
+        type SegmentType = 'op' | 'ed'
+        type Interval = { startTime: number; endTime: number }
+
+        resp.results.forEach((r: any) => {
+            const type = r?.skipType as SegmentType
+            if (type !== 'op' && type !== 'ed') {
+                Logger.log(`AniSkip: ignoring non OP/ED segment type=${r?.skipType}`)
+                return
+            }
+            const interval: Interval | undefined = r?.interval
+            if (!interval) {
+                Logger.warn('AniSkip: invalid interval data; skipping.')
+                return
+            }
+
+            this.aniSkipSegments[type] = interval
+            this.aniSkipCycleShown[type] = false
+
+            Logger.log(
+                `AniSkip: registered ${type.toUpperCase()} segment start=${interval.startTime.toFixed(2)} (${formatTime(interval.startTime)}) end=${interval.endTime.toFixed(2)} (${formatTime(interval.endTime)})`,
+            )
+
+            if (document.querySelector(`.mat-aniskip-button[data-segment="${type}"]`)) {
+                Logger.log(`AniSkip: button for ${type} already exists; skipping create.`)
+                return
+            }
+
+            const overlay = this.ensureAniSkipOverlay()
+            if (!overlay) {
+                Logger.error('AniSkip: overlay container missing, cannot create button.')
+                return
+            }
+
+            const btn = document.createElement('button')
+            const human = type === 'op' ? 'OP átugrása' : 'ED átugrása'
+            btn.className = 'mat-aniskip-button'
+            btn.setAttribute('data-segment', type)
+            btn.innerHTML = `
+            <svg viewBox="0 0 384 512" aria-hidden="true" focusable="false" fill="currentColor">
+              <path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80L0 432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/>
+            </svg>
+            <span>${human}</span>
+        `
+
+            btn.addEventListener('click', (e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (!this.plyr) return
+                Logger.log(
+                    `AniSkip: user clicked ${type.toUpperCase()} skip -> jumping to ${interval.endTime.toFixed(2)}`,
+                )
+                this.plyr.currentTime = interval.endTime
+                this.hideAniSkipButton(type)
+                this.Toast('info', human, '', { duration: 600 })
+            })
+
+            overlay.appendChild(btn)
+            Logger.log(`AniSkip: button created for ${type.toUpperCase()}`)
+        })
+
+        // Attach timeupdate handler once
+        const boundKey = 'data-aniskip-timeupdate-bound'
+        if (!videoElement.hasAttribute(boundKey)) {
+            videoElement.addEventListener('timeupdate', () => this.handleAniSkipTime())
+            videoElement.setAttribute(boundKey, '1')
+            Logger.log('AniSkip: timeupdate listener attached.')
+        }
+    }
+
+    private showAniSkipButton(type: 'op' | 'ed') {
+        const btn = document.querySelector(
+            `.mat-aniskip-button[data-segment="${type}"]`,
+        ) as HTMLElement | null
+        if (!btn) {
+            Logger.warn(`AniSkip: show requested but button not found for ${type}`)
+            return
+        }
+        btn.style.display = 'flex'
+        btn.style.opacity = '1'
+        Logger.log(`AniSkip: displaying ${type.toUpperCase()} skip button (will auto-hide).`)
+        if (this.aniSkipTimers[type]) window.clearTimeout(this.aniSkipTimers[type] as number)
+        this.aniSkipTimers[type] = window.setTimeout(() => this.hideAniSkipButton(type), 5000)
+    }
+
+    private hideAniSkipButton(type: 'op' | 'ed') {
+        const btn = document.querySelector(
+            `.mat-aniskip-button[data-segment="${type}"]`,
+        ) as HTMLElement | null
+        if (!btn) return
+        if (btn.style.display !== 'none') {
+            Logger.log(`AniSkip: hiding ${type.toUpperCase()} skip button.`)
+        }
+        btn.style.opacity = '0'
+        btn.style.display = 'none'
+    }
+
+    private handleAniSkipTime() {
+        if (!this.plyr) return
+        const t = this.plyr.currentTime
+        ;(['op', 'ed'] as const).forEach((seg) => {
+            const interval = this.aniSkipSegments[seg]
+            if (!interval) return
+            if (t < interval.startTime - 1.0) {
+                if (this.aniSkipCycleShown[seg]) {
+                    Logger.log(
+                        `AniSkip: reset display cycle for ${seg.toUpperCase()} (current=${t.toFixed(
+                            2,
+                        )} start=${interval.startTime.toFixed(2)})`,
+                    )
+                }
+                this.aniSkipCycleShown[seg] = false
+            }
+            if (
+                !this.aniSkipCycleShown[seg] &&
+                t >= interval.startTime &&
+                t <= interval.startTime + 0.8
+            ) {
+                Logger.log(
+                    `AniSkip: trigger show window for ${seg.toUpperCase()} at ${t.toFixed(
+                        2,
+                    )} (segment start=${interval.startTime.toFixed(2)})`,
+                )
+                this.aniSkipCycleShown[seg] = true
+                this.showAniSkipButton(seg)
+            }
+        })
+    }
+
+    private ensureAniSkipOverlay(): HTMLElement | null {
+        const plyrContainer = document.querySelector('.plyr') as HTMLElement
+        if (!plyrContainer) {
+            Logger.warn('AniSkip: cannot find .plyr container for overlay creation.')
+            return null
+        }
+        let overlay = document.getElementById('MATweaks-aniskip-overlay') as HTMLElement | null
+        if (!overlay) {
+            overlay = document.createElement('div')
+            overlay.id = 'MATweaks-aniskip-overlay'
+            plyrContainer.appendChild(overlay)
+            Logger.log('AniSkip: overlay container created.')
+        }
+        return overlay
+    }
+
+    private injectAniSkipCss() {
+        if (document.getElementById('MATweaks-aniskip-style')) {
+            Logger.log('AniSkip: CSS already injected.')
+            return
+        }
+        const style = document.createElement('style')
+        style.id = 'MATweaks-aniskip-style'
+        style.textContent = `
+        #MATweaks-aniskip-overlay { position:absolute; right:1rem; bottom:4.2rem; display:flex; flex-direction:column; gap:6px; z-index:1000; align-items:flex-end; pointer-events:none; }
+        #MATweaks-aniskip-overlay .mat-aniskip-button { pointer-events:auto; border-radius:8px; cursor:pointer; border:none; padding:6px 12px 6px 10px; font-size:12px; line-height:1.2; display:none; align-items:center; gap:6px; color:#fff; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); font-weight:500; letter-spacing:.25px; box-shadow:0 4px 12px -2px rgba(0,0,0,.4); transition:background .25s, transform .25s, opacity .35s; }
+        #MATweaks-aniskip-overlay .mat-aniskip-button:hover { background:rgba(0,0,0,.7); }
+        #MATweaks-aniskip-overlay .mat-aniskip-button:active { transform:scale(.96); }
+        #MATweaks-aniskip-overlay .mat-aniskip-button svg { width:16px; height:16px; }
+        @media (max-width: 700px) {
+          #MATweaks-aniskip-overlay { bottom:4.8rem; }
+          #MATweaks-aniskip-overlay .mat-aniskip-button { font-size:11px; padding:5px 10px; }
+        }
+    `
+        document.head.appendChild(style)
+        Logger.log('AniSkip: CSS injected.')
     }
 }

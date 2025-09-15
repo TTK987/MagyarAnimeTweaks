@@ -93,7 +93,6 @@ export async function parseVideoData(url: string | URL): Promise<EpisodeVideoDat
         fetch(url)
             .then((response) => response.text())
             .then((videoData) => {
-                console.log(videoData)
                 const lines = videoData.split('\n')
                 const data: EpisodeVideoData[] = []
                 for (let i = 0; i < lines.length; i++) {

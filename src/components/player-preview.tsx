@@ -47,6 +47,7 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
             0,
             'Seven Nation Army「AMV」Anime Mix',
             0,
+            0
         )
 
         plyrRef.current.changeQuality = (q, vE) => {

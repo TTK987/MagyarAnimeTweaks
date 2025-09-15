@@ -51,7 +51,7 @@ function SettingsSite() {
 
     function onSettingsChange(id: string, updatedSetting: { [key: string]: any }) {
         setCurrentSetting((prevSettings: SettingsV019) => {
-            const newSettings: SettingsV019 = {...prevSettings}
+            let newSettings: SettingsV019 = {...prevSettings}
             if (id.includes('.')) {
                 const keys = id.split('.')
                 const lastKey = keys.pop()!
@@ -63,6 +63,8 @@ function SettingsSite() {
                     target = target[key]
                 }
                 target[lastKey] = updatedSetting
+            } else if (id === '') {
+                newSettings = updatedSetting as SettingsV019
             } else {
                 // @ts-ignore
                 newSettings[id] = updatedSetting

@@ -14,6 +14,7 @@ class NativePlayer extends BasePlayer {
      * @param {Number} animeID - The ID of the anime
      * @param {String} animeTitle - The title of the anime
      * @param {Number} epNum - The episode number
+     * @param {Number} malId - The MyAnimeList ID of the anime
      */
     constructor(
         selector: string,
@@ -23,9 +24,10 @@ class NativePlayer extends BasePlayer {
         epID: number,
         animeID: number,
         animeTitle: string,
-        epNum: number
+        epNum: number,
+        malId: number
     ) {
-        super(selector, qualityData, isDownloadable, settings, epID, animeID, animeTitle, epNum);
+        super(selector, qualityData, isDownloadable, settings, epID, animeID, animeTitle, epNum, malId);
         this.curQuality = null
     }
 

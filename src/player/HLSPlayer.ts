@@ -30,6 +30,7 @@ class HLSPlayer extends BasePlayer {
         datasheetId: number,
         title: string,
         episodeNumber: number,
+        malId: number,
     ) {
         super(
             selector,
@@ -40,6 +41,7 @@ class HLSPlayer extends BasePlayer {
             datasheetId,
             title,
             episodeNumber,
+            malId,
         )
         this.hls = null
         this.fansub = null

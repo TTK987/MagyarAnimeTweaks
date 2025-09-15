@@ -1,131 +1,151 @@
 # Részletes magyarázat a beállításokhoz
 
+Ez a dokumentum a jelenlegi (v0.1.9.x) kód alapján készült.
+
 ![Beállítások](./img/settingspage.png)
 
-<div align="center"><small><i>Image by Ecsi</i></small></div>
+## Fő felépítés (fülek / Tabok)
 
-## Általános beállítások
+1. Beállítások: Lejátszással kapcsolatos gyors funkciók.
+2. Könyvjelzők & Előzmények: Könyvjelzők és Előzmények funkciók beállításai.
+3. Lejátszó: Plyr testreszabás (színek vagy egyedi CSS).
+4. Fejlesztői beállítások: Konzol naplózás, lejátszó típusa, letöltési fájlnév sablon.
+
+A jobb felső sarokban található menü:
+- Mentés: Aktuális állapot mentése.
+- Visszaállítás: Visszaáll az utoljára mentett állapotra.
+- Alapértelmezett: Betölti a gyári alapbeállításokat.
+- Segítség: Megnyitja ezt a fájlt GitHubon.
+
+---
+## 1. Beállítások fül
 
 ### Előre ugrás
+- Engedélyezve: Alapértelmezett: true.
+- Ugrás hossza: Alapértelmezett: 85 mp. Tartomány: 0 – 300.
+- Billentyűkombináció: Alapértelmezett: Ctrl + Jobb nyíl.
+- Funkció: A megadott időt előre tekeri.
 
-- **Engeedélyezve**: Ki/be kapcsolja az előre ugrást.
-- **Ugrás hossza**: Az előre ugrás hossza másodpercben.
-- **Billentyűkombináció**: A billentyűkombináció, amivel az előre ugrás aktiválható.
+### Vissza ugrás
+- Engedélyezve: Alapértelmezett: true.
+- Ugrás hossza: Alapértelmezett: 85 mp. Tartomány: 0 – 300.
+- Billentyűkombináció: Ctrl + Bal nyíl.
+- Funkció: A megadott időt visszaugrik.
 
-### Hátra ugrás
+### Következő epizód
+- Engedélyezve: Alapértelmezett: true.
+- Billentyűkombináció: Alt + Jobb nyíl.
+- Ha az utolsó elérhető résznél vagy: az anime adatlapjára lép.
 
-- **Engeedélyezve**: Ki/be kapcsolja a hátra ugrást.
-- **Ugrás hossza**: A hátra ugrás hossza másodpercben.
-- **Billentyűkombináció**: A billentyűkombináció, amivel a hátra ugrás aktiválható.
+### Előző epizód
+- Engedélyezve: Alapértelmezett: true.
+- Billentyűkombináció: Alt + Bal nyíl.
+- Ha az első résznél vagy: az anime adatlapjára lép.
 
-### Következő rész
-
-- **Engeedélyezve**: Ki/be kapcsolja a következő részre ugrást.
-- **Billentyűkombináció**: A billentyűkombináció, amivel a következő részre ugrás aktiválható.
-    > Ha az utolsó résznél vagy, akkor az anime adatlapjára ugrik.
-
-### Előző rész
-
-- **Engeedélyezve**: Ki/be kapcsolja az előző részre ugrást.
-- **Billentyűkombináció**: A billentyűkombináció, amivel az előző részre ugrás aktiválható.
-    > Ha az első résznél vagy, akkor az anime adatlapjára ugrik.
-
-### Automatikus következő rész
-
-- **Engeedélyezve**: Ki/be kapcsolja az automatikus következő részre ugrást.
-- **Idő**: Az idő másodpercben, amikor az automatikus következő részre ugrás aktiválódik. (0 = A rész vége után)
-    > Ha az érték negatív, akkor úgy értelmezi, mintha 0 lenne.
+### Automatikus következő epizód
+- Engedélyezve: Alapértelmezett: false.
+- Idő: Alapértelmezett: 60 mp. Jelentése: hátralévő idő ennyivel a rész vége előtt vált (0 = a videó vége után).
+- Negatív érték kezelése: 0-ként értelmezi.
+- Utolsó rész esetén: az anime adatlapjára lép.
 
 ### Automatikus lejátszás
+- Engedélyezve: Alapértelmezett: true.
+- Megpróbálja automatikusan elindítani a videót (forrás és állapot függő sikeresség).
 
-- **Engeedélyezve**: Ki/be kapcsolja az automatikus lejátszást.
+### Ugrás
+- Idő: Alapértelmezett: 5 mp. Tartomány: 0 – 300.
+- Leírás: Simán a Bal / Jobb nyíl lenyomására ennyit ugrik (független az előre/vissza ugrás funkcióktól).
 
-### Könyvjelzők beállításai
+---
+## 2. Könyvjelzők & Előzmények fül
 
-- **Engeedélyezve**: Ki/be kapcsolja a könyvjelzőket.
+### Könyvjelzők
+- Engedélyezve: Alapértelmezett: true.
+- Funkció: Lejátszó alatt gomb jelenik meg (KÖNYVJELZŐ HOZZÁADÁSA).
+- Tárolt adatok: anime címe, rész sorszám, időpont, leírás.
 
-### Előzmények beállításai
+### Előzmények / Folytatás
+- Engedélyezve: Alapértelmezett: true.
+- Mód: ask | auto. Alapértelmezett: ask.
+  - ask: Rákérdez folytatáskor.
+  - auto: Automatikusan folytatja.
+- Automatikus törlés: 1w | 1m | 3m | 1y | never. Alapértelmezett: 1m.
+  - Ha ennyi ideig nincs frissítve egy elkezdett rész, akkor törlődik.
+  - Jelentése: 1w = 1 hét, 1m = 1 hónap, 3m = 3 hónap, 1y = 1 év, never = soha.
 
-- **Engeedélyezve**: Ki/be kapcsolja a Előzményeket.
-- **Legördülő menü**:
-    - **Kérdezzen rá minden alkalommal**: Mindig kérdezzen rá, hogy folymatassa-e az adott részt.
-    - **Automatikusan folytassa**: Mindig automatikusan folytassa az adott részt, kérdés nélkül.
+---
+## 3. Lejátszó fül (Plyr testreszabás)
 
-## Haladó beállítások
+### Design engedélyezése
+- Alapértelmezett: false.
+- Ha kikapcsolt: gyári Plyr stílus (vagy alapértelmezett oldal lejátszó, ha a player típus nem Plyr).
 
-### Fejlesztői beállítások
+### Szerkesztési módok
+- Egyszerű mód: Színválasztók. A kód a CSS-ben lévő `--plyr-*` változókat cseréli.
+- Haladó mód: Közvetlen CSS szerkesztő. Karakter szám jelző + figyelmeztetések.
+  - Figyelmeztetés > 8000 karakternél.
+  - Mentés sikertelen lesz > 10000 karakternél.
 
-- **Engeedélyezve**: Ki/be kapcsolja a fejlesztői beállításokat.
-- **Console log**
-    - **Engeedélyezve**: Ki/be kapcsolja a konzol logolást.
-- **Alapértelmezett lejátszó** - **< legördülő lista >**: A lejátszó, amit alapértelmezetten használ a kiegészítő. (Ezek: `plyr`, `Alapértelmezett`)
-    > - `Alapértelmezett`: Nem cseréli le a lejátszót. (Pl: indavideonál marad az indavideo lejátszó)
-    > - `plyr`: Plyr lejátszóra cseréli le a lejátszót. (Ez egy lejátszó, amit a kiegészítő használ)
+### Alapértelmezett CSS változók (részlet)
+```
+--plyr-color-main              Fő akcent szín
+--plyr-video-background        Háttér
+--plyr-badge-background        Badge háttér
+--plyr-badge-text-color        Badge szöveg
+--plyr-video-control-color     Ikon szín
+--plyr-video-control-color-hover  Ikon szín hover
+--plyr-menu-background         Menü háttér
+--plyr-menu-color              Menü szöveg
+--plyr-menu-arrow-color        Menü nyíl
+--plyr-menu-border-color       Menü keret
+--plyr-menu-border-shadow-color Menü shadow
+--plyr-menu-back-border-color  Menü vissza keret
+--plyr-range-fill-background   Csúszka kitöltés
+--plyr-progress-loading-background Betöltés sáv
+--plyr-video-progress-buffered-background Buffer sáv
+--plyr-range-thumb-background  Csúszka pötty
+--plyr-video-range-thumb-active-shadow-color Aktív pötty shadow
+--plyr-tooltip-background      Tooltip háttér
+--plyr-tooltip-color           Tooltip szöveg
+```
 
-### Letöltési név
+### CSS mentés szabályok
+- HTML tagek eltávolítva (biztonsági tisztítás).
+- 10000 karakternél hosszabb CSS: Nem kerül mentésre.
+- Visszaállítás gomb: Alapértelmezett CSS visszatöltése.
 
-- **Fájlnév sablon**: A fájlnév sablonja, amit a letöltésnél használ.
-    - A használható változók:
-        - `%title%`: Az anime címe.
-        - `%episode%`: A rész sorszáma.
-        - `%0episode%`: A rész sorszáma 0-val kiegészítve. (Pl: 01)
-        - `%MAT%`: "MATweaks" szöveg. (Ez a kiegészítő neve, ha nem tudtad volna :D)
-        - `%quality%`: A videó minősége. (Pl: 1080p)
-        - `%fansub%`: A csapat neve, aki feliratozta az animét.
-        - `%source%`: Az oldal neve, ahonnan az anime linkje származik.
+#### Előnézet
+- Jobb oldali panelen valós időben lehet látni a változtatásokat.
 
-### Plyr
+---
+## 4. Fejlesztői beállítások fül
 
-- **Engeedélyezve**: Ki/be kapcsolja az egyedi kinézetet a plyr lejátszónál.
-- **SVG szín**: Az ikonok színe a plyr lejátszónál. (képen pirossal jelölve)
+### Konzol naplózás
+- Alapértelmezett: false.
+- Ha engedélyezve: plusz diagnosztikai üzenetek a böngésző konzolban (hibakeresés).
 
-![SVG szín](./img/svgcolor.png)
 
-- **Háttérszín**: Az ikonok háttérszíne amikor rávisszük az egeret. (képen pirossal jelölve)
+### Lejátszó típusa
+- Lehetséges értékek: plyr | default. Alapértelmezett: plyr.
+- Ha default: nem blokkolja az oldal saját lejátszó scriptjeit (a bővítmény több funkciója inaktív lehet). Gyakorlatilag a MATweaks videó player részének kikapcsolása.
 
-![Háttérszín](./img/bgcolor.png)
 
-- **Főszín**: A hang és a progress bar színe. (képen pirossal jelölve)
+### Early Access Program (EAP)
+- Alapértelmezett: false.
+- Ha engedélyezve: bizonyos kísérleti funkciók elérhetővé válnak.
+- Az `Engedélyezett funkciók` alatt fel vannak sorolva az elérhető EAP funkciók (ha vannak).
+- Az ide kerülő funkciók nagyrészt stabilak, de előfordulhatnak hibák, illetve a jövőben változhatnak.
 
-![Főszín](./img/maincolor.png)
 
-- **Szín**: Az ikonok színe, amikor rávisszük az egeret. (képen pirossal jelölve)
 
-![Szín](./img/color.png)
-
-# Könyvjelzők
-
-![Könyvjelzők](./img/bookmarks.png)
-
-- **Keresés**: Itt tudsz keresni a könyvjelzők között.
-    - 500ms után automatikusan keresni fog, ha írsz valamit a keresőbe.
-    - Illetve a `Enter` lenyomásával is keresni fog.
-    - Ha nem talál semmit, akkor egy piros színű üzenetet fog kiírni. (Ezt: `Nincs találat.`)
-- **Könyvjelzők**: Minden egyes könyvjelző leírásában van, hogy melyik animénél, melyik résznél és azon belül hányadik percnél van a könyvjelző.
-- **Gombok**:
-    - **Törlés**: Törli a könyvjelzőt. (egy kék kuka ikon)
-    - **Elindítás**: Megnyitja az adott könyvjelzőt. (egy lejátszó ikon)
-- **Könyvjelző hozzáadása**: A lejátszó alatt található egy gomb, amit megnyomva hozzáadhatsz egy könyvjelzőt a jelenlegi időponthoz. (`KÖNYVJELZŐ HOZZÁADÁSA` gomb)
-  ![Könyvjelző hozzáadása](./img/addbookmark.png)
-
-# Előzmények
-
-![Előzmények](./img/history.png)
-
-- **Keresés**: Itt tudsz keresni az előzmények között.
-    - 500ms után automatikusan keresni fog, ha írsz valamit a keresőbe.
-    - Illetve a `Enter` lenyomásával is keresni fog.
-    - Ha nem talál semmit, akkor egy piros színű üzenetet fog kiírni. (Ezt: `Nincs találat.`)
-- **Előzmények**: Itt anime szerint vannak csoportosítva az előzmények, és ezek alatt vannak a részek.
-- **Részek**: Minden egyes rész leírásában van, hogy hanyaadik rész volt és hányadik percnél tartottál.
-- **Gombok**:
-    - **Törlés**: Törli az adott rész előzményét. (egy kék kuka ikon)
-    - **Elindítás**: Megnyitja az adott részt. (egy lejátszó ikon)
-- **Hozzáadás**: Ez a funkció automatikusan működik, nem kell külön hozzáadni semmit. (Ha a beállításokban engedélyezve van az előzmények funkció)
-
-# Egyéb
-
-- **Mentés**: A beállítások mentése.
-- **Visszaállítás**: Az utolsó mentett beállítások visszaállítása.
-- **Alapértelmezett**: Az alap beállítások visszaállítása.
-- **Segítség**: Erre az oldalra hoz.
+### Letöltés fájlnév sablon
+- Alapértelmezett: `%title% - %episode%.rész (%MAT%)`
+- Változók:
+  -`%title%`  Anime címe
+  - `%episode%` Epizód száma (pl. 1)
+  - `%0episode%` Epizód száma vezető nullával (pl. 01)
+  - `%MAT%`  "MATweaks" szöveg
+  - `%source%` Forrás / oldal neve (pl. indavideo)
+  - `%quality%` Videó minősége (pl. 720p)
+  - `%group%` Fansub csoport(ok) neve (ha nincs: "Ismeretlen")
+- Példa eredmény: `One Piece - 01.rész (MATweaks)`

@@ -15,6 +15,7 @@ class MegaPlayer extends BasePlayer {
      * @param {number} animeID - The anime ID.
      * @param {string} animeTitle - The title of the anime.
      * @param {number} epNum - The episode number.
+     * @param {number} malId - The MyAnimeList ID of the anime.
      */
     constructor(
         selector: string,
@@ -23,8 +24,9 @@ class MegaPlayer extends BasePlayer {
         animeID: number,
         animeTitle: string,
         epNum: number,
+        malId: number
     ) {
-        super(selector, [], false, settings, epID, animeID, animeTitle, epNum);
+        super(selector, [], false, settings, epID, animeID, animeTitle, epNum, malId);
         this.addEventListeners();
     }
 
