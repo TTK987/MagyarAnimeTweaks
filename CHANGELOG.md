@@ -3,7 +3,7 @@
 
 ## 0.1.9.6
 
-- **Kisérleti jelleggel AniSkip integráció**
+- **Kísérleti jelleggel AniSkip integráció**
     - Ez a funkció még fejlesztés alatt áll, és nem biztos, hogy minden esetben megfelelően működik.
     - Bekapcsolásához menj a kiegészítő beállításaihoz, nyisd meg a "Fejlesztői beállítások" részt, és kapcsold be az "Early Access Program (EAP)" opciót.
 - **Kisebb bugfixek**:
