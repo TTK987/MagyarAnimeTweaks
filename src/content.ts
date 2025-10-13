@@ -336,12 +336,11 @@ function EpisodePage() {
     }
 
 
-    let csrf = (document.querySelector("meta[name='magyaranime']") as HTMLMetaElement).getAttribute("content") as string;
-    if (!csrf) {
+    csrfToken = MA.getCSRFTokenFromHTML();
+    if (csrfToken === "") {
         handleError("CSRF", "NOT_FOUND");
         return;
     }
-    csrfToken = csrf;
 
     let videoPlayer = document.querySelector("#VideoPlayer") as HTMLVideoElement;
     if (!videoPlayer) {
@@ -529,21 +528,39 @@ function handleServerResponse(data: ServerResponse) {
     setDailyLimit(data);
     setServers(data);
 
+    console.log(data);
+
     if (settings.advanced.consoleLog) console.log(data);
 
     currentServerData = data;
+
+    if (data.needRefleshPage) {
+        MA.fetchCSRFToken().then(token => {
+            if (token && token !== "") {
+                csrfToken = token;
+                loadVideo(currentServer, Number((document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute('data-vid')));
+                return;
+            } else {
+                handleError("CSRF", "EXPIRED");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+                return;
+            }
+        }).catch(() => {
+            handleError("CSRF", "EXPIRED");
+            setTimeout(() => {
+                window.location.reload();
+            });
+        });
+        return;
+    }
+
 
     if (data.error && data.error !== "") {
         handleError("SERVER", "RESPONSE_ERROR", data.error);
     }
 
-    if (data.needRefleshPage) {
-        handleError("CSRF", "EXPIRED");
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
-        return;
-    }
 
     if (Player?.plyr) Player.plyr.destroy();
     Player = undefined;
@@ -989,7 +1006,6 @@ function nextEpisode() {
     setTimeout(() => {
         document.querySelectorAll('.videoChange').forEach(button => {
             button.classList.remove('active');
-            console.log(`${button.getAttribute('data-vid')} === ${nextEpID}`);
             if (Number(button.getAttribute('data-vid')) === Number(nextEpID)) {
                 button.classList.add('active');
             }
@@ -1024,7 +1040,6 @@ function previousEpisode() {
     setTimeout(() => {
         document.querySelectorAll('.videoChange').forEach(button => {
             button.classList.remove('active');
-            console.log(`${button.getAttribute('data-vid')} === ${prevEpID}`);
             if (Number(button.getAttribute('data-vid')) === Number(prevEpID)) {
                 button.classList.add('active');
             }
@@ -1045,75 +1060,95 @@ function silentLoadVideo(server: string, vid: number) {
 
     getServerResponse(server, vid)
         .then((data: ServerResponse) => {
-            if (data.error && data.error !== "") {
+            if (data.needRefleshPage && data.error && data.error !== "") {
+                MA.fetchCSRFToken().then(token => {
+                    if (token && token !== "") {
+                        csrfToken = token;
+                        silentLoadVideo(currentServer, Number((document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute('data-vid')));
+                        return;
+                    } else {
+                        handleError("CSRF", "EXPIRED");
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                        return;
+                    }
+                }).catch(() => {
+                    handleError("CSRF", "EXPIRED");
+                    setTimeout(() => {
+                        window.location.reload();
+                    });
+                });
+            } else if (data.error && data.error !== "") {
                 Logger.error(`Hiba a videó háttérben történő betöltése közben: ${data.error}`)
                 handleError("SERVER", "RESPONSE_ERROR", data.error);
                 return;
-            }
-            currentServerData = data;
-            setDailyLimit(data);
-            setServers(data);
+            } else {
+                currentServerData = data;
+                setDailyLimit(data);
+                setServers(data);
 
-            const newPlayerType = decidePlayerType(data);
+                const newPlayerType = decidePlayerType(data);
 
-            let currentImpl: 'Native' | 'HLS' | 'IFrame' = 'IFrame';
-            if (Player instanceof NativePlayer) currentImpl = 'Native';
-            else if (Player instanceof HLSPlayer) currentImpl = 'HLS';
+                    let currentImpl: 'Native' | 'HLS' | 'IFrame' = 'IFrame';
+                if (Player instanceof NativePlayer) currentImpl = 'Native';
+                else if (Player instanceof HLSPlayer) currentImpl = 'HLS';
 
-            if (["dailymotion", "mega"].includes(newPlayerType)) {
-                Logger.warn("Cannot silently load video for iframe-based players. Falling back to full load.");
-                handleServerResponse(data);
-                return;
-            }
-
-            if (currentImpl === 'Native' && ["HTML5", "indavideo", "videa"].includes(newPlayerType)) {
-                Logger.log("Silently loading video using NativePlayer...");
-                let qualityDataPromise: Promise<EpisodeVideoData[]>;
-                if (["indavideo", "videa"].includes(newPlayerType)) qualityDataPromise = getQualityDataFromIFrame(data);
-                else qualityDataPromise = Promise.resolve(getQualityDataHTML5(data));
-
-                qualityDataPromise.then((videoData) => {
-                    if (videoData.length === 0) {
-                        handleError("VIDEO", "NO_SOURCES", "Videó források nem találhatók.");
-                        return;
-                    }
-                    window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`);
-                    document.querySelector('#VideoPlayer')!.setAttribute('data-server', server);
-                    document.querySelector('#VideoPlayer')!.setAttribute('data-vid', String(vid));
-                    Player!.loadNewVideo(videoData, vid, MA.EPISODE.getEpisodeNumber());
-                    Player!.curQuality = videoData[0];
-                    Logger.success("Video silently loaded using NativePlayer.");
-                }).catch((error) => {
-                    handleError("VIDEO", "DATA_ERROR", `Videó adatok betöltési hiba: ${error}`);
-                });
-                return;
-            }
-
-            if (currentImpl === 'HLS' && newPlayerType === 'HLS') {
-                Logger.log("Silently loading video using HLSPlayer...");
-                if (!data.hls_url) {
-                    handleError("VIDEO", "NO_SOURCES", "HLS URL nem található.");
+                if (["dailymotion", "mega"].includes(newPlayerType)) {
+                    Logger.warn("Cannot silently load video for iframe-based players. Falling back to full load.");
+                    handleServerResponse(data);
                     return;
                 }
-                parseVideoData(atob(data.hls_url)).then(videoData => {
-                    if (videoData.length === 0) {
-                        handleError("VIDEO", "NO_SOURCES", "Videó források nem találhatók.");
+
+                if (currentImpl === 'Native' && ["HTML5", "indavideo", "videa"].includes(newPlayerType)) {
+                    Logger.log("Silently loading video using NativePlayer...");
+                    let qualityDataPromise: Promise<EpisodeVideoData[]>;
+                    if (["indavideo", "videa"].includes(newPlayerType)) qualityDataPromise = getQualityDataFromIFrame(data);
+                    else qualityDataPromise = Promise.resolve(getQualityDataHTML5(data));
+
+                    qualityDataPromise.then((videoData) => {
+                        if (videoData.length === 0) {
+                            handleError("VIDEO", "NO_SOURCES", "Videó források nem találhatók.");
+                            return;
+                        }
+                        window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`);
+                        document.querySelector('#VideoPlayer')!.setAttribute('data-server', server);
+                        document.querySelector('#VideoPlayer')!.setAttribute('data-vid', String(vid));
+                        Player!.loadNewVideo(videoData, vid, MA.EPISODE.getEpisodeNumber());
+                        Player!.curQuality = videoData[0];
+                        Logger.success("Video silently loaded using NativePlayer.");
+                    }).catch((error) => {
+                        handleError("VIDEO", "DATA_ERROR", `Videó adatok betöltési hiba: ${error}`);
+                    });
+                    return;
+                }
+
+                if (currentImpl === 'HLS' && newPlayerType === 'HLS') {
+                    Logger.log("Silently loading video using HLSPlayer...");
+                    if (!data.hls_url) {
+                        handleError("VIDEO", "NO_SOURCES", "HLS URL nem található.");
                         return;
                     }
-                    window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`);
-                    document.querySelector('#VideoPlayer')!.setAttribute('data-server', server);
-                    document.querySelector('#VideoPlayer')!.setAttribute('data-vid', String(vid));
-                    (Player as HLSPlayer).loadNewVideo(videoData, vid, MA.EPISODE.getEpisodeNumber());
-                    (Player as HLSPlayer).curQuality = videoData[0];
-                    Logger.success("Video silently loaded using HLSPlayer.");
-                }).catch((error) => {
-                    handleError("VIDEO", "DATA_ERROR", `Videó adatok betöltési hiba: ${error}`);
-                });
-                return;
-            }
+                    parseVideoData(atob(data.hls_url)).then(videoData => {
+                        if (videoData.length === 0) {
+                            handleError("VIDEO", "NO_SOURCES", "Videó források nem találhatók.");
+                            return;
+                        }
+                        window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`);
+                        document.querySelector('#VideoPlayer')!.setAttribute('data-server', server);
+                        document.querySelector('#VideoPlayer')!.setAttribute('data-vid', String(vid));
+                        (Player as HLSPlayer).loadNewVideo(videoData, vid, MA.EPISODE.getEpisodeNumber());
+                        (Player as HLSPlayer).curQuality = videoData[0];
+                        Logger.success("Video silently loaded using HLSPlayer.");
+                    }).catch((error) => {
+                        handleError("VIDEO", "DATA_ERROR", `Videó adatok betöltési hiba: ${error}`);
+                    });
+                    return;
+                }
 
-            Logger.warn("Cannot silently load video for the current player type combination. Performing full reload.");
-            handleServerResponse(data);
+                Logger.warn("Cannot silently load video for the current player type combination. Performing full reload.");
+                handleServerResponse(data);
+            }
         }).then(() => {
             Toast.success(`Most nézed: ${MA.EPISODE.getEpisodeNumber()}. rész`, "", { duration: 3000, position: "top-center" });
         })

@@ -81,7 +81,7 @@ Ez a kiegészítő animenéző(k)től animenézőknek készült.
 ### Billentyűparancs összefoglaló
 - Lejátszó ugrás: `Ctrl` + `Jobbra` / `Ctrl` + `Balra`.
 - Navigáció: `Alt` + `Jobbra` (következő), `Alt` + `Balra` (előző).
-- Kereső megnyitása: `/`, bezárás: `Esc`.
+- Kereső megnyitása: `/`, bezárása: `Esc`.
 - Találatok közti mozgás: `Fel` / `Le` nyilak, kiválasztás: `Enter`.
 - Az összes alapértelmezett és jól megszokott Plyr gyorsgomb működik (pl. `szóköz` a lejátszás/szünet, `F` a teljes képernyő, `M` a némítás, stb.).
 
@@ -124,7 +124,7 @@ Részletes leírás a beállításokról: **[ITT](SETTINGS.md)**
 - Miért készítettem ezt a kiegészítőt?
     - Mert szeretem az animéket és az oldal használhatóságát szerettem volna növelni.
     - A kiegészítőt eredetileg magamnak készítettem, de úgy döntöttem, hogy megosztom másokkal is, hátha másoknak is hasznos lesz.
-    - Szóval én is a felhasználók közé tartozom, így elsőkézből tapasztalom az esetleges hibákat.
+    - Szóval én is a felhasználók közé tartozom, így első kézből tapasztalom az esetleges hibákat.
 
 - Továbbá szeretném jelezni, hogy ezt a kiegészítőt a saját szabadidőmben készítem és fejlesztem (amit akár anime nézésre is fordíthatnék),
   ebből adódóan lehetnek olyan időszakok, amikor kevesebb frissítés jelenik meg.

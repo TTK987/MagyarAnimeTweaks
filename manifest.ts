@@ -22,6 +22,12 @@ export default defineManifest({
         '*://*.dailymotion.com/player.html*',
         '*://*.rumble.com/embed/*',
         '*://*.videa.hu/player*',
+        'https://api.myanimelist.net/',
+        'https://api.jikan.moe/v4',
+        'https://api.matweaks.hu/*',
+        'https://matweaks.hu/*',
+        'https://testapi.matweaks.hu/*',
+        'https://beta.matweaks.hu/*',
     ],
     icons: {
         16: 'img/MATLogo-16.png',

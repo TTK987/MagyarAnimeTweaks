@@ -22,7 +22,7 @@ export default function Footer(props: { version: string; eap: boolean }) {
                 </div>
                 <div className="flex items-center gap-4">
                     <a
-                        href="https://matweaks.hu"
+                        href={props.eap ? 'https://beta.matweaks.hu' : 'https://matweaks.hu'}
                         className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#205daa]/20 hover:text-[#60b0ff]"
                         target="_blank"
                     >

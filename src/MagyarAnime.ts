@@ -23,7 +23,7 @@ class MagyarAnime {
         this.url = url
         this.isDatasheetPage = /leiras\/.*/.test(this.url)
         this.isEpisodePage =
-                /resz(?:-s\d)?\/.*|inda-play(?:-\d+)?\/.*/.test(this.url) ||
+            /resz(?:-s\d)?\/.*|inda-play(?:-\d+)?\/.*/.test(this.url) ||
             this.document.querySelector('#lejatszo') !== null
         this.ANIME = new Anime(this.document, this.url)
         this.EPISODE = new Episode(this.document, this.url)
@@ -34,7 +34,11 @@ class MagyarAnime {
      * @returns {Boolean} Whether the page is a maintenance page or not
      */
     isMaintenancePage(): boolean {
-        return /karbantartás/gms.test(<string>this.document.querySelector("h3")?.innerText.toLowerCase()) || false
+        return (
+            /karbantartás/gms.test(
+                <string>this.document.querySelector('h3')?.innerText.toLowerCase(),
+            ) || false
+        )
     }
 
     /**
@@ -51,6 +55,41 @@ class MagyarAnime {
             .trim()
         style.id = 'MAT_CSS'
         document.head.appendChild(style)
+    }
+
+    /**
+     * Get the CSRF token from the page
+     * @param {Boolean} fetchNewPage - Whether to fetch a new page to get the CSRF token or use the current document
+     * @returns {String} The CSRF token
+     * @since v0.1.9.7
+     */
+    async fetchCSRFToken(): Promise<string> {
+        try {
+            const response = fetch(this.url, {
+                method: 'GET',
+                headers: {
+                    MagyarAnimeTweaks: 'v' + MAT.getVersion(),
+                    'x-requested-with': 'XMLHttpRequest',
+                },
+                credentials: 'include',
+            })
+            const html = new DOMParser().parseFromString(
+                await response.then((res) => res.text()),
+                'text/html',
+            )
+            return ((html.querySelector('meta[name="magyaranime"]') as HTMLMetaElement)?.content || '').trim()
+        } catch {
+            return ''
+        }
+    }
+
+
+    getCSRFTokenFromHTML(): string {
+        try {
+            return ((this.document.querySelector('meta[name="magyaranime"]') as HTMLMetaElement)?.content || '').trim() || ''
+        } catch {
+            return ''
+        }
     }
 }
 
@@ -350,20 +389,20 @@ class Episode {
                     },
                     credentials: 'include',
                 })
-                .then(response => response.text())
-                .then(html => {
-                    let tempMA = new MagyarAnime(new DOMParser().parseFromString(html, 'text/html'), this.getAnimeLink());
-                    const malLink = tempMA.ANIME.getMALLink();
-                    if (malLink) {
-                        const malMatch = malLink.match(/myanimelist.net\/anime\/(\d+)\//);
-                        if (malMatch) {
-                            resolve(parseInt(malMatch[1]) || -1);
+                    .then(response => response.text())
+                    .then(html => {
+                        let tempMA = new MagyarAnime(new DOMParser().parseFromString(html, 'text/html'), this.getAnimeLink());
+                        const malLink = tempMA.ANIME.getMALLink();
+                        if (malLink) {
+                            const malMatch = malLink.match(/myanimelist.net\/anime\/(\d+)\//);
+                            if (malMatch) {
+                                resolve(parseInt(malMatch[1]) || -1);
+                            }
+                        } else {
+                            resolve(-1);
                         }
-                    } else {
-                        resolve(-1);
-                    }
-                })
-                .catch(() => resolve(-1));
+                    })
+                    .catch(() => resolve(-1));
             } catch {
                 resolve(-1);
             }

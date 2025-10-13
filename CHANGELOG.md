@@ -1,6 +1,16 @@
 # Verziók
 
 
+## 0.1.9.7
+
+- **Bugfix**:
+    - A CSRF token időnként lejártából következő hiba javítása.
+
+
+
+
+
+
 ## 0.1.9.6
 
 - **Kísérleti jelleggel AniSkip integráció**
