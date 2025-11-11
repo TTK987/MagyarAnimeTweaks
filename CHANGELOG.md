@@ -3,10 +3,16 @@
 
 ## 0.1.9.7
 
+- Videa.hu forrás javítása beágyazás tiltott videók esetén. [#5](https://github.com/TTK987/MagyarAnimeTweaks/issues/5)
+- Főoldalon nyilakkal lehet navigálni a részek / animék között. [#3](https://github.com/TTK987/MagyarAnimeTweaks/issues/3)
+  - Enter-rel / Space-szel lehet kiválasztani egy elemet.
+  - **Egyelőre csak bekapcsolt EAP (Early Access Program) mellett érhető el.**
+- Lejátszó előnézete mostantól egy random epizódot mutat youtube videó helyett.
+    - Ezek lehetnek: Solo Leveling S01E01, Jujutsu Kaisen S01E01, Chainsaw Man S01E01, Demon Slayer S01E01, 86 S01E01
 - **Bugfix**:
-    - A CSRF token időnként lejártából következő hiba javítása.
-
-
+    - A CSRF token lejártából következő hiba javítása.
+- Userscript verzió törlése.
+    - Ez amiatt, mert egy nagyon régi verzióban maradt, és nem lenne energiám / időm frissíteni.
 
 
 

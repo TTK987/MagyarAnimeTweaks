@@ -42,6 +42,28 @@ class MagyarAnime {
     }
 
     /**
+     * Returns whether the page is the main page or not
+     * @returns {Boolean} Whether the page is the main page or not
+     */
+    isMainPage(): boolean {
+        try {
+            const path = /^\/fooldal\/$/.test(new URL(this.url).pathname)
+            const hasEpList = !!this.document.getElementById('epizodLista')
+            const hasLoadMore = !!this.document.getElementById('loadMoreEpizode')
+            const hasHomeSlider = !!this.document.querySelector('section.home-singal-silder')
+            const titles = Array.from(this.document.querySelectorAll('h4.gen-heading-title')).map(
+                (el) => el.textContent?.trim() || '',
+            )
+            const hasLatest = titles.some((t) => /Legfrissebb megjelenések/i.test(t))
+            const hasWeeklyTop = titles.some((t) => /Heti toplista/i.test(t))
+
+            return path || (hasEpList && hasLoadMore && hasLatest && hasWeeklyTop && hasHomeSlider)
+        } catch {
+            return false
+        }
+    }
+
+    /**
      * Adds custom CSS to the page
      * @param {String} css - The CSS to add (Automatically minifies the CSS)
      * @since v0.1.8
@@ -59,7 +81,6 @@ class MagyarAnime {
 
     /**
      * Get the CSRF token from the page
-     * @param {Boolean} fetchNewPage - Whether to fetch a new page to get the CSRF token or use the current document
      * @returns {String} The CSRF token
      * @since v0.1.9.7
      */
@@ -77,16 +98,22 @@ class MagyarAnime {
                 await response.then((res) => res.text()),
                 'text/html',
             )
-            return ((html.querySelector('meta[name="magyaranime"]') as HTMLMetaElement)?.content || '').trim()
+            return (
+                (html.querySelector('meta[name="magyaranime"]') as HTMLMetaElement)?.content || ''
+            ).trim()
         } catch {
             return ''
         }
     }
 
-
     getCSRFTokenFromHTML(): string {
         try {
-            return ((this.document.querySelector('meta[name="magyaranime"]') as HTMLMetaElement)?.content || '').trim() || ''
+            return (
+                (
+                    (this.document.querySelector('meta[name="magyaranime"]') as HTMLMetaElement)
+                        ?.content || ''
+                ).trim() || ''
+            )
         } catch {
             return ''
         }
@@ -111,13 +138,12 @@ class Anime {
         this.url = url
     }
 
-
     getMALLink(): string {
         try {
             return (
                 (
                     this.document.querySelector(
-                        '.gen-button.gen-button-dark.adatlap_gomb2'
+                        '.gen-button.gen-button-dark.adatlap_gomb2',
                     ) as HTMLAnchorElement
                 )?.href || ''
             )
@@ -307,7 +333,9 @@ class Anime {
     getEpisodes(): EpisodeListItem[] {
         try {
             return (
-                [...this.document.querySelectorAll('.owl-stage > .owl-item, .owl-stage > .item')].map((item) => ({
+                [
+                    ...this.document.querySelectorAll('.owl-stage > .owl-item, .owl-stage > .item'),
+                ].map((item) => ({
                     title: item.querySelector('.gen-episode-info h3 a')?.textContent || '',
                     link:
                         (item.querySelector('.gen-episode-info h3 a') as HTMLAnchorElement)?.href ||
@@ -384,29 +412,32 @@ class Episode {
                 fetch(this.getAnimeLink(), {
                     method: 'GET',
                     headers: {
-                        "MagyarAnimeTweaks": "v"+MAT.getVersion(),
-                        "x-requested-with": "XMLHttpRequest"
+                        MagyarAnimeTweaks: 'v' + MAT.getVersion(),
+                        'x-requested-with': 'XMLHttpRequest',
                     },
                     credentials: 'include',
                 })
-                    .then(response => response.text())
-                    .then(html => {
-                        let tempMA = new MagyarAnime(new DOMParser().parseFromString(html, 'text/html'), this.getAnimeLink());
-                        const malLink = tempMA.ANIME.getMALLink();
+                    .then((response) => response.text())
+                    .then((html) => {
+                        let tempMA = new MagyarAnime(
+                            new DOMParser().parseFromString(html, 'text/html'),
+                            this.getAnimeLink(),
+                        )
+                        const malLink = tempMA.ANIME.getMALLink()
                         if (malLink) {
-                            const malMatch = malLink.match(/myanimelist.net\/anime\/(\d+)\//);
+                            const malMatch = malLink.match(/myanimelist.net\/anime\/(\d+)\//)
                             if (malMatch) {
-                                resolve(parseInt(malMatch[1]) || -1);
+                                resolve(parseInt(malMatch[1]) || -1)
                             }
                         } else {
-                            resolve(-1);
+                            resolve(-1)
                         }
                     })
-                    .catch(() => resolve(-1));
+                    .catch(() => resolve(-1))
             } catch {
-                resolve(-1);
+                resolve(-1)
             }
-        });
+        })
     }
 
     /**
@@ -415,7 +446,10 @@ class Episode {
      * @since v0.1.8
      */
     getTitle(): string {
-        return (this.document.querySelector('#InfoBox h2 a') as HTMLAnchorElement)?.innerText.trim() || ''
+        return (
+            (this.document.querySelector('#InfoBox h2 a') as HTMLAnchorElement)?.innerText.trim() ||
+            ''
+        )
     }
 
     /**
@@ -426,9 +460,7 @@ class Episode {
     getEpisodeNumber(): number {
         try {
             let match = (
-                this.document.querySelector(
-                    '#epizodlista .active .episode-title',
-                ) as HTMLParagraphElement
+                this.document.querySelector('#DailyLimits') as HTMLDivElement
             )?.innerText.match(/(\d+)\.?\s?[rR]ész/)
             if (match) {
                 return parseInt(match[1]) || -1
@@ -436,8 +468,8 @@ class Episode {
 
             match = (
                 this.document.querySelector(
-                    "#DailyLimits"
-                ) as HTMLDivElement
+                    '#epizodlista .active .episode-title',
+                ) as HTMLParagraphElement
             )?.innerText.match(/(\d+)\.?\s?[rR]ész/)
             if (match) {
                 return parseInt(match[1]) || -1

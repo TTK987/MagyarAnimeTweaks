@@ -9,7 +9,7 @@ import {downloadHLS} from "../downloads";
 import {prettyFileSize} from "../lib/utils";
 
 Logger.success('[dailymotion.js] Script loaded', true)
-let Player = new HLSPlayer('#player', [], true, MAT.settings, 0, 0, '', 0,0)
+let Player = new HLSPlayer('#player', [], true, MAT.settings, 0, 0, '', 0,0, 0)
 
 function messageHandler(event: MessageEvent) {
     if (!event.data || !event.data.type) return; // Ignore messages without a type
@@ -47,6 +47,7 @@ function messageHandler(event: MessageEvent) {
             Player.animeID = Number(event.data.animeID)
             Player.fansub = JSON.parse(event.data.fansub)
             Player.malId = Number(event.data.malId)
+            Player.playerID = Number(event.data.playerID)
             MAT.loadSettings().then((settings) => {
                 Logger.enabled = settings.advanced.consoleLog
                 Bookmark.loadBookmarks()

@@ -153,6 +153,7 @@ export default function AdvancedSettings({ settings, onSettingChange }: props) {
                                 <ul className="space-y-2">
                                     {[
                                         'AniSkip Integráció - OP/ED pontos átugrása (ha elérhető)',
+                                        'Főoldal Nav - Navigálj a főoldalon a billentyűzet segítségével (nyilak és Enter / Space (kiválasztás))',
                                     ].map((feature) => (
                                         <li
                                             key={feature}

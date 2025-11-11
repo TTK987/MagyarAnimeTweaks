@@ -54,6 +54,7 @@ async function getQualityData(): Promise<EpisodeVideoData[]> {
 
 class VideaExtractor {
     private _STATIC_SECRET: string;
+    private isNoEmbedErrorHandled: boolean = false;
     constructor() {
         this._STATIC_SECRET = 'xHb0ZvME5q8CBcoQi6AngerDu3FGO9fkUlwPmLVY_RTzj2hJIS4NasXWKy1td7p';
     }
@@ -109,12 +110,75 @@ class VideaExtractor {
         return match[1];
     }
 
-    _parse_xml(xmlString: string): Document {
-        let xml = new window.DOMParser().parseFromString(xmlString, 'application/xml');
+    _random_string(length: number): string {
+        return Array.from(
+            { length: length },
+            () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 52)],
+        ).join('')
+    }
+
+    async _noEmbedError(xml: Document): Promise<Document> {
+        if (this.isNoEmbedErrorHandled) {
+            throw new Error('Noembed error handling loop detected');
+        }
+        this.isNoEmbedErrorHandled = true;
+        const errorElement = xml.querySelector('error') as HTMLElement
+        let url = errorElement?.textContent || ''
+        if (url.startsWith('http')) {
+            const urlObj = new URL(url)
+            url = urlObj.pathname + urlObj.search
+            window.history.replaceState({}, '', url)
+        }
+        if (!url) {
+            throw new Error('No URL found in noembed error')
+        }
+
+        const noembedHtml = await this._download_webpage(url)
+        let playerURL = this._search_regex(
+            /<iframe.*?src="(\/player\?[^"]+)"/,
+            noembedHtml,
+            'player url from noembed',
+        )
+        playerURL = new URL(playerURL, window.location.href).href
+
+        const playerHtml = await this._download_webpage(playerURL)
+        const nonce = this._search_regex(/_xt\s*=\s*"([^"]+)"/, playerHtml, 'nonce from noembed')
+        const l = nonce.slice(0, 32)
+        const s = nonce.slice(32)
+        let result = ''
+        for (let i = 0; i < 32; i++) {
+            result += s[i - (this._STATIC_SECRET.indexOf(l[i]) - 31)]
+        }
+
+        const query = Object.fromEntries(new URLSearchParams(playerURL.split('?')[1])) as Record<string, string>
+        const random_seed = this._random_string(8)
+        query['_s'] = random_seed
+        query['_t'] = result.slice(0, 16)
+
+        const [b64_info, handle] = await this._download_webpage_handle(
+            'https://videa.hu/player/xml',
+            query,
+        )
+
+        if (b64_info.startsWith('<?xml')) {
+            return await this._parse_xml(b64_info)
+        }
+
+        const xVideaXs = handle.headers.get('x-videa-xs') ?? ''
+        const key = result.slice(16) + random_seed + xVideaXs
+        return await this._parse_xml(this.rc4(atob(b64_info), key))
+    }
+
+    async _parse_xml(xmlString: string): Promise<Document> {
+        let xml = new window.DOMParser().parseFromString(xmlString, 'application/xml')
         if (xml.querySelector('error')) {
-            throw new Error((xml.querySelector('error') as HTMLElement).textContent ?? 'Unknown XML error');
+            if (xml.querySelector('error')?.getAttribute('panelstyle')) {
+                return await this._noEmbedError(xml)
+            }
+            const err = (xml.querySelector('error') as HTMLElement).textContent ?? 'Unknown XML error'
+            throw new Error(err)
         } else {
-            return xml;
+            return xml
         }
     }
 
@@ -146,13 +210,7 @@ class VideaExtractor {
                 result += s[i - (this._STATIC_SECRET.indexOf(l[i]) - 31)];
             }
             const query = Object.fromEntries(new URLSearchParams(player_url.split('?')[1]));
-            const random_seed = Array.from(
-                { length: 8 },
-                () =>
-                    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'[
-                        Math.floor(Math.random() * 52)
-                    ],
-            ).join('');
+            const random_seed = this._random_string(8);
             query['_s'] = random_seed;
             query['_t'] = result.slice(0, 16);
             const [b64_info, handle] = await this._download_webpage_handle(
@@ -161,11 +219,11 @@ class VideaExtractor {
             );
             let info: Document;
             if (b64_info?.startsWith('<?xml')) {
-                info = this._parse_xml(b64_info);
+                info = await this._parse_xml(b64_info);
             } else {
                 const xVideaXs = handle.headers.get('x-videa-xs') ?? '';
                 const key = result.slice(16) + random_seed + xVideaXs;
-                info = this._parse_xml(this.rc4(atob(b64_info), key));
+                info = await this._parse_xml(this.rc4(atob(b64_info), key));
             }
             const video = info.querySelector('video');
             if (!video) throw new Error('Video not found');

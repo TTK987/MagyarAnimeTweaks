@@ -20,6 +20,7 @@ export default class BasePlayer {
     epNum: number
     animeID: number
     malId: number
+    playerID: number
     private skipForwardCooldown: number | undefined
     private skipBackwardCooldown: number | undefined
     private isANEpTrigger: boolean
@@ -27,6 +28,8 @@ export default class BasePlayer {
     private aniSkipSegments: { op?: SkipInterval; ed?: SkipInterval } = {}
     private aniSkipCycleShown: { op?: boolean; ed?: boolean } = {}
     private aniSkipTimers: { op?: number; ed?: number } = {}
+    private cursorAutoHideTimer?: number
+    private readonly cursorAutoHideDelayMs: number = 2000
     /**
      * Base player class
      *
@@ -46,6 +49,7 @@ export default class BasePlayer {
      * @param {string} animeTitle - The title of the anime
      * @param {number} epNum - The episode number
      * @param {number} malId - The MyAnimeList ID of the anime
+     * @param {number} playerID - The player instance ID from the server
      * @constructor
      */
     constructor(
@@ -58,6 +62,7 @@ export default class BasePlayer {
         animeTitle: string = '',
         epNum: number = 0,
         malId: number = 0,
+        playerID: number = 0,
     ) {
         this.selector = selector
         this.epData = qualityData
@@ -71,6 +76,7 @@ export default class BasePlayer {
         this.epNum = epNum
         this.animeID = animeID
         this.isANEpTrigger = false
+        this.playerID = playerID
         Logger.log(
             JSON.stringify({
                 selector: this.selector,
@@ -82,14 +88,12 @@ export default class BasePlayer {
                 animeTitle: this.animeTitle,
                 epNum: this.epNum,
                 malId: this.malId,
+                playerID: this.playerID,
             }),
         )
     }
 
-    /**
-     * Currently not used. An attempt to load a new video without reloading the plyr instance.
-     */
-    loadNewVideo(data: EpisodeVideoData[], epID: number, epNum: number) {
+    loadNewVideo(data: EpisodeVideoData[], epNum: number) {
         if (data.length === 0) {
             Logger.error('No video data provided.')
             return
@@ -374,6 +378,8 @@ export default class BasePlayer {
         if (this.settings.resume.enabled) this.ResumeFeature()
         if (this.settings.bookmarks.enabled) this.BookmarkFeature()
         if (this.settings.eap) this.initAniSkip(videoElement)
+        this.setupAutoHideCursor()
+        this.handlePlayerID()
     }
 
     /**
@@ -1045,5 +1051,72 @@ export default class BasePlayer {
     `
         document.head.appendChild(style)
         Logger.log('AniSkip: CSS injected.')
+    }
+
+    private setupAutoHideCursor() {
+        const getContainer = () => document.getElementById('MATweaks-player-wrapper') as HTMLElement | null
+        const isFsActive = () => {
+            const container = getContainer()
+            return !!container && document.fullscreenElement === container
+        }
+        const showCursor = () => {
+            const container = getContainer()
+            if (!container) return
+            container.style.cursor = ''
+        }
+        const hideCursor = () => {
+            const container = getContainer()
+            if (!container) return
+            if (isFsActive()) {
+                container.style.cursor = 'none'
+            }
+        }
+        const scheduleHide = () => {
+            if (this.cursorAutoHideTimer) window.clearTimeout(this.cursorAutoHideTimer)
+            this.cursorAutoHideTimer = window.setTimeout(() => hideCursor(), this.cursorAutoHideDelayMs)
+        }
+
+        const container = getContainer()
+        if (!container) return
+        if (container.hasAttribute('data-mat-cursorhide-bound')) return
+        container.setAttribute('data-mat-cursorhide-bound', '1')
+
+        const onActivity = () => {
+            if (!isFsActive()) return
+            showCursor()
+            scheduleHide()
+        }
+
+        // Pointer/touch activity on the container
+        ['mousemove', 'mousedown', 'mouseup', 'wheel', 'touchstart', 'touchmove', 'pointermove']
+                .forEach(evt => container.addEventListener(evt, onActivity, { passive: true }))
+
+        // Keyboard activity anywhere should show cursor if fullscreen is active
+        document.addEventListener('keydown', onActivity, { passive: true })
+
+        // Fullscreen changes
+        const onFsChange = () => {
+            if (isFsActive()) {
+                showCursor()
+                scheduleHide()
+            } else {
+                showCursor()
+                if (this.cursorAutoHideTimer) window.clearTimeout(this.cursorAutoHideTimer)
+            }
+        }
+        document.addEventListener('fullscreenchange', onFsChange)
+
+        // Start cycle if we are already in fullscreen
+        if (isFsActive()) {
+            showCursor()
+            scheduleHide()
+        }
+    }
+
+    private handlePlayerID() {
+        if (!this.playerID || this.playerID === 0) return
+        // TODO: implement playerID handling
+        Logger.warn("Unimplemented: handlePlayerID()");
+        return
     }
 }

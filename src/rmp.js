@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(element);
     }
     let list = $('#epizodlista');
-    let watchedItems = list.find('li .watched');
+    let watchedItems = list.find('li.active');
     if (watchedItems.length > 0) {
         let lastWatched = watchedItems.last().closest('li');
         list.animate({

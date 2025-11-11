@@ -165,8 +165,9 @@ class IFramePlayerComm {
      * @param animeID
      * @param {string} fansub - The fansub group.
      * @param {number} malID - The MyAnimeList ID of the anime.
+     * @param {number} playerID - The ID of the player to use.
      */
-    replacePlayer(title: string, episodeNumber: number, episodeId: number, animeID: number, fansub: FansubData[], malID: number) {
+    replacePlayer(title: string, episodeNumber: number, episodeId: number, animeID: number, fansub: FansubData[], malID: number, playerID: number) {
         this.sendAction(MAT.__ACTIONS__.IFRAME.REPLACE_PLAYER, {
             animeTitle: title,
             epNum: episodeNumber,
@@ -174,6 +175,7 @@ class IFramePlayerComm {
             animeID: animeID,
             malId: malID,
             fansub: JSON.stringify(fansub),
+            playerID: playerID
         })
     }
 

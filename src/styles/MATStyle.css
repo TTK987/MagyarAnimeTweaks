@@ -22,8 +22,172 @@
     background: #1e3a5f !important;
 }
 
-#epizodlista {
+#EpisodeList #epizodlista {
+    list-style: none !important;
     max-height: 300px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+}
+
+
+#EpisodeList #epizodlista .mat-ep-item,
+#EpisodeList #epizodlista li.list-group-item.videoChange {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding: 8px 10px !important;
+    text-align: left !important;
+    align-items: flex-start !important;
+    position: static !important;
+    background-color: rgba(128, 128, 128, 0.1) !important;
+    border: 1px solid #1a1d20 !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease !important;
+    height: auto !important;
+}
+
+#EpisodeList #epizodlista .mat-ep-item:hover,
+#EpisodeList #epizodlista li.list-group-item.videoChange:hover {
+    background-color: rgba(128, 128, 128, 0.18) !important;
+    border-color: #2a2e33 !important;
+}
+
+#EpisodeList #epizodlista .mat-ep-item.active,
+#EpisodeList #epizodlista li.list-group-item.videoChange.active {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+#EpisodeList #epizodlista .mat-ep-item.active::before,
+#EpisodeList #epizodlista li.list-group-item.videoChange.active::before,
+#EpisodeList #epizodlista .mat-ep-item.active::after,
+#EpisodeList #epizodlista li.list-group-item.videoChange.active::after {
+    content: none !important;
+}
+
+/* Title and tags */
+#EpisodeList #epizodlista .episode-title {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    line-height: 1.2 !important;
+}
+
+#EpisodeList #epizodlista .episode-tags {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
+#EpisodeList #epizodlista .episode-tags span {
+    display: inline-flex !important;
+    align-items: center !important;
+    height: 20px !important;
+    padding: 0 8px !important;
+    border-radius: 9999px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    background-color: rgba(45, 45, 63, 0.6) !important;
+    border: 1px solid rgba(61, 61, 92, 0.7) !important;
+    text-shadow: none !important;
+}
+
+#EpisodeList #epizodlista .episode-tags .linkdate {
+    background-color: #0b1220 !important;
+    border-color: rgba(32, 93, 170, 0.45) !important;
+    color: #cfe3ff !important;
+}
+#EpisodeList #epizodlista .episode-tags .watched {
+    padding: 0 !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #14532d !important;
+    border-color: #166534 !important;
+}
+
+#EpisodeList #epizodlista .episode-tags .filler {
+    background-color: #5b21b6 !important;
+    border-color: #6d28d9 !important;
+}
+#EpisodeList #epizodlista .episode-tags .halffiller {
+    background-color: #7c3aed !important;
+    border-color: #8b5cf6 !important;
+}
+#EpisodeList #epizodlista .episode-tags .linkelesalatt {
+    background-color: #164e63 !important;
+    border-color: #0e7490 !important;
+}
+
+#EpisodeList #epizodlista .episode-tags .watched {
+    width: auto !important;
+    height: 20px !important;
+    padding: 0 8px !important;
+    color: #ffffff !important;
+}
+
+#EpisodeList {
+    container-type: inline-size;
+    container-name: episodes;
+}
+
+@container episodes (min-width: 360px) {
+    #EpisodeList #epizodlista {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+        gap: 8px !important;
+    }
+    #EpisodeList #epizodlista .mat-ep-item,
+    #EpisodeList #epizodlista li.list-group-item.videoChange {
+        background-color: rgba(128, 128, 128, 0.1) !important;
+        border: 1px solid #1a1d20 !important;
+        border-radius: 5px !important;
+        text-align: center !important;
+        align-items: center !important;
+    }
+    #EpisodeList #epizodlista .mat-ep-item:hover,
+    #EpisodeList #epizodlista li.list-group-item.videoChange:hover {
+        background-color: rgba(128, 128, 128, 0.18) !important;
+        border-color: #2a2e33 !important;
+    }
+    #EpisodeList #epizodlista .mat-ep-item.active,
+    #EpisodeList #epizodlista li.list-group-item.videoChange.active {
+        background-color: #1e40af !important;
+        border-color: #1e40af !important;
+        color: #ffffff !important;
+    }
+    #EpisodeList #epizodlista .episode-tags { justify-content: center !important; }
+}
+
+
+@media (max-width: 480px) {
+    #EpisodeList #epizodlista {
+        gap: 4px !important;
+    }
+    #EpisodeList #epizodlista .mat-ep-item,
+    #EpisodeList #epizodlista li.list-group-item.videoChange {
+        padding: 8px !important;
+    }
+    #EpisodeList #epizodlista .episode-title {
+        font-size: 13px !important;
+    }
+    #EpisodeList #epizodlista .episode-tags span {
+        height: 18px !important;
+        font-size: 10px !important;
+        padding: 0 6px !important;
+    }
 }
 
 @media (max-width: 992px) {
@@ -50,7 +214,7 @@
 
 #DailyLimits button[id="prevBtn"],
 #DailyLimits button[id="nextBtn"],
-#DailyLimits button[id="datasheetBtn"] {
+#DailyLimits #datasheetBtn {
     align-items: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
@@ -75,7 +239,7 @@
     min-height: 30px;
 }
 
-#DailyLimits button[id="datasheetBtn"] {
+#DailyLimits #datasheetBtn {
     width: calc(100% - 10px);
     min-width: 0;
     margin-right: 0;
@@ -83,7 +247,7 @@
 
 #DailyLimits button[id="prevBtn"],
 #DailyLimits button[id="nextBtn"],
-#DailyLimits button[id="datasheetBtn"] {
+#DailyLimits #datasheetBtn {
     background-color: #0a0e17;
     border: 1px solid rgba(32, 93, 170, 0.3);
     color: white;
@@ -91,7 +255,7 @@
 
 #DailyLimits button[id="prevBtn"]:hover,
 #DailyLimits button[id="nextBtn"]:hover,
-#DailyLimits button[id="datasheetBtn"]:hover {
+#DailyLimits #datasheetBtn:hover {
     background-color: #1a1f2e;
     border-color: rgba(32, 93, 170, 0.5);
 }
@@ -308,5 +472,3 @@
     0%, 80%, 100% { transform: scale(0.72); opacity: 0.5; }
     40% { transform: scale(1); opacity: 1; }
 }
-
-
