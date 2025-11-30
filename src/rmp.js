@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (watchedItems.length > 0) {
         let lastWatched = watchedItems.last().closest('li');
         list.animate({
-            scrollTop: list.scrollTop() + lastWatched.position().top - list.height() / 2 + lastWatched.outerHeight() / 2
+            scrollTop: list.scrollTop() + lastWatched.position().top - list.height() * 0.55 + lastWatched.outerHeight() / 2
         }, 400);
     }
 })

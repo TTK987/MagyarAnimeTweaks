@@ -91,7 +91,7 @@ class MAT {
         return new Promise((resolve) => {
             chrome.storage.sync.get('settings', (result) => {
                 if (result && result.settings) {
-                    this.settings = result.settings
+                    this.settings = result.settings as SettingsV019
                     Logger.success('Settings loaded from storage', true)
                     resolve(this.settings)
                 } else {
@@ -108,10 +108,9 @@ class MAT {
      */
     updateDynamicRules() {
         chrome.declarativeNetRequest.getDynamicRules((rules) => {
-            const ruleIdsToRemove = rules.map((rule) => rule.id)
             chrome.declarativeNetRequest
                 .updateDynamicRules({
-                    removeRuleIds: ruleIdsToRemove,
+                    removeRuleIds: rules.map((rule) => rule.id),
                     addRules: [],
                 })
                 .then(async () => {
@@ -149,6 +148,14 @@ class MAT {
                                         condition: {
                                             urlFilter: '*://magyaranime.eu/data/search/search.js*',
                                             resourceTypes: ['script'],
+                                        },
+                                  },
+                                  {
+                                        id: randomId + 4,
+                                        action: { type: 'block' },
+                                        condition: {
+                                            urlFilter: '*://magyaranime.eu/css/player/player_noframe.css?*',
+                                            resourceTypes: ['stylesheet'],
                                         },
                                   }
                               ] as chrome.declarativeNetRequest.Rule[])
@@ -294,7 +301,7 @@ class MAT {
     loadPlyrCSS(): Promise<string> {
         return new Promise((resolve) => {
             chrome.storage.local.get("plyrCSS", (result) => {
-                resolve(result.plyrCSS || this.getDefaultPlyrCSS())
+                resolve(result.plyrCSS as string || this.getDefaultPlyrCSS())
             })
         })
     }

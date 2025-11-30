@@ -121,7 +121,7 @@ class Resume {
             chrome.storage.local
                 .get('resume')
                 .then((data) => {
-                    this.animes = (data.resume || []).map(
+                    this.animes = (data.resume as Resume[] || []).map(
                         (anime: any) => {
                             const animeInstance = new Anime(anime.animeID, anime.animeTitle)
                             animeInstance.episodes = (anime.episodes || []).map((ep: any) => ({

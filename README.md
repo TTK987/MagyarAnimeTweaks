@@ -28,10 +28,10 @@ Ez a kiegészítő animenéző(k)től animenézőknek készült.
 
 ![Az oldal előnézete a kiegészítővel.](/img/preview.png 'Előnézet')
 
-## Jelenlegi Verzió: 0.1.9.7
+## Jelenlegi Verzió: 0.1.9.8
 
-- **Firefox alapú: _[v0.1.9.7](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)_** (Firefox Add-ons)
-- **Chromium alapú: _[v0.1.9.7](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (Chrome Web Store)
+- **Firefox alapú: _[v0.1.9.8](https://addons.mozilla.org/en-US/firefox/addon/magyaranimetweaks/)_** (Firefox Add-ons)
+- **Chromium alapú: _[v0.1.9.8](https://chromewebstore.google.com/detail/magyaranimetweaks/kpaljcmdlnbnebockdplokocfgegiaia)_** (Chrome Web Store)
 > Ha nem tudod milyen böngésződ van, akkor [ITT](https://www.whatsmybrowser.org/) megnézheted.
 
 ## Funkciók

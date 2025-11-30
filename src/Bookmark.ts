@@ -51,7 +51,7 @@ class Bookmarks {
      */
     loadBookmarks(): Promise<Array<Bookmark>> {
         return new Promise((resolve) => {
-            chrome.storage.local.get('bookmarks', (bookmarks) => {
+            chrome.storage.local.get('bookmarks', (bookmarks: { bookmarks: Bookmark[] }) => {
                 if (bookmarks.bookmarks && bookmarks.bookmarks.length > 0) {
                     this.bookmarks = this.formatBookmark(bookmarks.bookmarks)
                     Logger.success('Bookmarks loaded', true)

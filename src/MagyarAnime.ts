@@ -51,13 +51,10 @@ class MagyarAnime {
             const hasEpList = !!this.document.getElementById('epizodLista')
             const hasLoadMore = !!this.document.getElementById('loadMoreEpizode')
             const hasHomeSlider = !!this.document.querySelector('section.home-singal-silder')
-            const titles = Array.from(this.document.querySelectorAll('h4.gen-heading-title')).map(
-                (el) => el.textContent?.trim() || '',
-            )
+            const titles = Array.from(this.document.querySelectorAll('h4.gen-heading-title')).map((el) => el.textContent?.trim() || '',)
             const hasLatest = titles.some((t) => /Legfrissebb megjelenések/i.test(t))
             const hasWeeklyTop = titles.some((t) => /Heti toplista/i.test(t))
-
-            return path || (hasEpList && hasLoadMore && hasLatest && hasWeeklyTop && hasHomeSlider)
+            return path || hasEpList || hasLoadMore || hasLatest || hasWeeklyTop || hasHomeSlider
         } catch {
             return false
         }

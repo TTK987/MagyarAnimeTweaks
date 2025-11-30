@@ -197,6 +197,7 @@ export default class BasePlayer {
                 #MATweaks-player-wrapper .plyr {
                     max-width: 100% !important;
                     height: 100% !important;
+                }
                 `
                 wrapper.append(style, videoElement)
                 playerElement.replaceWith(wrapper)
@@ -280,9 +281,12 @@ export default class BasePlayer {
         if (existingVideoElement) videoElement = existingVideoElement
         videoElement.id = 'video'
         if (this.settings.autoplay.enabled) videoElement.setAttribute('autoplay', 'autoplay')
-        videoElement.setAttribute('type', 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"')
+        videoElement.setAttribute(
+            'type',
+            'video/mp4; codecs="avc1.64001F, mp4a.40.2"'
+        )
         videoElement.playsInline = true
-        videoElement.controls = true
+        videoElement.controls = false
         videoElement.preload = 'metadata'
         videoElement.src = this.epData[0].url
         videoElement.innerHTML = this.epData.map((data) => `<source src="${data.url}" size="${data.quality}">`).join('')
@@ -649,9 +653,7 @@ export default class BasePlayer {
                 this.addResumeEventListeners()
                 this.checkResume().then((response) => {
                     if (response) return
-                    this.addCSS(
-                        ` #MATweaks-resume-Toast { left: 50%; transform: translateX(-50%); background: var(--black-color); color: white; border-radius: 5px; z-index: 1000; transition: opacity 1s; justify-content: center; display: flex; position: absolute; width: auto; bottom: 4em; background: #00000069; align-items: center; padding: 3px; } #MATweaks-resume-button { border-radius: 5px; box-shadow: 3px 3px 3px 2px rgb(0 0 0 / 20%); cursor: pointer; color: var(--white-color); border: none; height: auto; line-height: 2; text-transform: uppercase; -webkit-border-radius: 5px; -moz-border-radius: 5px; transition: all 0.5s ease-in-out; -moz-transition: all 0.5s ease-in-out; -ms-transition: all 0.5s ease-in-out; -o-transition: all 0.5s ease-in-out; -webkit-transition: all 0.5s ease-in-out; text-shadow: 1px 1px #000; font-weight: 500; background: #ffffff26; font-size: x-small; margin: 3px; display: flex; align-items: center; justify-content: space-between; width: 120px; padding: 5px; } #MATweaks-resume-button:hover { background: #ffffff4d; }#MATweaks-resume-button svg { width: 16px; height: 16px; margin-left: 5px; }`,
-                    )
+                    this.addCSS(`#MATweaks-resume-Toast { left: 50%; transform: translateX(-50%); background: var(--black-color); color: white; border-radius: 5px; z-index: 1000; transition: opacity 1s; justify-content: center; display: flex; position: absolute; width: auto; bottom: 4em; background: #00000069; align-items: center; padding: 3px; } #MATweaks-resume-button { border-radius: 5px; box-shadow: 3px 3px 3px 2px rgb(0 0 0 / 20%); cursor: pointer; color: var(--white-color); border: none; height: auto; line-height: 2; text-transform: uppercase; -webkit-border-radius: 5px; -moz-border-radius: 5px; transition: all 0.5s ease-in-out; -moz-transition: all 0.5s ease-in-out; -ms-transition: all 0.5s ease-in-out; -o-transition: all 0.5s ease-in-out; -webkit-transition: all 0.5s ease-in-out; text-shadow: 1px 1px #000; font-weight: 500; background: #ffffff26; font-size: x-small; margin: 3px; display: flex; align-items: center; justify-content: space-between; width: 120px; padding: 5px; } #MATweaks-resume-button:hover { background: #ffffff4d; }#MATweaks-resume-button svg { width: 16px; height: 16px; margin-left: 5px; }`)
                     let curResumeData = Resume.getDataByEpisodeId(this.epID)
                     if (!curResumeData) return
                     if (this.settings.resume.mode === 'auto') {

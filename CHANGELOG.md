@@ -1,5 +1,15 @@
 # Verziók
 
+## 0.1.9.8
+
+- Anime adatlapján a főoldalon látható navigációhoz hasonló funkció hozzáadva. [#3](https://github.com/TTK987/MagyarAnimeTweaks/issues/3#issuecomment-3515382627)
+    - Jelenleg ez is csak az EAP bekapcsolása mellett érhető el.
+- **Bugfix**:
+  - Aloldalról a főoldalra való visszalépés után a navigáció nem maradt aktív. [#3](https://github.com/TTK987/MagyarAnimeTweaks/issues/3#issuecomment-3515382627)
+  - Homályosan megjelenő videó javítása.
+    - Chrome böngészőnél CSS miatt volt ez, ezért a `*://magyaranime.eu/css/player/player_noframe.css?*` url-re vonatkozó tiltó szabály hozzáadva.
+      - _(legalabbis úgy néz ki, hogy működik)_
+  - Kisebb CSS hibák javítása.
 
 ## 0.1.9.7
 

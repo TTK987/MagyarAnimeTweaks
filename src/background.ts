@@ -1,8 +1,8 @@
 import Bookmarks from "./Bookmark";
 import Logger from "./Logger";
 import MAT from "./MAT";
-import Resume from "./Resume";
-import {SettingsV017, SettingsV018, SettingsV019} from "./global";
+import Resume, { Anime } from "./Resume";
+import { Bookmark, SettingsV017, SettingsV018, SettingsV019 } from "./global";
 
 chrome.runtime.onInstalled.addListener((details) => {
     checkAndRequestPermissions();
@@ -281,7 +281,7 @@ function migrateSettings(previousVersion: string, currentVersion: string) {
                         MAT.saveSettings();
                     });
                 } else {
-                    MAT.settings = migrateFn(result.settings);
+                    MAT.settings = migrateFn(result.settings as SettingsV017 & SettingsV018);
                     MAT.saveSettings();
                 }
             });
@@ -319,7 +319,7 @@ function migrateSettings_0_1_8(pr: SettingsV018): SettingsV019 {
                 Logger.log(`[background.js]: No bookmarks found in sync storage, skipping migration`, true);
             } else {
                 Logger.log(`[background.js]: Migrating bookmarks from sync to local storage`, true);
-                Bookmarks.bookmarks = result.bookmarks;
+                Bookmarks.bookmarks = result.bookmarks as Bookmark[]
                 Bookmarks.saveBookmarks();
             }
         });
@@ -328,7 +328,7 @@ function migrateSettings_0_1_8(pr: SettingsV018): SettingsV019 {
                 Logger.log(`[background.js]: No resume data found in sync storage, skipping migration`, true);
             } else {
                 Logger.log(`[background.js]: Migrating resume data from sync to local storage`, true);
-                Resume.animes = result.resume;
+                Resume.animes = result.resume as Anime[]
                 Resume.saveData();
             }
         });

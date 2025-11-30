@@ -15,7 +15,8 @@ import { ERROR_CODES, ERROR_MESSAGES } from './lib/error-catalog'
 import { decidePlayerType, genVideoHTML } from './lib/player-utils'
 import { checkShortcut } from './lib/shortcuts'
 import { getIcon } from './lib/icons'
-import MainPage from './MainPage'
+import { initDatasheetNav } from './handlers/Datasheet'
+import { initMainPageNavigation } from './handlers/MainPage'
 
 
 let settings: SettingsV019 = MAT.getDefaultSettings()
@@ -165,8 +166,10 @@ function initializeExtension() {
     isInitialized = true
     loadSettings().then(() => {
         if (MA.isMaintenancePage()) MaintenancePage()
-        else if (MA.isMainPage() && MAT.isEAP()) MainPage()
-        else {
+        else if (MA.isMainPage()) {
+            if (MAT.isEAP()) initMainPageNavigation()
+            addSettingsButton()
+        } else {
             addSettingsButton()
             if (MA.isEpisodePage) EpisodePage()
             else if (MA.isDatasheetPage) DatasheetPage()
@@ -187,7 +190,6 @@ function MaintenancePage() {
     return
 }
 function DatasheetPage() {
-    // Currently, this function only logs the anime data
     console.log({
         image: MA.ANIME.getImage(),
         title: MA.ANIME.getTitle(),
@@ -205,7 +207,8 @@ function DatasheetPage() {
             isAnimePage: MA.isDatasheetPage,
             isMaintenancePage: MA.isMaintenancePage(),
         },
-    })
+    });
+    if (MAT.isEAP()) initDatasheetNav();
 }
 function EpisodePage() {
     console.log({

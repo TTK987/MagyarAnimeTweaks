@@ -3,12 +3,6 @@
     top: 9.5px !important;
 }
 
-#adatlap_epizodok {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: space-between;
-}
-
 #search_box > a {
     transition: color 0.15s, background-color 0.15s !important;
 }
