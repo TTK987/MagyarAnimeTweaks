@@ -1,15 +1,16 @@
 import Bookmark from '../Bookmark'
 import Logger from '../Logger'
-import MAT from '../MAT'
+import { ACTIONS } from '../lib/actions'
 import MegaPlayer from '../player/MegaPlayer'
 import Resume from '../Resume'
+import MAT from '../MAT'
 
 
 let  Player = new MegaPlayer("", MAT.settings, 0, 0, "", 0, 0, 0);
 Logger.success('[mega.js] Script loaded successfully', true);
 
 window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === MAT.__ACTIONS__.IFRAME.REPLACE_PLAYER) {
+    if (event.data && event.data.type === ACTIONS.IFRAME.REPLACE_PLAYER) {
         Logger.log("Player replace event received.", true);
         Player.animeTitle = event.data.animeTitle;
         Player.epNum = Number(event.data.epNum);
@@ -35,4 +36,4 @@ window.addEventListener('message', (event) => {
     }
 })
 
-window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.FRAME_LOADED}, "*");
+window.parent.postMessage({type: ACTIONS.IFRAME.FRAME_LOADED}, "*");

@@ -1,4 +1,4 @@
-import MAT from '../MAT'
+import { ACTIONS } from '../lib/actions'
 import Logger from '../Logger'
 import HLSPlayer from '../player/HLSPlayer'
 import Bookmark from '../Bookmark'
@@ -7,6 +7,7 @@ import { EpisodeVideoData } from '../global'
 import { renderFileName, getQualityData } from '../lib/utils'
 import {downloadHLS} from "../downloads";
 import {prettyFileSize} from "../lib/utils";
+import MAT from '../MAT'
 
 Logger.success('[dailymotion.js] Script loaded', true)
 let Player = new HLSPlayer('#player', [], true, MAT.settings, 0, 0, '', 0,0, 0)
@@ -14,7 +15,7 @@ let Player = new HLSPlayer('#player', [], true, MAT.settings, 0, 0, '', 0,0, 0)
 function messageHandler(event: MessageEvent) {
     if (!event.data || !event.data.type) return; // Ignore messages without a type
     switch (event.data.type) {
-        case (MAT.__ACTIONS__.IFRAME.REPLACE_PLAYER): {
+        case (ACTIONS.IFRAME.REPLACE_PLAYER): {
             Logger.log('[Dailymotion] Replacing player', true)
             document.open();
             // document.write() is deprecated, but let's use it for now...
@@ -72,19 +73,19 @@ function messageHandler(event: MessageEvent) {
             })
             break;
         }
-        case (MAT.__ACTIONS__.IFRAME.VOL_UP): {
+        case (ACTIONS.IFRAME.VOL_UP): {
             Player.plyr.increaseVolume(0.1)
             break;
         }
-        case (MAT.__ACTIONS__.IFRAME.VOL_DOWN): {
+        case (ACTIONS.IFRAME.VOL_DOWN): {
             Player.plyr.increaseVolume(-0.1)
             break;
         }
-        case (MAT.__ACTIONS__.IFRAME.TOGGLE_MUTE): {
+        case (ACTIONS.IFRAME.TOGGLE_MUTE): {
             Player.plyr.muted = !Player.plyr.muted
             break;
         }
-        case (MAT.__ACTIONS__.IFRAME.TOGGLE_FULLSCREEN): {
+        case (ACTIONS.IFRAME.TOGGLE_FULLSCREEN): {
             let fullscreenButton = document.querySelector('.plyr__controls__item.plyr__control[data-plyr="fullscreen"]') as HTMLButtonElement | null;
             if (fullscreenButton) {
                 fullscreenButton.focus()
@@ -93,7 +94,7 @@ function messageHandler(event: MessageEvent) {
             }
             break;
         }
-        case (MAT.__ACTIONS__.IFRAME.TOGGLE_PLAY): {
+        case (ACTIONS.IFRAME.TOGGLE_PLAY): {
             if (Player.plyr.playing) {
                 Player.plyr.pause()
             } else {
@@ -101,20 +102,20 @@ function messageHandler(event: MessageEvent) {
             }
             break;
         }
-        case (MAT.__ACTIONS__.IFRAME.SEEK): {
+        case (ACTIONS.IFRAME.SEEK): {
             Player.seekTo(Player.plyr.currentTime + Number(event.data.time));
             break;
         }
-        case (MAT.__ACTIONS__.IFRAME.SEEK_PERCENTAGE): {
+        case (ACTIONS.IFRAME.SEEK_PERCENTAGE): {
             Player.plyr.currentTime = Player.plyr.duration * (event.data.percentage / 100)
             break;
         }
-        case (MAT.__ACTIONS__.IFRAME.BACKWARD_SKIP): {
+        case (ACTIONS.IFRAME.BACKWARD_SKIP): {
             if (!Player.settings.backwardSkip.enabled) return;
             Player.skipBackward()
             break;
         }
-        case (MAT.__ACTIONS__.IFRAME.FORWARD_SKIP): {
+        case (ACTIONS.IFRAME.FORWARD_SKIP): {
             if (!Player.settings.forwardSkip.enabled) return;
             Player.skipForward()
             break;
@@ -224,7 +225,7 @@ function handleDailymotionReplace() {
         }
         Player.epData = qualities as EpisodeVideoData[]
         Player.replace()
-        window.parent.postMessage({ type: MAT.__ACTIONS__.IFRAME.PLAYER_REPLACED }, '*')
+        window.parent.postMessage({ type: ACTIONS.IFRAME.PLAYER_REPLACED }, '*')
     })
 }
 
@@ -240,4 +241,4 @@ function extractMediaID(url: string): string | null {
 }
 
 
-window.parent.postMessage({ type: MAT.__ACTIONS__.IFRAME.FRAME_LOADED }, '*')
+window.parent.postMessage({ type: ACTIONS.IFRAME.FRAME_LOADED }, '*')

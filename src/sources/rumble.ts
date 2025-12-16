@@ -3,15 +3,15 @@
  * But just in case, I will leave this here
  */
 
-import MAT from '../MAT'
+import { ACTIONS } from '../lib/actions'
 import { EpisodeVideoData } from '../global'
 
 
 window.addEventListener('message', async function (event) {
     if (event.data) {
-        if (event.data.type === MAT.__ACTIONS__.GET_SOURCE_URL) {
+        if (event.data.type === ACTIONS.GET_SOURCE_URL) {
             window.parent.postMessage(
-                { type: MAT.__ACTIONS__.SOURCE_URL, data: getQualityData(document.body.innerHTML) },
+                { type: ACTIONS.SOURCE_URL, data: getQualityData(document.body.innerHTML) },
                 '*',
             )
         }
@@ -34,5 +34,5 @@ function getQualityData(html: string): {} {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    window.parent.postMessage({ type: MAT.__ACTIONS__.IFRAME.FRAME_LOADED }, '*')
+    window.parent.postMessage({ type: ACTIONS.IFRAME.FRAME_LOADED }, '*')
 })

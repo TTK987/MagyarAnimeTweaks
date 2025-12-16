@@ -1,17 +1,17 @@
-import MAT from "../MAT";
+import { ACTIONS } from '../lib/actions'
 import Logger from "../Logger";
 import { EpisodeVideoData } from '../global'
 
 window.addEventListener('message', async function (event) {
-    if (event.data?.type === MAT.__ACTIONS__.GET_SOURCE_URL) {
+    if (event.data?.type === ACTIONS.GET_SOURCE_URL) {
         const extractor = new VideaExtractor();
         let qualityData: EpisodeVideoData[] = await extractor.extract(window.location.href);
         if (!qualityData || qualityData.length === 0) {
             Logger.warn('Quality data not found, trying to get it from the player', true);
             qualityData = await getQualityData();
-            window.parent.postMessage({type: MAT.__ACTIONS__.SOURCE_URL, data: makeQualityDataUrlNormal(qualityData)}, '*');
+            window.parent.postMessage({type: ACTIONS.SOURCE_URL, data: makeQualityDataUrlNormal(qualityData)}, '*');
         } else {
-            window.parent.postMessage({type: MAT.__ACTIONS__.SOURCE_URL, data: makeQualityDataUrlNormal(qualityData)}, '*');
+            window.parent.postMessage({type: ACTIONS.SOURCE_URL, data: makeQualityDataUrlNormal(qualityData)}, '*');
         }
     }
 });
@@ -264,6 +264,6 @@ class VideaExtractor {
         }
     }
 }
-window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.FRAME_LOADED}, '*');
+window.parent.postMessage({type: ACTIONS.IFRAME.FRAME_LOADED}, '*');
 
 Logger.log('[videa.js] Script loaded');

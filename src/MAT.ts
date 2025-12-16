@@ -2,74 +2,9 @@ import Logger from './Logger'
 import { SettingsV019 } from './global'
 
 class MAT {
-    __ACTIONS__: {
-        SEEK: string
-        SOURCE_URL: string
-        GET_SOURCE_URL: string
-        FRAME_LOADED: string
-        LOAD_BOOKMARK: string
-        INDA_NO_VIDEO: string
-        IFRAME: {
-            FRAME_LOADED: string
-            AUTO_NEXT_EPISODE: string
-            NEXT_EPISODE: string
-            PREVIOUS_EPISODE: string
-            CURRENT_TIME: string
-            REPLACE_PLAYER: string
-            TOGGLE_PLAY: string
-            VOL_UP: string
-            VOL_DOWN: string
-            TOGGLE_MUTE: string
-            TOGGLE_FULLSCREEN: string
-            SEEK: string
-            BACKWARD_SKIP: string
-            FORWARD_SKIP: string
-            GET_CURRENT_TIME: string
-            PLAYER_READY: string
-            SEEK_PERCENTAGE: string
-            GET_BOOKMARKS: string
-            TOAST: string
-            PLAYER_REPLACED: string
-            PLAYER_REPLACE_FAILED: string
-        }
-        DOWNLOAD: string
-    }
     settings: SettingsV019
     constructor() {
         this.settings = this.getDefaultSettings()
-        this.__ACTIONS__ = {
-            SEEK: 'seek',
-            SOURCE_URL: 'sourceUrl',
-            GET_SOURCE_URL: 'getSourceUrl',
-            FRAME_LOADED: 'frameLoaded',
-            LOAD_BOOKMARK: 'loadBookmark',
-            INDA_NO_VIDEO: 'indaNoVideo',
-            IFRAME: {
-                FRAME_LOADED: 'FrameLoaded',
-                AUTO_NEXT_EPISODE: 'AutoNextEpisode',
-                NEXT_EPISODE: 'NextEpisode',
-                PREVIOUS_EPISODE: 'PreviousEpisode',
-                CURRENT_TIME: 'CurrentTime',
-                REPLACE_PLAYER: 'ReplacePlayer',
-                TOGGLE_PLAY: 'TogglePlay',
-                VOL_UP: 'VolUp',
-                VOL_DOWN: 'VolDown',
-                TOGGLE_MUTE: 'ToggleMute',
-                TOGGLE_FULLSCREEN: 'ToggleFullscreen',
-                SEEK: 'Seek',
-                BACKWARD_SKIP: 'BackwardSkip',
-                FORWARD_SKIP: 'ForwardSkip',
-                GET_CURRENT_TIME: 'getCurrentTime',
-                PLAYER_READY: 'PlayerReady',
-                SEEK_PERCENTAGE: 'seekPercentage',
-                GET_BOOKMARKS: 'getBookmarks',
-                TOAST: 'Toast',
-
-                PLAYER_REPLACED: 'PlayerReplaced',
-                PLAYER_REPLACE_FAILED: 'PlayerReplaceFailed',
-            },
-            DOWNLOAD: 'download',
-        }
     }
 
     /**
@@ -289,7 +224,7 @@ class MAT {
                     enabled: /* Plyr design settings (default: false) */ false,
                 },
             },
-            eap: false /* Enable Early Access Program (default: false) (Basically useless, adds "EAP" text and that's it xd) */,
+            eap: false /* Enable Early Access Program (default: false) */,
             version: this.getVersion() /* Version of the extension */,
         }
     }

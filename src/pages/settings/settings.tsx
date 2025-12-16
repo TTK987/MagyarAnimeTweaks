@@ -91,7 +91,7 @@ function SettingsSite() {
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar version={MAT.getVersion()} eap={MAT.isEAP()}/>
-            <main className="flex-grow container mx-auto px-4 py-6 min-h-screen">
+            <main className="grow container mx-auto px-4 py-6 min-h-screen">
                 <Tabs defaultValue="normal" className="min-w-full">
                     <div className="flex flex-row justify-between items-center mb-6 gap-4 mt-4">
                         <div className="relative w-full overflow-x-auto h-11 flex items-center">

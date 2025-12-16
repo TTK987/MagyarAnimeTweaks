@@ -16,7 +16,7 @@ export default () => {return {
     host_permissions: [
         '*://*.magyaranime.eu/*',
         '*://*.magyaranime.hu/*',
-        '*://*.embed.indavideo.hu/*',
+        '*://*.indavideo.hu/*',
         '*://*.mega.nz/embed/*',
         '*://*.dailymotion.com/player.html*',
         '*://*.rumble.com/embed/*',
@@ -85,7 +85,6 @@ export default () => {return {
         {
             matches: ['*://*.magyaranime.eu/*', '*://*.magyaranime.hu/*'],
             js: ['src/rmp.js'],
-            // @ts-ignore
             world: 'MAIN',
             all_frames: true,
             run_at: 'document_start',
@@ -97,7 +96,7 @@ export default () => {return {
             run_at: 'document_end',
         },
         {
-            matches: ['*://embed.indavideo.hu/*'],
+            matches: ['*://*.indavideo.hu/*'],
             js: ['src/sources/indavideo.js'],
             all_frames: true,
             run_at: 'document_start',
@@ -107,7 +106,6 @@ export default () => {return {
             js: ['src/sources/indavideoHelper.js'],
             all_frames: true,
             run_at: 'document_start',
-            // @ts-ignore
             world: 'MAIN',
         },
         {
@@ -141,7 +139,6 @@ export default () => {return {
             js: ['src/sources/videaHelper.js'],
             all_frames: true,
             run_at: 'document_start',
-            // @ts-ignore
             world: 'MAIN',
         },
     ],

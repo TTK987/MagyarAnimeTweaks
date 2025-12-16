@@ -30,7 +30,7 @@ export function initDatasheetNav() {
     align-content: center;
     padding-left: 17px;
     overflow: hidden;
-    min-height: 175px;
+    min-height: 240px;
 }
 
 .owl-nav {

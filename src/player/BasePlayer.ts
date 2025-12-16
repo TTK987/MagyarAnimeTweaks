@@ -8,6 +8,7 @@ import { SettingsV019, EpisodeVideoData, keyBind } from '../global'
 import 'plyr/dist/plyr.css'
 import {formatTime} from "../lib/time-utils";
 import AniSkip, { SkipInterval } from '../AniSkip'
+import { ACTIONS } from '../lib/actions'
 
 export default class BasePlayer {
     selector: string
@@ -144,7 +145,7 @@ export default class BasePlayer {
         if (window.parent !== window && window.document.fullscreenElement === null) {
             window.parent.postMessage(
                 {
-                    type: MAT.__ACTIONS__.IFRAME.TOAST,
+                    type: ACTIONS.IFRAME.TOAST,
                     message: {
                         type: type,
                         title: title,

@@ -17,6 +17,7 @@ import { checkShortcut } from './lib/shortcuts'
 import { getIcon } from './lib/icons'
 import { initDatasheetNav } from './handlers/Datasheet'
 import { initMainPageNavigation } from './handlers/MainPage'
+import { data } from 'autoprefixer'
 
 
 let settings: SettingsV019 = MAT.getDefaultSettings()
@@ -70,7 +71,8 @@ function handleError(area: keyof typeof ERROR_CODES, type: string, customMessage
 }
 
 
-if (window.location.href.includes("inda-play")) {
+if (MA.isIndaPlayPage) {
+    MA.addCSS('.gen-video-holder.txt-center { min-height: 500px; }');
     loadSettings().then(() => {
         if (document.querySelector('#lejatszo')) {
             let videoElement = document.querySelector('#lejatszo video') as HTMLVideoElement;
@@ -117,6 +119,7 @@ if (window.location.href.includes("inda-play")) {
                             MA.EPISODE.getEpisodeNumber(),
                             currentServer,
                             MA.EPISODE.getId(),
+                            true
                         )
                     })
             }
@@ -240,7 +243,7 @@ function EpisodePage() {
     Bookmarks.loadBookmarks().then(() => Logger.success('Bookmarks loaded.'))
     Resume.loadData().then(() => Logger.success('Resume data loaded.'))
 
-    if (!location.href.includes("/inda-play/")) MA.EPISODE.getMALId().then((id) => {MALId = id})
+    if (!MA.isIndaPlayPage) MA.EPISODE.getMALId().then((id) => {MALId = id})
 
     document.querySelector('#ttkeztkapcsoldki')?.remove()
 
@@ -248,7 +251,7 @@ function EpisodePage() {
 
     videoID = MA.EPISODE.getId()
 
-    if (vData.length > 0) {
+    if (vData.length > 0 && MA.isIndaPlayPage) {
         Logger.log("Using indavideo iframe data for video playback.");
         loadHTML5Player({
             error: '',
@@ -267,13 +270,23 @@ function EpisodePage() {
         return;
     }
 
-    if (!location.href.includes("/inda-play/")) {
+    if (!MA.isIndaPlayPage) {
         loadVideo(currentServer, Number((document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute('data-vid')))
         let listener = (visibilityEvent: Event) => {
             if (document.visibilityState === 'visible') {
-                if (isRoadblockCalled) {document.removeEventListener('visibilitychange', listener); return}
+                if (isRoadblockCalled) {
+                    document.removeEventListener('visibilitychange', listener)
+                    return
+                }
                 document.removeEventListener('visibilitychange', listener)
-                loadVideo(currentServer, Number((document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute('data-vid')))
+                loadVideo(
+                    currentServer,
+                    Number(
+                        (document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute(
+                            'data-vid',
+                        ),
+                    ),
+                )
             }
         }
         document.addEventListener('visibilitychange', listener, { once: true })
@@ -285,6 +298,8 @@ function EpisodePage() {
         handleError("CSRF", "NOT_FOUND");
         return;
     }
+
+    if (MA.isIndaPlayPage) return;
 
     let videoPlayer = document.querySelector("#VideoPlayer") as HTMLVideoElement;
     if (!videoPlayer) {
@@ -1019,7 +1034,7 @@ function silentLoadVideo(server: string, vid: number, retryAttempt: number = 0) 
             if (["dailymotion", "mega"].includes(newPlayerType)) {
                 Logger.warn("Cannot silently load video for iframe-based players. Falling back to full load.");
                 handleServerResponse(data);
-                return true
+                return data.button_vid_next
             }
 
             if (currentImpl === 'Native' && ["HTML5", "indavideo", "videa"].includes(newPlayerType)) {
@@ -1028,7 +1043,7 @@ function silentLoadVideo(server: string, vid: number, retryAttempt: number = 0) 
                 qualityDataPromise.then((videoData) => {
                     if (videoData.length === 0) {
                         handleError("VIDEO", "NO_SOURCES", "Videó források nem találhatók.");
-                        return true
+                        return data.button_vid_next
                     }
                     window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`);
                     document.querySelector('#VideoPlayer')!.setAttribute('data-server', server);
@@ -1040,19 +1055,19 @@ function silentLoadVideo(server: string, vid: number, retryAttempt: number = 0) 
                 }).catch((error) => {
                     handleError("VIDEO", "DATA_ERROR", `Videó adatok betöltési hiba: ${error}`);
                 });
-                return true
+                return data.button_vid_next
             }
 
             if (currentImpl === 'HLS' && newPlayerType === 'HLS') {
                 Logger.log("Silently loading video using HLSPlayer...");
                 if (!data.hls_url) {
                     handleError("VIDEO", "NO_SOURCES", "HLS URL nem található.");
-                    return true
+                    return data.button_vid_next
                 }
                 parseVideoData(atob(data.hls_url)).then(videoData => {
                     if (videoData.length === 0) {
                         handleError("VIDEO", "NO_SOURCES", "Videó források nem találhatók.");
-                        return true
+                        return data.button_vid_next
                     }
                     window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`);
                     document.querySelector('#VideoPlayer')!.setAttribute('data-server', server);
@@ -1064,14 +1079,14 @@ function silentLoadVideo(server: string, vid: number, retryAttempt: number = 0) 
                 }).catch((error) => {
                     handleError("VIDEO", "DATA_ERROR", `Videó adatok betöltési hiba: ${error}`);
                 });
-                return true
+                return data.button_vid_next
             }
 
             Logger.warn("Cannot silently load video for the current player type combination. Performing full reload.");
             handleServerResponse(data);
-            return true
-        }).then((success) => {
-            if (success) Toast.success(`Most nézed: ${MA.EPISODE.getEpisodeNumber()}. rész`, "", { duration: 3000, position: "top-center" });
+            return data.button_vid_next
+        }).then((nextEpID) => {
+            if (nextEpID !== false) Toast.success(`Most nézed: ${MA.EPISODE.getEpisodeNumber()}. rész ${nextEpID === -1 ? "(Utolsó)" : ""}`, "", { duration: 3000, position: "top-center" });
         })
         .catch((error) => {
             handleError("PLAYER", "LOAD_ERROR", `Videó betöltési hiba (silent load): ${error}`);

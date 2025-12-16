@@ -3,6 +3,7 @@ import Logger from '../Logger'
 import MAT from '../MAT'
 import Hls from 'hls.js'
 import { SettingsV019, FansubData, EpisodeVideoData } from '../global'
+import { ACTIONS } from '../lib/actions'
 
 /**
  * HLSPlayer class
@@ -58,7 +59,7 @@ class HLSPlayer extends BasePlayer {
     addEventListeners() {
         window.addEventListener('message', (event) => {
             switch (event.data.type) {
-                case MAT.__ACTIONS__.IFRAME.TOGGLE_PLAY:
+                case ACTIONS.IFRAME.TOGGLE_PLAY:
                     let btn = document.querySelector(
                         ".plyr__controls__item[data-plyr='play']",
                     ) as HTMLElement
@@ -70,16 +71,16 @@ class HLSPlayer extends BasePlayer {
                         this.plyr?.togglePlay()
                     }
                     break
-                case MAT.__ACTIONS__.IFRAME.VOL_UP:
+                case ACTIONS.IFRAME.VOL_UP:
                     this.plyr?.increaseVolume(0.1)
                     break
-                case MAT.__ACTIONS__.IFRAME.VOL_DOWN:
+                case ACTIONS.IFRAME.VOL_DOWN:
                     this.plyr?.decreaseVolume(0.1)
                     break
-                case MAT.__ACTIONS__.IFRAME.TOGGLE_MUTE:
+                case ACTIONS.IFRAME.TOGGLE_MUTE:
                     if (this.plyr) this.plyr.muted = !this.plyr.muted
                     break
-                case MAT.__ACTIONS__.IFRAME.TOGGLE_FULLSCREEN:
+                case ACTIONS.IFRAME.TOGGLE_FULLSCREEN:
                     let f = document.querySelector(
                         ".plyr__controls__item[data-plyr='fullscreen']",
                     ) as HTMLElement
@@ -91,31 +92,31 @@ class HLSPlayer extends BasePlayer {
                         this.plyr?.fullscreen.toggle()
                     }
                     break
-                case MAT.__ACTIONS__.IFRAME.SEEK:
+                case ACTIONS.IFRAME.SEEK:
                     this.seekTo(event.data.epTime)
                     break
-                case MAT.__ACTIONS__.IFRAME.BACKWARD_SKIP:
+                case ACTIONS.IFRAME.BACKWARD_SKIP:
                     this.skipBackward()
                     break
-                case MAT.__ACTIONS__.IFRAME.FORWARD_SKIP:
+                case ACTIONS.IFRAME.FORWARD_SKIP:
                     this.skipForward()
                     break
-                case MAT.__ACTIONS__.IFRAME.GET_CURRENT_TIME:
+                case ACTIONS.IFRAME.GET_CURRENT_TIME:
                     window.parent.postMessage(
                         {
-                            type: MAT.__ACTIONS__.IFRAME.CURRENT_TIME,
+                            type: ACTIONS.IFRAME.CURRENT_TIME,
                             currentTime: this.plyr?.currentTime,
                         },
                         '*',
                     )
                     break
-                case MAT.__ACTIONS__.IFRAME.SEEK_PERCENTAGE:
+                case ACTIONS.IFRAME.SEEK_PERCENTAGE:
                     this.seekTo(
                         (Math.max(0, Math.min(100, event.data.percentage)) / 100) *
                             (this.plyr?.duration || 0),
                     )
                     break
-                case MAT.__ACTIONS__.IFRAME.GET_BOOKMARKS:
+                case ACTIONS.IFRAME.GET_BOOKMARKS:
                     break
                 default:
                     break
@@ -125,15 +126,15 @@ class HLSPlayer extends BasePlayer {
     }
 
     previousEpisode() {
-        window.parent.postMessage({ type: MAT.__ACTIONS__.IFRAME.PREVIOUS_EPISODE }, '*')
+        window.parent.postMessage({ type: ACTIONS.IFRAME.PREVIOUS_EPISODE }, '*')
     }
 
     nextEpisode() {
-        window.parent.postMessage({ type: MAT.__ACTIONS__.IFRAME.NEXT_EPISODE }, '*')
+        window.parent.postMessage({ type: ACTIONS.IFRAME.NEXT_EPISODE }, '*')
     }
 
     autoNextEpisode() {
-        window.parent.postMessage({ type: MAT.__ACTIONS__.IFRAME.AUTO_NEXT_EPISODE }, '*')
+        window.parent.postMessage({ type: ACTIONS.IFRAME.AUTO_NEXT_EPISODE }, '*')
     }
 
     changeQuality(quality: number, videoElement: HTMLVideoElement) {
@@ -161,7 +162,7 @@ class HLSPlayer extends BasePlayer {
                 Logger.error('Invalid source URL.', true)
                 window.dispatchEvent(new Event('PlayerReplaceFailed'))
                 window.parent.postMessage(
-                    { type: MAT.__ACTIONS__.IFRAME.PLAYER_REPLACE_FAILED },
+                    { type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED },
                     '*',
                 )
                 return
@@ -171,12 +172,12 @@ class HLSPlayer extends BasePlayer {
             this.setupPlyr(videoElement)
             this.loadCustomCss()
             window.dispatchEvent(new Event('PlayerReplaced'))
-            window.parent.postMessage({ type: MAT.__ACTIONS__.IFRAME.PLAYER_REPLACED }, '*')
+            window.parent.postMessage({ type: ACTIONS.IFRAME.PLAYER_REPLACED }, '*')
             Logger.success('Player replaced successfully.', true)
         } catch (e) {
             Logger.error('Error while replacing with Plyr player. Error: ' + e, true)
             window.dispatchEvent(new Event('PlayerReplaceFailed'))
-            window.parent.postMessage({ type: MAT.__ACTIONS__.IFRAME.PLAYER_REPLACE_FAILED }, '*')
+            window.parent.postMessage({ type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED }, '*')
         }
     }
 

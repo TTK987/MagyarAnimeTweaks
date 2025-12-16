@@ -1,6 +1,5 @@
 import Toast from '../Toast'
-
-export function showVideoRemovedError(videoTitle: string, episodeNumber: number, serverId: string | undefined, videoId: number) {
+export function showVideoRemovedError(videoTitle: string, episodeNumber: number, serverId: string | undefined, videoId: number, isIndaPlay: boolean | undefined=false) {
     const errorContainer = document.querySelector("#VideoPlayer") || document.querySelector(".gen-video-holder")
 
     if (!errorContainer) {
@@ -8,10 +7,49 @@ export function showVideoRemovedError(videoTitle: string, episodeNumber: number,
         return
     }
 
-
     const errorId = `EP${videoId}-${serverId?.toUpperCase() || 'UNKNOWN'}-VIDEO-REMOVED-001`
-    const hibajelentesUrl = serverId ? `https://magyaranime.eu/hibajelentes/${videoId}/${serverId.toLowerCase().replace("s", "")}/` : undefined;
+    const hibajelentesUrl = !isIndaPlay && serverId
+        ? `https://magyaranime.eu/hibajelentes/${videoId}/${serverId.toLowerCase().replace("s", "")}/`
+        : undefined
 
+    const infoText = isIndaPlay
+        ? `A(z) "${videoTitle}" ${episodeNumber}. része el lett távolítva az IndaVideo szerverről.`
+        : `A(z) "${videoTitle}" ${episodeNumber}. része jelenleg nem elérhető ezen a szerveren.<br>Ez általában azt jelenti, hogy a videó törölve lett vagy átmenetileg nem működik.`
+
+    const extraInfo = isIndaPlay
+        ? `❗ <strong>Fontos:</strong> Mivel egyéb forrásból nézed a videót, ezért ezzel nem lehet nagyon mit kezdeni.`
+        : `💡 <strong>Tipp:</strong> Próbálj meg másik szervert választani, vagy jelentsd be a hibát, hogy mielőbb javítani tudják.`
+
+    const reportButtonHtml = !isIndaPlay && hibajelentesUrl
+        ? `
+                    <button onclick="window.open('${hibajelentesUrl}', '_blank')" style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 4px;
+                            background: linear-gradient(135deg, #dc2626, #ef4444);
+                            color: white;
+                            border: none;
+                            padding: 6px 12px;
+                            border-radius: 6px;
+                            font-size: 11px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: 0.3s;
+                            box-shadow: rgba(220, 38, 38, 0.3) 0 2px 4px;
+                            text-transform: uppercase;
+                            letter-spacing: 0.3px;
+                            transform: translateY(0px);
+                            flex: 1;
+                            min-width: 100px;
+                        ">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                        Hibajelentés
+                    </button>
+        `
+        : ''
 
     errorContainer.innerHTML = `
 <div class="error-container" style="
@@ -87,8 +125,7 @@ export function showVideoRemovedError(videoTitle: string, episodeNumber: number,
                     color: rgba(255, 255, 255, 0.9);
                     line-height: 1.4;
                     ">
-                    A(z) "${videoTitle}" ${episodeNumber}. része jelenleg nem elérhető ezen a szerveren.
-                    <br>Ez általában azt jelenti, hogy a videó törölve lett vagy átmenetileg nem működik.
+                    ${infoText}
                 </div>
                 <div style="
                     margin-bottom: 16px;
@@ -101,7 +138,7 @@ export function showVideoRemovedError(videoTitle: string, episodeNumber: number,
                     border-radius: 8px;
                     border: 1px solid rgba(32, 93, 170, 0.2);
                     ">
-                    💡 <strong>Tipp:</strong> Próbálj meg másik szervert választani, vagy jelentsd be a hibát, hogy mielőbb javítani tudják.
+                    ${extraInfo}
                 </div>
                 <div style="
                         display: flex;
@@ -111,34 +148,7 @@ export function showVideoRemovedError(videoTitle: string, episodeNumber: number,
                         flex-direction: row;
                         flex-wrap: wrap;
                     ">
-                        ${hibajelentesUrl ? `
-                    <button onclick="window.open('${hibajelentesUrl}', '_blank')" style="
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 4px;
-                            background: linear-gradient(135deg, #dc2626, #ef4444);
-                            color: white;
-                            border: none;
-                            padding: 6px 12px;
-                            border-radius: 6px;
-                            font-size: 11px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            transition: 0.3s;
-                            box-shadow: rgba(220, 38, 38, 0.3) 0 2px 4px;
-                            text-transform: uppercase;
-                            letter-spacing: 0.3px;
-                            transform: translateY(0px);
-                            flex: 1;
-                            min-width: 100px;
-                        ">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                        </svg>
-                        Hibajelentés
-                    </button>
-                    ` : ''}
+                        ${reportButtonHtml}
                 </div>
                 <div style="
                     display: flex;

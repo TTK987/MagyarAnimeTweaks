@@ -1,5 +1,5 @@
-import MAT from '../MAT'
 import { EpisodeVideoData, FansubData } from '../global'
+import { ACTIONS } from '../lib/actions'
 
 class IFramePlayerComm {
     private isIFrameLoaded: boolean
@@ -39,23 +39,23 @@ class IFramePlayerComm {
 
     private MSGListeners(event: MessageEvent) {
         switch (event.data.type) {
-            case MAT.__ACTIONS__.IFRAME.FRAME_LOADED:
+            case ACTIONS.IFRAME.FRAME_LOADED:
                 this.isIFrameLoaded = true
                 this.onFrameLoaded()
                 break
-            case MAT.__ACTIONS__.IFRAME.AUTO_NEXT_EPISODE:
+            case ACTIONS.IFRAME.AUTO_NEXT_EPISODE:
                 this.autoNextEpisode()
                 break
-            case MAT.__ACTIONS__.IFRAME.NEXT_EPISODE:
+            case ACTIONS.IFRAME.NEXT_EPISODE:
                 this.nextEpisode()
                 break
-            case MAT.__ACTIONS__.IFRAME.PREVIOUS_EPISODE:
+            case ACTIONS.IFRAME.PREVIOUS_EPISODE:
                 this.previousEpisode()
                 break
-            case MAT.__ACTIONS__.IFRAME.PLAYER_READY:
+            case ACTIONS.IFRAME.PLAYER_READY:
                 this.onPlayerReady()
                 break
-            case MAT.__ACTIONS__.IFRAME.TOAST:
+            case ACTIONS.IFRAME.TOAST:
                 this.onToast(
                     event.data.message.type,
                     event.data.message.title,
@@ -63,10 +63,10 @@ class IFramePlayerComm {
                     event.data.message.options || {},
                 )
                 break
-            case MAT.__ACTIONS__.IFRAME.PLAYER_REPLACED:
+            case ACTIONS.IFRAME.PLAYER_REPLACED:
                 this.onPlayerReplaced()
                 break
-            case MAT.__ACTIONS__.IFRAME.PLAYER_REPLACE_FAILED:
+            case ACTIONS.IFRAME.PLAYER_REPLACE_FAILED:
                 this.onPlayerReplaceFailed()
                 break
             default:
@@ -133,8 +133,8 @@ class IFramePlayerComm {
      */
     getCurrentTime() {
         return new Promise((resolve) => {
-            this.sendAction(MAT.__ACTIONS__.IFRAME.GET_CURRENT_TIME, {}, (event: MessageEvent) => {
-                if (event.data.type === MAT.__ACTIONS__.IFRAME.CURRENT_TIME) {
+            this.sendAction(ACTIONS.IFRAME.GET_CURRENT_TIME, {}, (event: MessageEvent) => {
+                if (event.data.type === ACTIONS.IFRAME.CURRENT_TIME) {
                     resolve(event.data.currentTime)
                 }
             })
@@ -147,10 +147,10 @@ class IFramePlayerComm {
      */
     getVideoData(): Promise<EpisodeVideoData[]> {
         return new Promise((resolve, reject) => {
-            this.sendAction(MAT.__ACTIONS__.GET_SOURCE_URL, {}, (event: MessageEvent) => {
-                if (event.data.type === MAT.__ACTIONS__.SOURCE_URL) {
+            this.sendAction(ACTIONS.GET_SOURCE_URL, {}, (event: MessageEvent) => {
+                if (event.data.type === ACTIONS.SOURCE_URL) {
                     resolve(event.data.data)
-                } else if (event.data.type === MAT.__ACTIONS__.INDA_NO_VIDEO) {
+                } else if (event.data.type === ACTIONS.INDA_NO_VIDEO) {
                     reject('No video available')
                 }
             })
@@ -168,7 +168,7 @@ class IFramePlayerComm {
      * @param {number} playerID - The ID of the player to use.
      */
     replacePlayer(title: string, episodeNumber: number, episodeId: number, animeID: number, fansub: FansubData[], malID: number, playerID: number) {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.REPLACE_PLAYER, {
+        this.sendAction(ACTIONS.IFRAME.REPLACE_PLAYER, {
             animeTitle: title,
             epNum: episodeNumber,
             epID: episodeId,
@@ -183,35 +183,35 @@ class IFramePlayerComm {
      * Toggles the play/pause state of the IFrame player.
      */
     togglePlay() {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.TOGGLE_PLAY)
+        this.sendAction(ACTIONS.IFRAME.TOGGLE_PLAY)
     }
 
     /**
      * Increases the volume of the IFrame player.
      */
     volUp() {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.VOL_UP)
+        this.sendAction(ACTIONS.IFRAME.VOL_UP)
     }
 
     /**
      * Decreases the volume of the IFrame player.
      */
     volDown() {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.VOL_DOWN)
+        this.sendAction(ACTIONS.IFRAME.VOL_DOWN)
     }
 
     /**
      * Toggles the mute state of the IFrame player.
      */
     toggleMute() {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.TOGGLE_MUTE)
+        this.sendAction(ACTIONS.IFRAME.TOGGLE_MUTE)
     }
 
     /**
      * Toggles the fullscreen state of the IFrame player.
      */
     toggleFullscreen() {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.TOGGLE_FULLSCREEN)
+        this.sendAction(ACTIONS.IFRAME.TOGGLE_FULLSCREEN)
     }
 
     /**
@@ -219,7 +219,7 @@ class IFramePlayerComm {
      * @param {number} time - The time to seek to in seconds.
      */
     seek(time: number) {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.SEEK, { time })
+        this.sendAction(ACTIONS.IFRAME.SEEK, { time })
     }
 
     /**
@@ -227,21 +227,21 @@ class IFramePlayerComm {
      * @param {number} percentage - The percentage to seek to.
      */
     seekPercentage(percentage: number) {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.SEEK_PERCENTAGE, { percentage })
+        this.sendAction(ACTIONS.IFRAME.SEEK_PERCENTAGE, { percentage })
     }
 
     /**
      * Skips backward in the IFrame player.
      */
     skipBackward() {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.BACKWARD_SKIP)
+        this.sendAction(ACTIONS.IFRAME.BACKWARD_SKIP)
     }
 
     /**
      * Skips forward in the IFrame player.
      */
     skipForward() {
-        this.sendAction(MAT.__ACTIONS__.IFRAME.FORWARD_SKIP)
+        this.sendAction(ACTIONS.IFRAME.FORWARD_SKIP)
     }
 
     /**

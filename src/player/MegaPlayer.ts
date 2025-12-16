@@ -2,6 +2,7 @@ import BasePlayer from "./BasePlayer";
 import Logger from "../Logger";
 import MAT from "../MAT";
 import {SettingsV019} from "../global";
+import { ACTIONS } from '../lib/actions'
 
 /**
  * MegaPlayer class extends BasePlayer to provide custom functionality for Mega.nz videos.
@@ -44,13 +45,13 @@ class MegaPlayer extends BasePlayer {
             if (!video) {
                 Logger.error("[Mega.nz] Video not found");
                 window.dispatchEvent(new Event("PlayerReplaceFailed"));
-                window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.PLAYER_REPLACE_FAILED}, "*");
+                window.parent.postMessage({type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED}, "*");
                 return;
             }
             if (!video.src) {
                 Logger.error("[Mega.nz] Video source not found");
                 window.dispatchEvent(new Event("PlayerReplaceFailed"));
-                window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.PLAYER_REPLACE_FAILED}, "*");
+                window.parent.postMessage({type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED}, "*");
                 return;
             }
             this.removeElements();
@@ -62,7 +63,7 @@ class MegaPlayer extends BasePlayer {
             this.adjustAspectRatio(video)
             window.dispatchEvent(new Event("PlayerReplaced"));
             Logger.success("Player replaced successfully.");
-            window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.PLAYER_REPLACED}, "*");
+            window.parent.postMessage({type: ACTIONS.IFRAME.PLAYER_REPLACED}, "*");
             clearInterval(load);
         }, 10);
     }
@@ -71,21 +72,21 @@ class MegaPlayer extends BasePlayer {
      * Automatically plays the next episode if available.
      */
     autoNextEpisode() {
-        window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.AUTO_NEXT_EPISODE}, "*");
+        window.parent.postMessage({type: ACTIONS.IFRAME.AUTO_NEXT_EPISODE}, "*");
     }
 
     /**
      * Plays the next episode.
      */
     nextEpisode() {
-        window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.NEXT_EPISODE}, "*");
+        window.parent.postMessage({type: ACTIONS.IFRAME.NEXT_EPISODE}, "*");
     }
 
     /**
      * Plays the previous episode.
      */
     previousEpisode() {
-        window.parent.postMessage({type: MAT.__ACTIONS__.IFRAME.PREVIOUS_EPISODE}, "*");
+        window.parent.postMessage({type: ACTIONS.IFRAME.PREVIOUS_EPISODE}, "*");
     }
 
     /**
@@ -115,45 +116,45 @@ class MegaPlayer extends BasePlayer {
     addEventListeners() {
         window.addEventListener("message", (event) => {
             switch (event.data.type) {
-                case MAT.__ACTIONS__.IFRAME.TOGGLE_PLAY:
+                case ACTIONS.IFRAME.TOGGLE_PLAY:
                     let btn = document.querySelector(".plyr__controls__item[data-plyr='play']") as HTMLButtonElement;
                     if (!btn) this.plyr.togglePlay();
                     btn.focus();
                     btn.click();
                     btn.blur();
                     break;
-                case MAT.__ACTIONS__.IFRAME.VOL_UP:
+                case ACTIONS.IFRAME.VOL_UP:
                     this.plyr.increaseVolume(0.1);
                     break;
-                case MAT.__ACTIONS__.IFRAME.VOL_DOWN:
+                case ACTIONS.IFRAME.VOL_DOWN:
                     this.plyr.increaseVolume(-0.1);
                     break;
-                case MAT.__ACTIONS__.IFRAME.TOGGLE_MUTE:
+                case ACTIONS.IFRAME.TOGGLE_MUTE:
                     this.plyr.muted = !this.plyr.muted;
                     break;
-                case MAT.__ACTIONS__.IFRAME.TOGGLE_FULLSCREEN:
+                case ACTIONS.IFRAME.TOGGLE_FULLSCREEN:
                     let f = document.querySelector(".plyr__controls__item[data-plyr='fullscreen']") as HTMLButtonElement;
                     if (f) this.plyr.fullscreen.toggle();
                     f.focus();
                     f.click();
                     f.blur();
                     break;
-                case MAT.__ACTIONS__.IFRAME.SEEK:
+                case ACTIONS.IFRAME.SEEK:
                     this.seekTo(this.plyr.currentTime + Number(event.data.time));
                     break;
-                case MAT.__ACTIONS__.IFRAME.BACKWARD_SKIP:
+                case ACTIONS.IFRAME.BACKWARD_SKIP:
                     this.skipBackward();
                     break;
-                case MAT.__ACTIONS__.IFRAME.FORWARD_SKIP:
+                case ACTIONS.IFRAME.FORWARD_SKIP:
                     this.skipForward();
                     break;
-                case MAT.__ACTIONS__.IFRAME.GET_CURRENT_TIME:
+                case ACTIONS.IFRAME.GET_CURRENT_TIME:
                     window.parent.postMessage({
-                        type: MAT.__ACTIONS__.IFRAME.CURRENT_TIME,
+                        type: ACTIONS.IFRAME.CURRENT_TIME,
                         currentTime: this.plyr.currentTime
                     }, "*");
                     break;
-                case MAT.__ACTIONS__.IFRAME.SEEK_PERCENTAGE:
+                case ACTIONS.IFRAME.SEEK_PERCENTAGE:
                     this.seekTo((Math.max(0, Math.min(100, event.data.percentage)) / 100) * this.plyr.duration);
                     break;
                 default:

@@ -3,6 +3,7 @@ import Logger from "./Logger";
 import MAT from "./MAT";
 import Resume, { Anime } from "./Resume";
 import { Bookmark, SettingsV017, SettingsV018, SettingsV019 } from "./global";
+import { ACTIONS } from './lib/actions'
 
 chrome.runtime.onInstalled.addListener((details) => {
     checkAndRequestPermissions();
@@ -167,7 +168,7 @@ let openResume: Array<{epID: number, epURL: string, epTime: number}> = [];
  */
 chrome.runtime.onMessage.addListener((request, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
     switch (request.type) {
-        case MAT.__ACTIONS__.DOWNLOAD:
+        case ACTIONS.DOWNLOAD:
             chrome.downloads.download({url: request.url, filename: request.filename}, (downloadId) => {
                 if (downloadId !== undefined) {
                     sendResponse(true);

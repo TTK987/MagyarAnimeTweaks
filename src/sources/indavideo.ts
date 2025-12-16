@@ -1,47 +1,139 @@
-import MAT from "../MAT";
+import { ACTIONS } from '../lib/actions';
 import Logger from "../Logger";
 import { EpisodeVideoData } from '../global'
 
+/**
+ * The Gateway solution is not reliable, improvements are needed.
+ * Sometimes the indavideo.hu iframe loads before this script could stream the data up to the parent window.
+ * (postMessage blocker?)
+ * But this should work on modern systems... probably :D
+ */
+
+
+const GATEWAY_ACTIONS = {
+    READY: 'indaReady',
+    TIMEOUT: 'indaTimeout',
+} as const;
+
+let isInitialized = false;
+let isGateway = location.hostname === 'indavideo.hu';
+
+function gatewayDown(event: string, data?: any) {
+    (document.querySelector('iframe[src*="indavideo.hu"]') as HTMLIFrameElement).contentWindow?.postMessage({ type: event, ...data }, '*');
+}
+
+function gatewayUp(event: string, data?: any) {
+    window.parent.postMessage({ type: event, ...data }, '*');
+}
+
+function checkEmbedBan(): boolean {
+    return document.querySelector(
+        'img[src="https://assets.indavideo.hu/images/default/video_box/embed_ban_video.jpg"]',
+    ) !== null;
+}
+
+
 window.addEventListener('message', async (event) => {
-    console.log(event);
-    if (event.data?.type === MAT.__ACTIONS__.GET_SOURCE_URL) {
-        Logger.log('[indavideo.js] Received GET_SOURCE_URL message', true);
+    if (!event.data || typeof event.data.type !== 'string') return
 
-        // Check if the current video is even available
-        // Check for https://assets.indavideo.hu/images/default/video_box/no.jpg in an image tag
-        const noVideoImage = document.querySelector('img[src="https://assets.indavideo.hu/images/default/video_box/no.jpg"]');
-        if (noVideoImage) {
-            Logger.error('[indavideo.js] No video available', true);
-            window.parent.postMessage({ type: MAT.__ACTIONS__.INDA_NO_VIDEO }, '*');
-            return;
-        }
-
-        try {
-            let data = await getIndavideoToken();
-            if (data.length === 0) {
-                Logger.error('[indavideo.js] No video data found; Trying Method 2', true);
-                data = await getIndavideoToken2();
+    switch (event.data.type) {
+        case ACTIONS.IFRAME.FRAME_LOADED:
+            if (isGateway) {
+                gatewayUp(GATEWAY_ACTIONS.READY)
             }
-            if (data.length > 0) {
-                window.parent.postMessage({ type: MAT.__ACTIONS__.SOURCE_URL, data }, '*');
+            break
+
+        case GATEWAY_ACTIONS.READY:
+            gatewayDown(ACTIONS.GET_SOURCE_URL, { gateway: true })
+            break
+
+        case ACTIONS.SOURCE_URL:
+            if (isGateway) {
+                gatewayUp(ACTIONS.SOURCE_URL, { data: event.data.data })
             } else {
-                Logger.error('[indavideo.js] No video data found', true);
+                window.parent.postMessage({ type: ACTIONS.SOURCE_URL, data: event.data.data }, '*')
             }
-        } catch (error: any) {
-            Logger.error(`[indavideo.js] Error: ${error.message}`, true);
-            try {
-                const data = await getIndavideoToken2();
-                if (data.length > 0) {
-                    window.parent.postMessage({ type: MAT.__ACTIONS__.SOURCE_URL, data }, '*');
-                } else {
-                    Logger.error('[indavideo.js] No video data found', true);
+            break
+
+        case ACTIONS.INDA_NO_VIDEO:
+            if (isGateway) {
+                gatewayUp(ACTIONS.INDA_NO_VIDEO)
+            } else {
+                window.parent.postMessage({ type: ACTIONS.INDA_NO_VIDEO }, '*')
+            }
+            break
+
+        case ACTIONS.VIDEO_ONLY_ON_INDAVIDEO:
+            if (isGateway) {
+                gatewayUp(ACTIONS.VIDEO_ONLY_ON_INDAVIDEO)
+            } else {
+                window.parent.postMessage({ type: ACTIONS.VIDEO_ONLY_ON_INDAVIDEO }, '*')
+            }
+            break
+
+        case ACTIONS.GET_SOURCE_URL:
+            if (checkEmbedBan()) {
+                if (event.data.gateway) {
+                    return gatewayUp(ACTIONS.VIDEO_ONLY_ON_INDAVIDEO)
                 }
-            } catch (error: any) {
-                Logger.error(`[indavideo.js] Error in getIndavideoToken2: ${error.message}`, true);
+                const gatewayIframe = document.createElement('iframe')
+                gatewayIframe.src =
+                    (document.querySelector('.video-box a[href*="/video/"]') as HTMLAnchorElement)
+                        ?.href || ''
+                gatewayIframe.style.display = 'none'
+                document.body.appendChild(gatewayIframe)
+            } else if (!isGateway) {
+                try {
+                    let data = await getIndavideoToken()
+                    if (data.length === 0) {
+                        data = await getIndavideoToken2()
+                    }
+                    if (data.length > 0) {
+                        window.parent.postMessage({ type: ACTIONS.SOURCE_URL, data }, '*')
+                    } else {
+                        Logger.error('[indavideo.js] No video data found', true)
+                    }
+                } catch (error: any) {
+                    Logger.error(
+                        `[indavideo.js] Error in getIndavideoToken: ${error.message}`,
+                        true,
+                    )
+                    try {
+                        Logger.log(
+                            '[indavideo.js] Falling back to getIndavideoToken2 after error',
+                            true,
+                        )
+                        const data = await getIndavideoToken2()
+                        Logger.log(
+                            `[indavideo.js] getIndavideoToken2 (fallback) returned ${data.length} entries`,
+                            true,
+                        )
+                        if (data.length > 0) {
+                            Logger.log(
+                                '[indavideo.js] Sending SOURCE_URL with video data to parent (fallback)',
+                                true,
+                            )
+                            window.parent.postMessage({ type: ACTIONS.SOURCE_URL, data }, '*')
+                        } else {
+                            Logger.error('[indavideo.js] No video data found (fallback)', true)
+                        }
+                    } catch (error: any) {
+                        Logger.error(
+                            `[indavideo.js] Error in getIndavideoToken2: ${error.message}`,
+                            true,
+                        )
+                    }
+                }
+            } else {
+                gatewayDown(ACTIONS.GET_SOURCE_URL)
             }
-        }
+            break
+
+        default:
+            Logger.log(`[indavideo.js] Unhandled message type: ${event.data.type}`, true)
+            return
     }
-});
+})
 
 /**
  * Get token from indavideo.hu embed URL (method 1 (new method))
@@ -89,11 +181,9 @@ function getIndavideoToken(): Promise<EpisodeVideoData[]> {
             if (!isResolved) {
                 reject(new Error('Script load timeout'));
             }
-        }, 5000);
+        }, 10000);
     });
 }
-
-
 
 
 /**
@@ -186,9 +276,6 @@ async function getIndavideoToken2(): Promise<EpisodeVideoData[]> {
     });
 }
 
-let isInitialized = false;
-
-
 document.addEventListener('DOMContentLoaded', () => {
     init()
 });
@@ -209,7 +296,7 @@ if (document.readyState === 'complete') {
 function init() {
     if (isInitialized) return
     else isInitialized = true
-    window.parent.postMessage({ type: MAT.__ACTIONS__.IFRAME.FRAME_LOADED }, '*');
+    window.parent.postMessage({ type: ACTIONS.IFRAME.FRAME_LOADED }, '*');
 }
 
 Logger.log('[indavideo.js] Script loaded', true);

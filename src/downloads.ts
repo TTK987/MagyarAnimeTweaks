@@ -1,6 +1,7 @@
 import {FansubData} from './global'
 import {renderFileName} from './lib/utils'
 import MAT from "./MAT";
+import { ACTIONS } from './lib/actions'
 
 
 async function downloadHLS(
@@ -156,7 +157,7 @@ function download(
     onError: (error: Error) => void
 ) {
     let fileName = renderFileName(fileNameTemplate, title, episodeNumber, quality, fansub, source) + '.mp4'
-    chrome.runtime.sendMessage({type: MAT.__ACTIONS__.DOWNLOAD, url: url, filename: fileName}, (response) => {
+    chrome.runtime.sendMessage({type: ACTIONS.DOWNLOAD, url: url, filename: fileName}, (response) => {
         if (response) {
             onSuccess();
         } else {

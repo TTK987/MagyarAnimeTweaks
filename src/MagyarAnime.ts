@@ -9,7 +9,8 @@ class MagyarAnime {
     document: Document
     url: string
     isDatasheetPage: boolean
-    isEpisodePage: boolean | null
+    isEpisodePage: boolean
+    isIndaPlayPage: boolean
     ANIME: Anime
     EPISODE: Episode
     /**
@@ -22,7 +23,10 @@ class MagyarAnime {
         this.document = document
         this.url = url
         this.isDatasheetPage = /leiras\/.*/.test(this.url)
+        this.isIndaPlayPage = /\/inda-play(?:-\d+)?\/.*/.test(this.url)
         this.isEpisodePage =
+            /resz\/.*/.test(this.url) ||
+            this.isIndaPlayPage ||
             /resz(?:-s\d)?\/.*|inda-play(?:-\d+)?\/.*/.test(this.url) ||
             this.document.querySelector('#lejatszo') !== null
         this.ANIME = new Anime(this.document, this.url)
@@ -472,6 +476,14 @@ class Episode {
                 return parseInt(match[1]) || -1
             }
 
+            match = (
+                this.document.querySelector('#InfoBox > h2 > a') as HTMLAnchorElement
+            )?.innerText.match(/(\d+)\.?\s?[rR]ész/)
+            if (match) {
+                return parseInt(match[1]) || -1
+            }
+
+
             return -1
         } catch {
             return -1
@@ -487,7 +499,10 @@ class Episode {
         try {
             return (
                 (this.document.querySelector('#epizodlista .active .linkdate') as HTMLLIElement)
-                    ?.innerText || ''
+                    ?.innerText ||
+                (this.document.querySelector('#InfoBox > ul > li:nth-child(1)') as HTMLLIElement)
+                    ?.innerText ||
+                ''
             )
         } catch {
             return ''
@@ -501,7 +516,7 @@ class Episode {
      */
     getViews(): number {
         try {
-            const match = (
+            let match = (
                 this.document.querySelector(
                     '#InfoBox .inline-list:nth-child(2) span',
                 ) as HTMLLIElement
@@ -509,6 +524,14 @@ class Episode {
             if (match) {
                 return parseInt(match[1]) || -1
             }
+
+            match = (
+                this.document.querySelector('#InfoBox > ul > li:nth-child(2) > span') as HTMLLIElement
+            )?.innerText.match(/(\d+)/)
+            if (match) {
+                return parseInt(match[1]) || -1
+            }
+
             return -1
         } catch {
             return -1
