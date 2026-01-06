@@ -1,8 +1,8 @@
 import BasePlayer from "./BasePlayer";
 import Logger from "../Logger";
 import MAT from "../MAT";
-import {SettingsV019} from "../global";
-import { ACTIONS } from '../lib/actions'
+import {SettingsV019} from '@/global';
+import { ACTIONS } from '@lib/actions'
 
 /**
  * MegaPlayer class extends BasePlayer to provide custom functionality for Mega.nz videos.
@@ -60,7 +60,6 @@ class MegaPlayer extends BasePlayer {
             this.loadCustomCss();
             this.stylePlyr();
             this.setupAutoNextEpisode(video);
-            this.adjustAspectRatio(video)
             window.dispatchEvent(new Event("PlayerReplaced"));
             Logger.success("Player replaced successfully.");
             window.parent.postMessage({type: ACTIONS.IFRAME.PLAYER_REPLACED}, "*");

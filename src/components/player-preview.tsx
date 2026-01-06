@@ -66,6 +66,23 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
     const [error, setError] = useState<string | null>(null)
     const [selectedEpisodeIndex, setSelectedEpisodeIndex] = useState<number>(-1)
 
+    const cleanup = () => {
+        if (plyrRef.current) {
+            try {
+                plyrRef.current.plyr.destroy()
+            } catch (_) {}
+            plyrRef.current = null
+        }
+        if (commRef.current) {
+            commRef.current.removeMSGListeners()
+            commRef.current = null
+        }
+        if (iframeRef.current) {
+            iframeRef.current.remove()
+            iframeRef.current = null
+        }
+    }
+
     useEffect(() => {
         if (selectedEpisodeIndex === -1) {
             const random = Math.floor(Math.random() * TEST_EPISODES.length)
@@ -84,21 +101,6 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
 
     useEffect(() => {
         if (!selectedEpisode) return
-
-        const cleanup = () => {
-            if (plyrRef.current) {
-                try { plyrRef.current.plyr.destroy() } catch (_) {}
-                plyrRef.current = null
-            }
-            if (commRef.current) {
-                commRef.current.removeMSGListeners()
-                commRef.current = null
-            }
-            if (iframeRef.current) {
-                iframeRef.current.remove()
-                iframeRef.current = null
-            }
-        }
 
         activeLoadIndex.current = selectedEpisodeIndex
 
@@ -181,25 +183,16 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
 
         plyrRef.current.previousEpisode = () => {}
         plyrRef.current.nextEpisode = () => {}
-        plyrRef.current.ResumeFeature = () => {}
-        plyrRef.current.BookmarkFeature = () => {}
+        // Disable plugins not relevant for preview
+        plyrRef.current.Resume.disable()
+        plyrRef.current.Bookmark.disable()
+        plyrRef.current.AniSkip.disable()
 
         plyrRef.current.replace()
     }, [videoData, settings, selectedEpisode])
 
     const destroyPlayerInstant = () => {
-        if (plyrRef.current) {
-            try { plyrRef.current.plyr.destroy() } catch (_) {}
-            plyrRef.current = null
-        }
-        if (commRef.current) {
-            commRef.current.removeMSGListeners()
-            commRef.current = null
-        }
-        if (iframeRef.current) {
-            iframeRef.current.remove()
-            iframeRef.current = null
-        }
+        cleanup()
         setVideoData(null)
         setError(null)
         if (containerRef.current) containerRef.current.innerHTML = ''

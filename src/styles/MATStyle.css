@@ -3,6 +3,12 @@
     top: 9.5px !important;
 }
 
+#VideoPlayer {
+    border-radius: 5px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2) !important;
+}
+
 #search_box > a {
     transition: color 0.15s, background-color 0.15s !important;
 }

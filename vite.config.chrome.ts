@@ -9,7 +9,7 @@ import manifest from './manifest'
 export default defineConfig(() => {
     return {
         build: {
-            minify: "esbuild",
+            minify: 'esbuild',
             chunkSizeWarningLimit: 750,
             emptyOutDir: true,
             outDir: 'build',
@@ -30,19 +30,24 @@ export default defineConfig(() => {
                         if (id.includes('node_modules/plyr/dist/plyr.css')) {
                             return 'plyr'
                         }
-                    }
+                    },
                 },
             },
         },
         css: {
             postcss: './postcss.config.cjs',
         },
-        plugins: [
-            crx({ manifest }),
-            react(),
-            ],
+        plugins: [crx({ manifest }), react()],
         legacy: {
             skipWebSocketTokenCheck: true,
+        },
+        resolve: {
+            alias: {
+                '@': '/src',
+                '@components': '/src/components',
+                '@lib': '/src/lib',
+                '@api': '/src/api',
+            },
         },
     }
 })

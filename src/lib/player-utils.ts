@@ -1,4 +1,4 @@
-import type { ServerResponse, EpisodeVideoData } from '../global'
+import type { ServerResponse, EpisodeVideoData } from '@/global'
 
 export function decidePlayerType(
     data: ServerResponse,

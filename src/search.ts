@@ -1,4 +1,5 @@
 import Logger from './Logger'
+import onLoad from './lib/load'
 
 type animeData = Array<{
     id: string
@@ -9,10 +10,7 @@ type animeData = Array<{
     name_syn: string
 }>
 let animes: animeData = [];
-let isInitialized: boolean = false
-window.addEventListener('load', () => init())
-window.addEventListener('readystatechange', (event: Event) => {if (document.readyState === 'complete') init()})
-if (document.readyState === 'complete') init()
+onLoad(init)
 
 
 function renderResults(results: animeData) {
@@ -109,8 +107,6 @@ function setupSearch() {
 }
 
 function init() {
-    if (isInitialized) return;
-    isInitialized = true;
     document.querySelector('#gen-seacrh-btn')?.addEventListener('click', () => {
         if (animes.length === 0) {
             fetch('data/search/data_search.php', {

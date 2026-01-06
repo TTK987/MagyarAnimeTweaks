@@ -1,6 +1,7 @@
-import { ACTIONS } from '../lib/actions'
-import Logger from "../Logger";
-import { EpisodeVideoData } from '../global'
+import { ACTIONS } from '@lib/actions'
+import Logger from "@/Logger";
+import { EpisodeVideoData } from '@/global'
+import { parseExpiryFromUrl } from '@lib/expiry'
 
 window.addEventListener('message', async function (event) {
     if (event.data?.type === ACTIONS.GET_SOURCE_URL) {
@@ -26,6 +27,7 @@ function makeQualityDataUrlNormal(qualityData: EpisodeVideoData[]) {
             data.push({
                 url: item.url.startsWith('//') ? `https:${item.url}` : item.url,
                 quality: item.quality,
+                expires: parseExpiryFromUrl(item.url) || undefined,
             })
         }
     })

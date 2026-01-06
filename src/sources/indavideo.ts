@@ -1,6 +1,7 @@
-import { ACTIONS } from '../lib/actions';
-import Logger from "../Logger";
-import { EpisodeVideoData } from '../global'
+import { ACTIONS } from '@lib/actions';
+import Logger from "@/Logger";
+import { EpisodeVideoData } from '@/global'
+import onLoad from '@/lib/load';
 
 /**
  * The Gateway solution is not reliable, improvements are needed.
@@ -15,15 +16,24 @@ const GATEWAY_ACTIONS = {
     TIMEOUT: 'indaTimeout',
 } as const;
 
-let isInitialized = false;
 let isGateway = location.hostname === 'indavideo.hu';
 
+const isSamePageAsParent = (() => {
+    return window.parent === window || (() => {
+        try {
+            return window.parent.location.href === window.location.href;
+        } catch {
+            return false;
+        }
+    })();
+})();
+
 function gatewayDown(event: string, data?: any) {
-    (document.querySelector('iframe[src*="indavideo.hu"]') as HTMLIFrameElement).contentWindow?.postMessage({ type: event, ...data }, '*');
+    (document.querySelector('iframe[src*="indavideo.hu"]') as HTMLIFrameElement).contentWindow?.postMessage({ type: event, ...data, }, '*');
 }
 
 function gatewayUp(event: string, data?: any) {
-    window.parent.postMessage({ type: event, ...data }, '*');
+    window.parent.postMessage({ type: event, ...data, gatewayUp: true }, '*');
 }
 
 function checkEmbedBan(): boolean {
@@ -36,6 +46,11 @@ function checkEmbedBan(): boolean {
 window.addEventListener('message', async (event) => {
     if (!event.data || typeof event.data.type !== 'string') return
 
+    if (isSamePageAsParent) {
+        Logger.log('[indavideo.js] Skipping message handling: gateway parent is same as current page', true);
+        return;
+    }
+
     switch (event.data.type) {
         case ACTIONS.IFRAME.FRAME_LOADED:
             if (isGateway) {
@@ -44,6 +59,7 @@ window.addEventListener('message', async (event) => {
             break
 
         case GATEWAY_ACTIONS.READY:
+            if (event.data.gatewayUp) break // Prevent loops
             gatewayDown(ACTIONS.GET_SOURCE_URL, { gateway: true })
             break
 
@@ -84,9 +100,9 @@ window.addEventListener('message', async (event) => {
                 document.body.appendChild(gatewayIframe)
             } else if (!isGateway) {
                 try {
-                    let data = await getIndavideoToken()
+                    let data = addExpiry(await getIndavideoToken())
                     if (data.length === 0) {
-                        data = await getIndavideoToken2()
+                        data = addExpiry(await getIndavideoToken2())
                     }
                     if (data.length > 0) {
                         window.parent.postMessage({ type: ACTIONS.SOURCE_URL, data }, '*')
@@ -103,7 +119,7 @@ window.addEventListener('message', async (event) => {
                             '[indavideo.js] Falling back to getIndavideoToken2 after error',
                             true,
                         )
-                        const data = await getIndavideoToken2()
+                        const data = addExpiry(await getIndavideoToken2())
                         Logger.log(
                             `[indavideo.js] getIndavideoToken2 (fallback) returned ${data.length} entries`,
                             true,
@@ -134,6 +150,14 @@ window.addEventListener('message', async (event) => {
             return
     }
 })
+
+function addExpiry(data: EpisodeVideoData[]): EpisodeVideoData[] {
+    return data.map((video) => ({
+        ...video,
+        expiry: Math.floor(Date.now() / 1000) + 60 * 60 * 5.5, // Current time + 5.5 hours to be safe
+    }))
+}
+
 
 /**
  * Get token from indavideo.hu embed URL (method 1 (new method))
@@ -276,26 +300,15 @@ async function getIndavideoToken2(): Promise<EpisodeVideoData[]> {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    init()
-});
-window.addEventListener('load', () => {
-    init()
-})
-window.addEventListener('readystatechange', (event) => {
-    if (document.readyState === 'complete') {
-        init();
-    }
-})
-if (document.readyState === 'complete') {
-    init();
-}
-
+onLoad(init);
 
 
 function init() {
-    if (isInitialized) return
-    else isInitialized = true
+    if (isSamePageAsParent) {
+        Logger.log('[indavideo.js] Skipping init: gateway parent is same as current page', true);
+        return;
+    }
+
     window.parent.postMessage({ type: ACTIONS.IFRAME.FRAME_LOADED }, '*');
 }
 

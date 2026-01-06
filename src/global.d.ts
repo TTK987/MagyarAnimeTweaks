@@ -243,7 +243,7 @@ type ServerResponse = {
     error: string // Error message if there's an issue
     playerid: number
     servers: {
-        server: "s1" | "s2" | "s3" | "s4" // Server identifier
+        server: 's1' | 's2' | 's3' | 's4' // Server identifier
         hq: string // Quality (e.g., "240", "360", etc.)
         title: string // Server title
         active: number // Indicates if the server is active (1 for active)
@@ -259,6 +259,12 @@ type ServerResponse = {
     button_aid: number // ID of the datasheet page
 }
 
+type serverType = 's1' | 's2' | 's3' | 's4' | 's5'
+
+
+// Timestamp related types
+type UnixTimestamp = number & { readonly __brand: 'UnixTimestamp' }
+type MillisecondTimestamp = number & { readonly __brand: 'MillisecondTimestamp' }
 
 
 
@@ -280,4 +286,7 @@ export {
     EpisodeVideoData,
     Bookmark,
     ServerResponse,
+    serverType,
+    UnixTimestamp,
+    MillisecondTimestamp,
 }

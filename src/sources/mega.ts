@@ -1,9 +1,9 @@
-import Bookmark from '../Bookmark'
-import Logger from '../Logger'
-import { ACTIONS } from '../lib/actions'
-import MegaPlayer from '../player/MegaPlayer'
-import Resume from '../Resume'
-import MAT from '../MAT'
+import Bookmark from '@/Bookmark'
+import Logger from '@/Logger'
+import { ACTIONS } from '@lib/actions'
+import MegaPlayer from '@/player/MegaPlayer'
+import Resume from '@/Resume'
+import MAT from '@/MAT'
 
 
 let  Player = new MegaPlayer("", MAT.settings, 0, 0, "", 0, 0, 0);

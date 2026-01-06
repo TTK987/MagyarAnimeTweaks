@@ -1,5 +1,21 @@
 # Verziók
 
+## 0.1.9.9
+
+- Egyéb forrásokból származó videók (`/inda-play-...` linkek) jobb támogatása.
+- A videó token automatikus frissítése, ha lejárt. (Minden forrásnál)
+- Letöltés korlátozása s4 és s5 szervereknél.
+- **Bugfix**:
+    - "Beragadó fókusz" javítása a lejátszóban.
+      - Például bizonyos esetekben a lejátszó gombjai fókuszban maradtak kattintás után, így pl. a space lenyomására nem a videó szünetelt, hanem valamelyik gomb lett aktiválva.
+      > Ez korábban már javítva lett, de a JS-ről TS-re való átírás során elfelejtettem átvinni a javítást xd
+    - Indavideo.hu forrásnál "embed ban" hiba javítása.
+      - Jelenleg ez kb 50%-ban működik csak, úgyhogy van még mit javítani rajta.
+      - Emiatt `manifest`-ben is változtatás történt, ezért a frissítés után újra engedélyezni kell a kiegészítőt.
+      > Sry... (╥﹏╥)
+    - Teljes képernyős mód javítása.
+
+
 ## 0.1.9.8
 
 - Anime adatlapján a főoldalon látható navigációhoz hasonló funkció hozzáadva. [#3](https://github.com/TTK987/MagyarAnimeTweaks/issues/3#issuecomment-3515382627)
