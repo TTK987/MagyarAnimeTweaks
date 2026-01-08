@@ -1,4 +1,4 @@
-import * as Plyr from 'plyr'
+import Plyr from 'plyr'
 import Logger from '@/Logger'
 import MAT from '@/MAT'
 import Toast, { Options } from '@/Toast'
@@ -186,7 +186,7 @@ export default class BasePlayer {
         try {
             if (this.epData.length === 0) {
                 Logger.error('Invalid source URL.')
-                window.dispatchEvent(new Event('PlayerReplaceFailed'))
+                window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED))
                 return
             }
             let playerElement =
@@ -194,7 +194,7 @@ export default class BasePlayer {
             let videoElement = this.createVideoElement()
             if (!playerElement) {
                 Logger.error('Player element not found. Selector: ' + this.selector)
-                window.dispatchEvent(new Event('PlayerReplaceFailed'))
+                window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED))
                 return
             }
 
@@ -221,11 +221,11 @@ export default class BasePlayer {
             this.setupPlyr(videoElement)
             this.selector = '.plyr'
             this.loadCustomCss()
-            window.dispatchEvent(new Event('PlayerReplaced'))
+            window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACED))
             Logger.success('Player replaced successfully.')
         } catch (e) {
             Logger.error('Error while replacing with Plyr player. Error: ' + e)
-            window.dispatchEvent(new Event('PlayerReplaceFailed'))
+            window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED))
         }
     }
 
@@ -323,6 +323,7 @@ export default class BasePlayer {
         )
         videoElement.addEventListener('timeupdate', () => {
             if (
+                this.plyr && this.plyr.duration &&
                 this.plyr.duration - this.plyr.currentTime <=
                     Number(this.settings.autoNextEpisode.time || 0) &&
                 !this.isANEpTriggered &&

@@ -160,7 +160,7 @@ class HLSPlayer extends BasePlayer {
         try {
             if (this.epData.length === 0) {
                 Logger.error('Invalid source URL.', true)
-                window.dispatchEvent(new Event('PlayerReplaceFailed'))
+                window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED))
                 window.parent.postMessage(
                     { type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED },
                     '*',
@@ -171,12 +171,12 @@ class HLSPlayer extends BasePlayer {
             this.curQuality = this.epData[0]
             this.setupPlyr(videoElement)
             this.loadCustomCss()
-            window.dispatchEvent(new Event('PlayerReplaced'))
+            window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACED))
             window.parent.postMessage({ type: ACTIONS.IFRAME.PLAYER_REPLACED }, '*')
             Logger.success('Player replaced successfully.', true)
         } catch (e) {
             Logger.error('Error while replacing with Plyr player. Error: ' + e, true)
-            window.dispatchEvent(new Event('PlayerReplaceFailed'))
+            window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED))
             window.parent.postMessage({ type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED }, '*')
         }
     }

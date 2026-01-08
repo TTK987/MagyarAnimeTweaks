@@ -44,13 +44,13 @@ class MegaPlayer extends BasePlayer {
             const video = document.querySelector("video");
             if (!video) {
                 Logger.error("[Mega.nz] Video not found");
-                window.dispatchEvent(new Event("PlayerReplaceFailed"));
+                window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED));
                 window.parent.postMessage({type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED}, "*");
                 return;
             }
             if (!video.src) {
                 Logger.error("[Mega.nz] Video source not found");
-                window.dispatchEvent(new Event("PlayerReplaceFailed"));
+                window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED));
                 window.parent.postMessage({type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED}, "*");
                 return;
             }
@@ -60,7 +60,7 @@ class MegaPlayer extends BasePlayer {
             this.loadCustomCss();
             this.stylePlyr();
             this.setupAutoNextEpisode(video);
-            window.dispatchEvent(new Event("PlayerReplaced"));
+            window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACED));
             Logger.success("Player replaced successfully.");
             window.parent.postMessage({type: ACTIONS.IFRAME.PLAYER_REPLACED}, "*");
             clearInterval(load);
