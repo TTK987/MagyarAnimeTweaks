@@ -3,8 +3,8 @@
  * But just in case, I will leave this here
  */
 
-import { ACTIONS } from '@lib/actions'
-import { EpisodeVideoData } from '@/global'
+import { ACTIONS } from '../lib/actions'
+import { EpisodeVideoData } from '../global'
 
 
 window.addEventListener('message', async function (event) {

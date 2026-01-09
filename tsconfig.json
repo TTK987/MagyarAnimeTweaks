@@ -16,12 +16,6 @@
         "noEmit": true,
         "jsx": "react-jsx",
         "baseUrl": ".",
-        "paths": {
-            "@/*": ["./src/*"],
-            "@components/*": ["./src/components/*"],
-            "@lib/*": ["./src/lib/*"],
-            "@api/*": ["./src/api/*"]
-        },
     },
     "include": ["src"],
     "references": [{ "path": "./tsconfig.node.json" }]

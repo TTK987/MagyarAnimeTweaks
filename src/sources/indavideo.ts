@@ -1,7 +1,7 @@
-import { ACTIONS } from '@lib/actions';
-import Logger from "@/Logger";
-import { EpisodeVideoData } from '@/global'
-import onLoad from '@/lib/load';
+import { ACTIONS } from '../lib/actions';
+import Logger from "../Logger";
+import { EpisodeVideoData } from '../global'
+import onLoad from '../lib/load';
 
 /**
  * The Gateway solution is not reliable, improvements are needed.

@@ -1,5 +1,5 @@
-import Logger from '@/Logger'
-import BasePlayer from '@/player/BasePlayer'
+import Logger from '../../Logger'
+import BasePlayer from '../BasePlayer'
 
 export class AntiFocusPlugin {
     private ctx: BasePlayer

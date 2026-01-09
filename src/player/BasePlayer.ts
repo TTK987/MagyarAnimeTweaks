@@ -1,15 +1,15 @@
 import Plyr from 'plyr'
-import Logger from '@/Logger'
-import MAT from '@/MAT'
-import Toast, { Options } from '@/Toast'
-import { SettingsV019, EpisodeVideoData, keyBind } from '@/global'
+import Logger from '../Logger'
+import MAT from '../MAT'
+import Toast, { Options } from '../Toast'
+import { SettingsV019, EpisodeVideoData, keyBind } from '../global'
 import 'plyr/dist/plyr.css'
-import { ACTIONS } from '@lib/actions'
+import { ACTIONS } from '../lib/actions'
 import { ResumePlugin } from './plugins/resume'
 import { BookmarkPlugin } from './plugins/bookmark'
 import { AniSkipPlugin } from './plugins/aniskip'
 import { AntiFocusPlugin } from './plugins/antifocus'
-import { isExpired } from '@lib/expiry'
+import { isExpired } from '../lib/expiry'
 
 export default class BasePlayer {
     selector: string

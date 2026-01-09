@@ -1,7 +1,7 @@
-import Bookmarks from '@/Bookmark'
-import Logger from '@/Logger'
-import { formatTime } from '@lib/time-utils'
-import BasePlayer from '@/player/BasePlayer'
+import Bookmarks from '../../Bookmark'
+import Logger from '../../Logger'
+import { formatTime } from '../../lib/time-utils'
+import BasePlayer from '../BasePlayer'
 
 export class BookmarkPlugin {
     private ctx: BasePlayer

@@ -41,13 +41,5 @@ export default defineConfig(() => {
         legacy: {
             skipWebSocketTokenCheck: true,
         },
-        resolve: {
-            alias: {
-                '@': '/src',
-                '@components': '/src/components',
-                '@lib': '/src/lib',
-                '@api': '/src/api',
-            },
-        },
     }
 })

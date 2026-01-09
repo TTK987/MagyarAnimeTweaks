@@ -1,7 +1,7 @@
-import { ACTIONS } from '@lib/actions'
-import Logger from "@/Logger";
-import { EpisodeVideoData } from '@/global'
-import { parseExpiryFromUrl } from '@lib/expiry'
+import { ACTIONS } from '../lib/actions'
+import Logger from "../Logger";
+import { EpisodeVideoData } from '../global'
+import { parseExpiryFromUrl } from '../lib/expiry'
 
 window.addEventListener('message', async function (event) {
     if (event.data?.type === ACTIONS.GET_SOURCE_URL) {

@@ -1,7 +1,7 @@
-import Logger from '@/Logger'
-import { formatTime } from '@lib/time-utils'
-import AniSkip, { SkipInterval } from '@api/AniSkip'
-import BasePlayer from '@/player/BasePlayer'
+import Logger from '../../Logger'
+import { formatTime } from '../../lib/time-utils'
+import AniSkip, { SkipInterval } from '../../api/AniSkip'
+import BasePlayer from '../BasePlayer'
 
 export class AniSkipPlugin {
     private ctx: BasePlayer

@@ -1,4 +1,4 @@
-import { UnixTimestamp } from '@/global'
+import { UnixTimestamp } from '../global'
 
 /*
 Videa: Unix timestamp in seconds

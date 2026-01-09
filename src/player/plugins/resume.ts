@@ -1,8 +1,8 @@
-import Resume, { Episode } from '@/Resume'
-import Logger from '@/Logger'
-import { formatTime } from '@lib/time-utils'
-import Toast from '@/Toast'
-import BasePlayer from '@/player/BasePlayer'
+import Resume, { Episode } from '../../Resume'
+import Logger from '../../Logger'
+import { formatTime } from '../../lib/time-utils'
+import Toast from '../../Toast'
+import BasePlayer from '../BasePlayer'
 
 export class ResumePlugin {
     private ctx: BasePlayer

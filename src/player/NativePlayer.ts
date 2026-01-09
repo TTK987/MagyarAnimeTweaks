@@ -1,5 +1,5 @@
 import BasePlayer from "./BasePlayer";
-import {SettingsV019, EpisodeVideoData} from '@/global';
+import {SettingsV019, EpisodeVideoData} from '../global';
 
 class NativePlayer extends BasePlayer {
     curQuality: EpisodeVideoData | null

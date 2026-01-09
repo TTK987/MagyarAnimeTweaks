@@ -1,8 +1,8 @@
 import BasePlayer from "./BasePlayer";
 import Logger from "../Logger";
 import MAT from "../MAT";
-import {SettingsV019} from '@/global';
-import { ACTIONS } from '@lib/actions'
+import {SettingsV019} from '../global';
+import { ACTIONS } from '../lib/actions'
 
 /**
  * MegaPlayer class extends BasePlayer to provide custom functionality for Mega.nz videos.
