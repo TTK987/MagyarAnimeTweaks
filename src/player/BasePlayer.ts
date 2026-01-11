@@ -1,3 +1,4 @@
+// @ts-ignore TS1192
 import Plyr from 'plyr'
 import Logger from '../Logger'
 import MAT from '../MAT'
