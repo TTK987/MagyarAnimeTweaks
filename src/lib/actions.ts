@@ -5,6 +5,7 @@ export const ACTIONS = {
     FRAME_LOADED: 'frameLoaded',
     LOAD_BOOKMARK: 'loadBookmark',
     INDA_NO_VIDEO: 'indaNoVideo',
+    VIDEA_NO_VIDEO: 'videaNoVideo',
     VIDEO_ONLY_ON_INDAVIDEO: 'videoOnlyOnIndavideo',
     IFRAME: {
         FRAME_LOADED: 'FrameLoaded',

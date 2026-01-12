@@ -150,7 +150,7 @@ class IFramePlayerComm {
             this.sendAction(ACTIONS.GET_SOURCE_URL, {}, (event: MessageEvent) => {
                 if (event.data.type === ACTIONS.SOURCE_URL) {
                     resolve(event.data.data)
-                } else if (event.data.type === ACTIONS.INDA_NO_VIDEO) {
+                } else if (event.data.type === ACTIONS.INDA_NO_VIDEO || event.data.type === ACTIONS.VIDEA_NO_VIDEO) {
                     reject('No video available')
                 }
             })
@@ -272,25 +272,6 @@ class IFramePlayerComm {
             }, 10000) // 10 second timeout
         }
         this.IFrame?.postMessage({type: action, ...data}, '*')
-    }
-
-    /**
-     * Delays execution until the IFrame is loaded.
-     * @returns {Promise<void>} A promise that resolves when the IFrame is loaded.
-     */
-    private delayUntilIFrameLoaded(): Promise<void> {
-        return new Promise<void>((resolve) => {
-            if (this.isIFrameLoaded) {
-                resolve()
-            } else {
-                const interval = setInterval(() => {
-                    if (this.isIFrameLoaded) {
-                        clearInterval(interval)
-                        resolve()
-                    }
-                }, 100)
-            }
-        })
     }
 }
 

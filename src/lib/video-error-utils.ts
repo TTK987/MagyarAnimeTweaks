@@ -1,16 +1,24 @@
 import Toast from '../Toast'
-export function showVideoRemovedError(videoTitle: string, episodeNumber: number, serverId: string | undefined, videoId: number, isIndaPlay: boolean | undefined=false) {
-    const errorContainer = document.querySelector("#VideoPlayer") || document.querySelector(".gen-video-holder")
+export function showVideoRemovedError(
+    videoTitle: string,
+    episodeNumber: number,
+    serverId: string | undefined,
+    videoId: number,
+    isIndaPlay: boolean | undefined = false,
+) {
+    const errorContainer =
+        document.querySelector('#VideoPlayer') || document.querySelector('.gen-video-holder')
 
     if (!errorContainer) {
-        Toast.error("Error", "Error container not found. Please check your HTML structure.", { duration: 5000 })
+        Toast.error('Error', 'Error container not found. Please check your HTML structure.', { duration: 5000, })
         return
     }
 
     const errorId = `EP${videoId}-${serverId?.toUpperCase() || 'UNKNOWN'}-VIDEO-REMOVED-001`
-    const hibajelentesUrl = !isIndaPlay && serverId
-        ? `https://magyaranime.eu/hibajelentes/${videoId}/${serverId.toLowerCase().replace("s", "")}/`
-        : undefined
+    const hibajelentesUrl =
+        !isIndaPlay && serverId
+            ? `https://magyaranime.eu/hibajelentes/${videoId}/${serverId.toLowerCase().replace('s', '')}/?deleted=1`
+            : undefined
 
     const infoText = isIndaPlay
         ? `A(z) "${videoTitle}" ${episodeNumber}. része el lett távolítva az IndaVideo szerverről.`
@@ -20,8 +28,9 @@ export function showVideoRemovedError(videoTitle: string, episodeNumber: number,
         ? `❗ <strong>Fontos:</strong> Mivel egyéb forrásból nézed a videót, ezért ezzel nem lehet nagyon mit kezdeni.`
         : `💡 <strong>Tipp:</strong> Próbálj meg másik szervert választani, vagy jelentsd be a hibát, hogy mielőbb javítani tudják.`
 
-    const reportButtonHtml = !isIndaPlay && hibajelentesUrl
-        ? `
+    const reportButtonHtml =
+        !isIndaPlay && hibajelentesUrl
+            ? `
                     <button onclick="window.open('${hibajelentesUrl}', '_blank')" style="
                             display: flex;
                             align-items: center;
@@ -49,7 +58,7 @@ export function showVideoRemovedError(videoTitle: string, episodeNumber: number,
                         Hibajelentés
                     </button>
         `
-        : ''
+            : ''
 
     errorContainer.innerHTML = `
 <div class="error-container" style="
@@ -274,14 +283,14 @@ export function showVideoRemovedError(videoTitle: string, episodeNumber: number,
   `
 }
 
-
-
 export function showError(text: string, errorId: string) {
-    const errorContainer = document.querySelector('#VideoPlayer') || document.querySelector('.gen-video-holder')
-
+    const errorContainer =
+        document.querySelector('#VideoPlayer') || document.querySelector('.gen-video-holder')
 
     if (!errorContainer) {
-        Toast.error('Error', 'Error container not found. Please check your HTML structure.', {duration: 5000})
+        Toast.error('Error', 'Error container not found. Please check your HTML structure.', {
+            duration: 5000,
+        })
         return
     }
 
@@ -498,4 +507,3 @@ export function showError(text: string, errorId: string) {
 </div>
   `
 }
-
