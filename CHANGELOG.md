@@ -2,6 +2,7 @@
 
 ## 0.1.9.9
 
+- Videa.hu forrásnál törölt videó esetén hibaüzenet megjelenítése.
 - Egyéb forrásokból származó videók (`/inda-play-...` linkek) jobb támogatása.
 - A videó token automatikus frissítése, ha lejárt. (Minden forrásnál)
 - Letöltés korlátozása s4 és s5 szervereknél.
