@@ -33,6 +33,7 @@ let downloadCooldown = false
 let vData: EpisodeVideoData[] = []
 let MALId: number = 0
 let videoID: number = 0
+let isVideoLoading = false
 
 const serverTypeList: serverType[] = ['s1', 's2', 's3', 's4', 's5']
 
@@ -64,7 +65,7 @@ function handleError(area: keyof typeof ERROR_CODES, type: string, customMessage
         ERROR_MESSAGES[area][type as keyof (typeof ERROR_MESSAGES)[typeof area]] ||
         'Ismeretlen hiba történt.'
     const schema = genErrorSchema(area.toUpperCase(), type.toUpperCase(), errorCode)
-    if (Player?.plyr) Player.plyr.destroy()
+    if (Player) Player.destroy()
     Player = undefined
     IFrameComm?.removeMSGListeners()
     IFrameComm = undefined
@@ -468,6 +469,12 @@ function loadVideo(server: serverType, vid: number) {
         return
     }
 
+    if (isVideoLoading) {
+        Logger.warn('Video is already loading, ignoring duplicate loadVideo call.')
+        return
+    }
+    isVideoLoading = true
+
     currentServer = server
 
     window.history.replaceState({}, '', `https://magyaranime.eu/resz/${vid}/`)
@@ -481,6 +488,9 @@ function loadVideo(server: serverType, vid: number) {
         })
         .catch((error) => {
             handleError('PLAYER', 'LOAD_ERROR', `Videó betöltési hiba: ${error}`)
+        })
+        .finally(() => {
+            isVideoLoading = false
         })
 }
 function handleServerResponse(data: ServerResponse) {
@@ -528,7 +538,7 @@ function handleServerResponse(data: ServerResponse) {
         handleError('SERVER', 'RESPONSE_ERROR', data.error)
     }
 
-    if (Player?.plyr) Player.plyr.destroy()
+    if (Player) Player.destroy()
     Player = undefined
     IFrameComm?.removeMSGListeners()
     IFrameComm = undefined

@@ -74,15 +74,15 @@ function messageHandler(event: MessageEvent) {
             break;
         }
         case (ACTIONS.IFRAME.VOL_UP): {
-            Player.plyr.increaseVolume(0.1)
+            if (Player.plyr) Player.plyr.increaseVolume(0.1)
             break;
         }
         case (ACTIONS.IFRAME.VOL_DOWN): {
-            Player.plyr.increaseVolume(-0.1)
+            if (Player.plyr) Player.plyr.increaseVolume(-0.1)
             break;
         }
         case (ACTIONS.IFRAME.TOGGLE_MUTE): {
-            Player.plyr.muted = !Player.plyr.muted
+            if (Player.plyr) Player.plyr.muted = !Player.plyr.muted
             break;
         }
         case (ACTIONS.IFRAME.TOGGLE_FULLSCREEN): {
@@ -95,18 +95,23 @@ function messageHandler(event: MessageEvent) {
             break;
         }
         case (ACTIONS.IFRAME.TOGGLE_PLAY): {
-            if (Player.plyr.playing) {
-                Player.plyr.pause()
+            const plyr = Player.plyr
+            if (!plyr) break;
+            if (plyr.playing) {
+                plyr.pause()
             } else {
-                Player.plyr.play()
+                plyr.play()
             }
             break;
         }
         case (ACTIONS.IFRAME.SEEK): {
-            Player.seekTo(Player.plyr.currentTime + Number(event.data.time));
+            const plyr = Player.plyr
+            if (!plyr) break;
+            Player.seekTo(plyr.currentTime + Number(event.data.time));
             break;
         }
         case (ACTIONS.IFRAME.SEEK_PERCENTAGE): {
+            if (!Player.plyr) break;
             Player.plyr.currentTime = Player.plyr.duration * (event.data.percentage / 100)
             break;
         }

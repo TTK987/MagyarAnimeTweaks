@@ -15,7 +15,7 @@ import { isExpired } from '../lib/expiry'
 export default class BasePlayer {
     selector: string
     epData: EpisodeVideoData[]
-    plyr: Plyr
+    plyr: Plyr | undefined
     isDownloadable: boolean
     settings: SettingsV019
     epID: number
@@ -29,6 +29,10 @@ export default class BasePlayer {
     private skipBackwardCooldown: number | undefined
     private cursorAutoHideTimer?: number
     private readonly cursorAutoHideDelayMs: number = 2000
+    private keydownHandler?: (event: KeyboardEvent) => void
+    private keyupHandler?: (event: KeyboardEvent) => void
+    private fullscreenChangeHandler?: () => void
+    private cursorActivityHandler?: () => void
 
     // Plugins for the player
     Resume: ResumePlugin
@@ -72,7 +76,6 @@ export default class BasePlayer {
     ) {
         this.selector = selector
         this.epData = qualityData
-        // @ts-ignore
         this.plyr = undefined
         this.isDownloadable = isDownloadable
         this.settings = settings
@@ -107,18 +110,19 @@ export default class BasePlayer {
     }
 
     loadNewVideo(data: EpisodeVideoData[], epNum: number) {
+        if (!this.plyr) return
         if (data.length === 0) {
             Logger.error('No video data provided.')
             return
         }
         this.epData = data
-        this.plyr.destroy(() => {Logger.log('Plyr instance destroyed')}, false)
+        this.plyr.destroy(() => {
+            Logger.log('Plyr instance destroyed')
+        }, false)
 
         document.querySelector('.plyr')?.remove()
         this.epNum = epNum
         this.isANEpTriggered = false
-
-        document.querySelector('.plyr')?.remove()
 
         this.replace()
     }
@@ -264,13 +268,12 @@ export default class BasePlayer {
      * @param {HTMLVideoElement} videoElement - The video element
      */
     protected adjustAspectRatio(videoElement: HTMLVideoElement) {
-        console.log('Adjusting aspect ratio based on video metadata.')
+        Logger.log('Adjusting aspect ratio based on video metadata.')
         const width = videoElement.videoWidth
         const height = videoElement.videoHeight
         const plyrContainer = videoElement.closest('.plyr') as HTMLElement
         if (plyrContainer) {
-            console.log('Video dimensions:', width, 'x', height)
-            plyrContainer.style.aspectRatio = '16 / 9'
+            Logger.log('Video dimensions:' + width + 'x' + height)
             plyrContainer.style.maxWidth = '100% !important'
             plyrContainer.style.width = '100%'
             plyrContainer.style.height = ''
@@ -324,7 +327,8 @@ export default class BasePlayer {
         )
         videoElement.addEventListener('timeupdate', () => {
             if (
-                this.plyr && this.plyr.duration &&
+                this.plyr &&
+                this.plyr.duration &&
                 this.plyr.duration - this.plyr.currentTime <=
                     Number(this.settings.autoNextEpisode.time || 0) &&
                 !this.isANEpTriggered &&
@@ -338,6 +342,7 @@ export default class BasePlayer {
             }
         })
         videoElement.addEventListener('ended', () => {
+            if (!this.plyr) return
             if (!this.isANEpTriggered && this.plyr.currentTime !== 0 && this.plyr.duration !== 0) {
                 Logger.log('Auto next episode triggered.')
                 window.dispatchEvent(new Event('AutoNextEpisode'))
@@ -410,6 +415,7 @@ export default class BasePlayer {
      * Skip forward in the video
      */
     skipForward() {
+        if (!this.plyr) return
         if (this.skipForwardCooldown && Date.now() - this.skipForwardCooldown < 200) {
             // 200ms cooldown
             Logger.log('Skip forward is on cooldown.')
@@ -425,6 +431,7 @@ export default class BasePlayer {
      * Skip backward in the video
      */
     skipBackward() {
+        if (!this.plyr) return
         if (this.skipBackwardCooldown && Date.now() - this.skipBackwardCooldown < 200) {
             // 200ms cooldown
             Logger.log('Skip backward is on cooldown.')
@@ -436,7 +443,6 @@ export default class BasePlayer {
         Logger.log('Skipped backward ' + this.settings.backwardSkip.time + ' seconds.')
     }
 
-
     /**
      * Download the video
      */
@@ -447,10 +453,11 @@ export default class BasePlayer {
      * @param {number} time - The time to seek to
      */
     seekTo(time: number) {
-        const video = document.querySelector('video') as HTMLVideoElement
-        let target: Plyr | HTMLVideoElement = this.plyr || video
+        const video = document.querySelector('video') as HTMLVideoElement | null
+        const target: Plyr | HTMLVideoElement | null = this.plyr || video
+        if (!target || !video) return
         const seekHandler = () => {
-            if (target.duration > 0) {
+            if ('duration' in target && target.duration > 0) {
                 target.currentTime = time
                 video.removeEventListener('loadeddata', seekHandler)
                 video.removeEventListener('playing', seekHandler)
@@ -458,7 +465,7 @@ export default class BasePlayer {
         }
         if (target instanceof HTMLVideoElement && target.readyState >= 2) {
             target.currentTime = time
-        } else if (target.duration > 0) {
+        } else if ('duration' in target && target.duration > 0) {
             target.currentTime = time
         } else {
             video.addEventListener('loadeddata', seekHandler)
@@ -483,15 +490,15 @@ export default class BasePlayer {
     private addShortcutsToPlyr() {
         this.addDownloadButton()
 
-        document.addEventListener('keydown', (event) => {
+        this.keydownHandler = (event: KeyboardEvent) => {
             this.handleShortcutEvent(event, this.settings.forwardSkip, this.skipForward.bind(this))
             this.handleShortcutEvent(
                 event,
                 this.settings.backwardSkip,
                 this.skipBackward.bind(this),
             )
-        })
-        document.addEventListener('keyup', (event) => {
+        }
+        this.keyupHandler = (event: KeyboardEvent) => {
             this.handleShortcutEvent(event, this.settings.nextEpisode, () => {
                 window.dispatchEvent(new Event('NextEpisode'))
                 this.nextEpisode()
@@ -500,7 +507,28 @@ export default class BasePlayer {
                 window.dispatchEvent(new Event('PreviousEpisode'))
                 this.previousEpisode()
             })
-        })
+        }
+        document.addEventListener('keydown', this.keydownHandler)
+        document.addEventListener('keyup', this.keyupHandler)
+    }
+
+    destroy() {
+        if (this.keydownHandler) document.removeEventListener('keydown', this.keydownHandler)
+        if (this.keyupHandler) document.removeEventListener('keyup', this.keyupHandler)
+        if (this.cursorActivityHandler) {
+            const container = document.getElementById('MATweaks-player-wrapper')
+            if (container) {
+                ;['mousemove', 'mousedown', 'mouseup', 'wheel', 'touchstart', 'touchmove', 'pointermove'].forEach(
+                    (evt) => container.removeEventListener(evt, this.cursorActivityHandler as EventListener),
+                )
+            }
+            document.removeEventListener('keydown', this.cursorActivityHandler as EventListener)
+        }
+        if (this.fullscreenChangeHandler) {
+            document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler)
+        }
+        if (this.cursorAutoHideTimer) window.clearTimeout(this.cursorAutoHideTimer)
+        this.plyr?.destroy()
     }
 
     /**
@@ -584,7 +612,8 @@ export default class BasePlayer {
     }
 
     private setupAutoHideCursor() {
-        const getContainer = () => document.getElementById('MATweaks-player-wrapper') as HTMLElement | null
+        const getContainer = () =>
+            document.getElementById('MATweaks-player-wrapper') as HTMLElement | null
         const isFsActive = () => {
             const container = getContainer()
             return !!container && document.fullscreenElement === container
@@ -611,21 +640,19 @@ export default class BasePlayer {
         if (container.hasAttribute('data-mat-cursorhide-bound')) return
         container.setAttribute('data-mat-cursorhide-bound', '1')
 
-        const onActivity = () => {
+        this.cursorActivityHandler = () => {
             if (!isFsActive()) return
             showCursor()
             scheduleHide()
         }
 
-        // Pointer/touch activity on the container
-        ['mousemove', 'mousedown', 'mouseup', 'wheel', 'touchstart', 'touchmove', 'pointermove']
-                .forEach(evt => container.addEventListener(evt, onActivity, { passive: true }))
+        ;['mousemove', 'mousedown', 'mouseup', 'wheel', 'touchstart', 'touchmove', 'pointermove'].forEach((evt) =>
+            container.addEventListener(evt, this.cursorActivityHandler as EventListener, {
+                passive: true,
+            }),
+        )
 
-        // Keyboard activity anywhere should show cursor if fullscreen is active
-        document.addEventListener('keydown', onActivity, { passive: true })
-
-        // Fullscreen changes
-        const onFsChange = () => {
+        this.fullscreenChangeHandler = () => {
             if (isFsActive()) {
                 showCursor()
                 scheduleHide()
@@ -634,9 +661,8 @@ export default class BasePlayer {
                 if (this.cursorAutoHideTimer) window.clearTimeout(this.cursorAutoHideTimer)
             }
         }
-        document.addEventListener('fullscreenchange', onFsChange)
+        document.addEventListener('fullscreenchange', this.fullscreenChangeHandler)
 
-        // Start cycle if we are already in fullscreen
         if (isFsActive()) {
             showCursor()
             scheduleHide()
@@ -649,18 +675,15 @@ export default class BasePlayer {
         return
     }
 
-    private monitorVideoExpiry() {
-
-        this.plyr.on("stalled", () => {
-            this.epData.forEach(video => {
-                if (video.expires) {
-                    if (isExpired(video.expires)) {
-                        Logger.warn('Video has expired. Attempting to reload source.')
-                        this.onVideoExpire()
-
-                    }
-                }
-            })
-        })
-    }
+// private monitorVideoExpiry() {
+//     if (!this.plyr) return
+//     this.plyr.on('stalled', () => {
+//         this.epData.forEach((video) => {
+//             if (video.expires && isExpired(video.expires)) {
+//                 Logger.warn('Video has expired. Attempting to reload source.')
+//                 this.onVideoExpire()
+//             }
+//         })
+//     })
+// }
 }

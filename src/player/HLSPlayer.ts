@@ -22,6 +22,8 @@ class HLSPlayer extends BasePlayer {
     hls: Hls | null
     fansub: FansubData[] | null
     curQuality: EpisodeVideoData | null
+    private messageHandler: (event: MessageEvent) => void
+
     constructor(
         selector: string,
         qualityData: EpisodeVideoData[],
@@ -49,14 +51,11 @@ class HLSPlayer extends BasePlayer {
         this.hls = null
         this.fansub = null
         this.curQuality = null
+        this.messageHandler = this.handleMessage.bind(this)
         this.addEventListeners()
     }
 
-    onTokenExpired() {}
-
-    onRateLimit() {}
-
-    addEventListeners() {
+    private handleMessage(event: MessageEvent) {
         window.addEventListener('message', (event) => {
             switch (event.data.type) {
                 case ACTIONS.IFRAME.TOGGLE_PLAY:
@@ -123,6 +122,18 @@ class HLSPlayer extends BasePlayer {
             }
             return true
         })
+    }
+
+    onTokenExpired() {}
+
+    onRateLimit() {}
+
+    addEventListeners() {
+        window.addEventListener('message', this.messageHandler)
+    }
+
+    removeEventListeners() {
+        window.removeEventListener('message', this.messageHandler)
     }
 
     previousEpisode() {

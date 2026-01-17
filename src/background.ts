@@ -110,20 +110,20 @@ function checkResumeExpiration() {
                     Logger.log(`[background.js]: Resume data will not expire`, true);
                     return;
                 }
-                Logger.log(`[background.js]: Running resume expiration check with expiration time: ${expirationTime}ms (${s.resume.clearAfter})`, true);
-                for (let anime of data) {
-                    anime.episodes.forEach((ep) => {
-                        if (ep.updateTime && (currentTime - ep.updateTime) > expirationTime) {
-                            Logger.log(`[background.js]: Removing expired resume data for episode ${ep.epID} of anime ${anime.animeTitle}`, true);
-                            anime.removeEpisode(ep.epID);
-                            if (anime.episodes.length === 0) {
-                                Logger.log(`[background.js]: Removing anime ${anime.animeTitle} from resume data as it has no episodes left`, true);
-                                data = data.filter(a => a.animeID !== anime.animeID);
-                            }
-                        }
-                    })
+                Logger.log(`[background.js]: Running resume expiration check with expiration time: ${expirationTime}ms (${s.resume.clearAfter})`, true,)
+                const animesToRemove: number[] = []
+                for (const anime of data) {
+                    const expiredEpisodes = anime.episodes.filter(
+                        (ep) => ep.updateTime && currentTime - ep.updateTime > expirationTime,
+                    )
+                    expiredEpisodes.forEach((ep) => anime.removeEpisode(ep.epID))
+                    if (anime.episodes.length === 0) {
+                        animesToRemove.push(anime.animeID)
+                    }
                 }
+                data = data.filter(a => !animesToRemove.includes(a.animeID));
                 Resume.animes = data;
+                Logger.log(`[background.js]: Removed ${animesToRemove.length} animes with all episodes expired from resume data`, true);
                 Resume.saveData()
                 Resume.loadData()
             })
