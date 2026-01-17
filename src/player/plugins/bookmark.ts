@@ -124,6 +124,7 @@ export class BookmarkPlugin {
             e.stopImmediatePropagation()
 
             if (
+                !this.ctx.plyr ||
                 this.ctx.plyr.currentTime <= 5 ||
                 this.ctx.plyr.currentTime >= this.ctx.plyr.duration - 5
             ) {
