@@ -130,6 +130,7 @@ export class ResumePlugin {
     }
 
     private updateResumeData() {
+        if (!this.ctx.plyr || this.ctx.epID === undefined) return
         Resume.updateData(
             this.ctx.epID,
             this.ctx.plyr.currentTime,
@@ -147,6 +148,7 @@ export class ResumePlugin {
     private addResumeEventListeners() {
         const updateData = () => {
             if (
+                !this.ctx.plyr ||
                 this.ctx.plyr.duration <= 10 ||
                 this.ctx.plyr.currentTime <= 5 ||
                 this.ctx.plyr.currentTime >= this.ctx.plyr.duration - 5 ||
