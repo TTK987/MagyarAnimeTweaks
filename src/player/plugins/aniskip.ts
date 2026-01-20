@@ -1,6 +1,6 @@
 import Logger from '../../Logger'
 import { formatTime } from '../../lib/time-utils'
-import AniSkip, { SkipInterval } from '../../api/AniSkip'
+import AniSkip, { SkipInterval, SkipType } from '../../api/AniSkip'
 import BasePlayer from '../BasePlayer'
 
 export class AniSkipPlugin {
@@ -10,18 +10,28 @@ export class AniSkipPlugin {
     private aniSkipSegments: { op?: SkipInterval; ed?: SkipInterval } = {}
     private aniSkipCycleShown: { op?: boolean; ed?: boolean } = {}
     private aniSkipTimers: { op?: number; ed?: number } = {}
+    private keyHandlerRef?: Function
 
     constructor(ctx: BasePlayer) {
         this.ctx = ctx
     }
 
+    private get settings() {
+        return this.ctx.settings.plyr.plugins.aniSkip
+    }
+
     disable() {
         this.isEnabled = false
+        try {
+            if (this.keyHandlerRef && this.settings && this.settings.keyBind) {
+                this.ctx.offKeyDown(this.settings.keyBind, this.keyHandlerRef)
+            }
+        } catch (e) {}
     }
 
     async init(videoElement: HTMLVideoElement) {
         if (!this.isEnabled) return
-        if (!this.ctx.settings.eap) return
+        if (!this.settings.enabled) return
         if (!this.ctx.malId || this.ctx.malId <= 0) {
             Logger.error('AniSkip disabled (missing malId).')
             return
@@ -35,9 +45,18 @@ export class AniSkipPlugin {
         if (!this.aniSkip) this.aniSkip = new AniSkip()
 
         let resp: any
+
+        const types: SkipType[] = []
+        if (this.settings.skipOP) types.push('op')
+        if (this.settings.skipED) types.push('ed')
+        if (!types.length) {
+            Logger.warn('AniSkip: both OP and ED skipping disabled in settings; aborting.')
+            return
+        }
+
         try {
             resp = await this.aniSkip.getMalSkipTimes(this.ctx.malId, this.ctx.epNum, {
-                types: ['op', 'ed'],
+                types: types,
                 episodeLength: duration,
             })
         } catch (err: any) {
@@ -60,6 +79,35 @@ export class AniSkipPlugin {
         this.aniSkipSegments = this.aniSkipSegments || { op: undefined, ed: undefined }
         this.aniSkipCycleShown = this.aniSkipCycleShown || { op: false, ed: false }
         this.aniSkipTimers = this.aniSkipTimers || { op: undefined, ed: undefined }
+
+        // Register key handler using BasePlayer API (so it can be unregistered later)
+        try {
+            if (this.settings.keyBind) {
+                // store reference so we can unregister
+                this.keyHandlerRef = (_ev: KeyboardEvent) => {
+                    // Attempt to trigger currently visible AniSkip button, or fallback to OP then ED
+                    const visibleBtn = document.querySelector('.mat-aniskip-button:not([style*="display: none"])') as HTMLButtonElement | null
+                    if (visibleBtn) {
+                        visibleBtn.click()
+                        return
+                    }
+                    const opBtn = document.querySelector('.mat-aniskip-button[data-segment="op"]') as HTMLButtonElement | null
+                    const edBtn = document.querySelector('.mat-aniskip-button[data-segment="ed"]') as HTMLButtonElement | null
+                    if (opBtn) {
+                        opBtn.click()
+                        return
+                    }
+                    if (edBtn) {
+                        edBtn.click()
+                        return
+                    }
+                }
+                this.ctx.onKeyDown(this.settings.keyBind, this.keyHandlerRef)
+                Logger.log('AniSkip: registered keyBind listener.')
+            }
+        } catch (e) {
+            Logger.warn('AniSkip: failed to register keyBind listener: ' + e)
+        }
 
         type SegmentType = 'op' | 'ed'
         type Interval = { startTime: number; endTime: number }
@@ -114,9 +162,7 @@ export class AniSkipPlugin {
                 e.stopPropagation()
                 if (!this.ctx.plyr) return
                 Logger.log(
-                    `AniSkip: user clicked ${type.toUpperCase()} skip -> jumping to ${interval.endTime.toFixed(
-                        2,
-                    )}`,
+                    `AniSkip: user clicked ${type.toUpperCase()} skip -> jumping to ${interval.endTime.toFixed(2)}`,
                 )
                 this.ctx.plyr.currentTime = interval.endTime
                 this.hideAniSkipButton(type)
@@ -136,9 +182,7 @@ export class AniSkipPlugin {
     }
 
     private showAniSkipButton(type: 'op' | 'ed') {
-        const btn = document.querySelector(
-            `.mat-aniskip-button[data-segment="${type}"]`,
-        ) as HTMLElement | null
+        const btn = document.querySelector(`.mat-aniskip-button[data-segment="${type}"]`) as HTMLElement | null
         if (!btn) {
             Logger.warn(`AniSkip: show requested but button not found for ${type}`)
             return
@@ -151,9 +195,7 @@ export class AniSkipPlugin {
     }
 
     private hideAniSkipButton(type: 'op' | 'ed') {
-        const btn = document.querySelector(
-            `.mat-aniskip-button[data-segment="${type}"]`,
-        ) as HTMLElement | null
+        const btn = document.querySelector(`.mat-aniskip-button[data-segment="${type}"]`) as HTMLElement | null
         if (!btn) return
         if (btn.style.display !== 'none') {
             Logger.log(`AniSkip: hiding ${type.toUpperCase()} skip button.`)
@@ -168,6 +210,7 @@ export class AniSkipPlugin {
         ;(['op', 'ed'] as const).forEach((seg) => {
             const interval = this.aniSkipSegments[seg]
             if (!interval) return
+            // If we've moved back before the start window, reset the shown cycle
             if (t < interval.startTime - 1.0) {
                 if (this.aniSkipCycleShown[seg]) {
                     Logger.log(
@@ -178,11 +221,8 @@ export class AniSkipPlugin {
                 }
                 this.aniSkipCycleShown[seg] = false
             }
-            if (
-                !this.aniSkipCycleShown[seg] &&
-                t >= interval.startTime &&
-                t <= interval.startTime + 0.8
-            ) {
+            // Show the skip button once when we enter the segment start window
+            if (!this.aniSkipCycleShown[seg] && t >= interval.startTime && t <= interval.startTime + 0.8) {
                 Logger.log(
                     `AniSkip: trigger show window for ${seg.toUpperCase()} at ${t.toFixed(
                         2,
@@ -232,4 +272,3 @@ export class AniSkipPlugin {
         Logger.log('AniSkip: CSS injected.')
     }
 }
-

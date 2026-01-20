@@ -90,7 +90,7 @@ class MagyarAnime {
             const response = fetch(this.url, {
                 method: 'GET',
                 headers: {
-                    MagyarAnimeTweaks: 'v' + MAT.getVersion(),
+                    MagyarAnimeTweaks: 'v' + MAT.version,
                     'x-requested-with': 'XMLHttpRequest',
                 },
                 credentials: 'include',
@@ -413,7 +413,7 @@ class Episode {
                 fetch(this.getAnimeLink(), {
                     method: 'GET',
                     headers: {
-                        MagyarAnimeTweaks: 'v' + MAT.getVersion(),
+                        MagyarAnimeTweaks: 'v' + MAT.version,
                         'x-requested-with': 'XMLHttpRequest',
                     },
                     credentials: 'include',

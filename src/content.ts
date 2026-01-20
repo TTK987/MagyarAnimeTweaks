@@ -3,7 +3,7 @@ import Bookmarks from './Bookmark'
 import Resume from './Resume'
 import Logger from './Logger'
 import MagyarAnime from './MagyarAnime'
-import type { ServerResponse, SettingsV019, EpisodeVideoData, serverType, } from './global'
+import type { ServerResponse, EpisodeVideoData, serverType, Settings } from './global'
 import Toast, { Options } from './Toast'
 import NativePlayer from './player/NativePlayer'
 import { parseVideoData, prettyFileSize, renderFileName } from './lib/utils'
@@ -20,7 +20,7 @@ import { initMainPageNavigation } from './handlers/MainPage'
 import onLoad from './lib/load'
 import { parseExpiryFromUrl } from './lib/expiry'
 
-let settings: SettingsV019 = MAT.getDefaultSettings()
+let settings: Settings = MAT.getDefaultSettings()
 let MA: MagyarAnime = new MagyarAnime(document, window.location.href)
 let isRoadblockCalled = false
 let currentServer: serverType = 's1'
@@ -76,68 +76,67 @@ function handleError(area: keyof typeof ERROR_CODES, type: string, customMessage
 }
 
 if (MA.isIndaPlayPage) {
-    MA.addCSS('.gen-video-holder.txt-center { min-height: 500px; }');
-    loadSettings().then(() => {
-        if (document.querySelector('#lejatszo')) {
-            let videoElement = document.querySelector('#lejatszo video') as HTMLVideoElement
-            if (videoElement) {
-                let sources = Array.from(videoElement.querySelectorAll('source'))
-                if (sources.length === 0) {
-                    handleError('VIDEO', 'NO_SOURCES', 'Nincsenek videó források a videó elemben.')
-                    return
+    MA.addCSS('.gen-video-holder.txt-center { min-height: 500px; }')
+    loadSettings()
+        .then(() => {
+            if (document.querySelector('#lejatszo')) {
+                let videoElement = document.querySelector('#lejatszo video') as HTMLVideoElement
+                if (videoElement) {
+                    let sources = Array.from(videoElement.querySelectorAll('source'))
+                    if (sources.length === 0) {
+                        handleError('VIDEO', 'NO_SOURCES', 'Nincsenek videó források a videó elemben.')
+                        return
+                    }
+
+                    let videoData = sources
+                        .map((source) => {
+                            let url = source.getAttribute('src')
+                            let size = parseInt(source.getAttribute('size') || '')
+                            return url && !isNaN(size) ? { quality: size, url } : null
+                        })
+                        .filter((data): data is EpisodeVideoData => data !== null)
+
+                    if (videoData.length === 0) {
+                        handleError('VIDEO', 'DATA_ERROR', 'Nem sikerült videó adatokat kinyerni a videó elemből.')
+                        return
+                    }
+
+                    vData = videoData.sort((a, b) => b.quality - a.quality)
                 }
-
-                let videoData = sources
-                    .map((source) => {
-                        let url = source.getAttribute('src')
-                        let size = parseInt(source.getAttribute('size') || '')
-                        return url && !isNaN(size) ? { quality: size, url } : null
-                    })
-                    .filter((data): data is EpisodeVideoData => data !== null)
-
-                if (videoData.length === 0) {
-                    handleError(
-                        'VIDEO',
-                        'DATA_ERROR',
-                        'Nem sikerült videó adatokat kinyerni a videó elemből.',
-                    )
-                    return
-                }
-
-                vData = videoData.sort((a, b) => b.quality - a.quality)
-            }
-        } else {
-            IFrameComm = new IFramePlayerComm()
-            IFrameComm.onFrameLoaded = () => {
-                IFrameComm!.IFrame = (document.querySelector("iframe[id='indavideoframe']") as HTMLIFrameElement).contentWindow
-                IFrameComm!
-                    .getVideoData()
-                    .then((videoData) => {
-                        if (videoData.length === 0) {
-                            handleError(
-                                'VIDEO',
-                                'DATA_ERROR',
-                                'Indavideo videó adatok nem találhatók az iframe-ben.',
+            } else {
+                IFrameComm = new IFramePlayerComm()
+                IFrameComm.onFrameLoaded = () => {
+                    IFrameComm!.IFrame = (
+                        document.querySelector("iframe[id='indavideoframe']") as HTMLIFrameElement
+                    ).contentWindow
+                    IFrameComm!
+                        .getVideoData()
+                        .then((videoData) => {
+                            if (videoData.length === 0) {
+                                handleError(
+                                    'VIDEO',
+                                    'DATA_ERROR',
+                                    'Indavideo videó adatok nem találhatók az iframe-ben.',
+                                )
+                                return
+                            }
+                            vData = videoData
+                        })
+                        .catch((error) => {
+                            showVideoRemovedError(
+                                MA.EPISODE.getTitle(),
+                                MA.EPISODE.getEpisodeNumber(),
+                                currentServer,
+                                MA.EPISODE.getId(),
+                                true,
                             )
-                            return
-                        }
-                        vData = videoData
-                    })
-                    .catch((error) => {
-                        showVideoRemovedError(
-                            MA.EPISODE.getTitle(),
-                            MA.EPISODE.getEpisodeNumber(),
-                            currentServer,
-                            MA.EPISODE.getId(),
-                            true
-                        )
-                    })
+                        })
+                }
             }
-        }
-    }
-    ).catch((error) => {
-        Logger.error('Error while loading settings: ' + error, true)
-    })
+        })
+        .catch((error) => {
+            Logger.error('Error while loading settings: ' + error, true)
+        })
 }
 
 onLoad(initializeExtension)
@@ -146,7 +145,7 @@ function loadSettings(): Promise<boolean> {
     return new Promise((resolve: (value: boolean) => void, reject: (reason?: any) => void) => {
         MAT.loadSettings()
             .then((data) => {
-                settings = data as SettingsV019
+                settings = data as Settings
                 if (settings.advanced.consoleLog) Logger.enable()
                 else Logger.disable()
                 resolve(true)
@@ -179,10 +178,7 @@ function initializeExtension() {
         })
         .catch((error) => {
             Logger.error('Error while initializing extension: ' + error, true)
-            showError(
-                'Hiba történt az kiterjesztés inicializálása közben.',
-                'EP' + MA.EPISODE.getId() + '-INIT-001',
-            )
+            showError('Hiba történt az kiterjesztés inicializálása közben.', 'EP' + MA.EPISODE.getId() + '-INIT-001')
         })
 }
 function MaintenancePage() {
@@ -252,7 +248,7 @@ function EpisodePage() {
 
     document.querySelector('#ttkeztkapcsoldki')?.remove()
 
-    MA.addCSS(`#lejatszo, #indavideoframe {max-width: 100%;} .plyr {max-width: 100%; width: 100%; height: 100%;}`,)
+    MA.addCSS(`#lejatszo, #indavideoframe {max-width: 100%;} .plyr {max-width: 100%; width: 100%; height: 100%;}`)
 
     videoID = MA.EPISODE.getId()
 
@@ -289,11 +285,7 @@ function EpisodePage() {
                 document.removeEventListener('visibilitychange', listener)
                 loadVideo(
                     currentServer,
-                    Number(
-                        (document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute(
-                            'data-vid',
-                        ),
-                    ),
+                    Number((document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute('data-vid')),
                 )
             }
         }
@@ -328,15 +320,9 @@ function EpisodePage() {
             if (!target.classList.contains('videoChange')) {
                 target = target.closest('.videoChange') as HTMLButtonElement
             }
-            let server = target.getAttribute('data-server') as string
+            let server = target.getAttribute('data-server') as serverType
             let vid = Number(target.getAttribute('data-vid'))
-            if (
-                !server ||
-                !['s1', 's2', 's3', 's4'].includes(server) ||
-                isNaN(vid) ||
-                vid < 1 ||
-                vid > 80000
-            ) {
+            if (!server || !serverTypeList.includes(server) || isNaN(vid) || vid < 1 || vid > 80000) {
                 handleError(
                     'REQUEST',
                     'INVALID_ARGS',
@@ -390,11 +376,7 @@ function roadblock() {
                 isRoadblockCalled = true
                 loadVideo(
                     currentServer,
-                    Number(
-                        (document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute(
-                            'data-vid',
-                        ),
-                    ),
+                    Number((document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute('data-vid')),
                 )
             }, 200)
         }
@@ -494,6 +476,12 @@ function loadVideo(server: serverType, vid: number) {
         })
 }
 function handleServerResponse(data: ServerResponse) {
+    // Auto-switch to the only available server
+    if (data.servers.length === 1 && data.servers[0].server !== currentServer) {
+        currentServer = data.servers[0].server
+        ;(document.querySelector('#VideoPlayer') as HTMLDivElement).setAttribute('data-server', currentServer)
+    }
+
     setDailyLimit(data)
     setServers(data)
 
@@ -510,11 +498,7 @@ function handleServerResponse(data: ServerResponse) {
                     csrfToken = token
                     loadVideo(
                         currentServer,
-                        Number(
-                            (
-                                document.querySelector('#VideoPlayer') as HTMLVideoElement
-                            ).getAttribute('data-vid'),
-                        ),
+                        Number((document.querySelector('#VideoPlayer') as HTMLVideoElement).getAttribute('data-vid')),
                     )
                     return
                 } else {
@@ -573,11 +557,7 @@ function handleServerResponse(data: ServerResponse) {
                     loadHTML5Player(data, videoData)
                 })
                 .catch((error) => {
-                    handleError(
-                        'VIDEO',
-                        'DATA_ERROR',
-                        `Indavideo videó adatok betöltési hiba: ${error}`,
-                    )
+                    handleError('VIDEO', 'DATA_ERROR', `Indavideo videó adatok betöltési hiba: ${error}`)
                 })
             break
         case 'videa':
@@ -587,11 +567,7 @@ function handleServerResponse(data: ServerResponse) {
                     loadHTML5Player(data, videoData)
                 })
                 .catch((error) => {
-                    handleError(
-                        'VIDEO',
-                        'DATA_ERROR',
-                        `Videa videó adatok betöltési hiba: ${error}`,
-                    )
+                    handleError('VIDEO', 'DATA_ERROR', `Videa videó adatok betöltési hiba: ${error}`)
                 })
             break
         case 'Unknown':
@@ -599,18 +575,12 @@ function handleServerResponse(data: ServerResponse) {
                 data.output.match(/<video[^>]*src="([^"]+)"[^>]*>/) ||
                 data.output.match(/<iframe[^>]*src="([^"]+)"[^>]*>/)
             ) {
-                handleError(
-                    'VIDEO',
-                    'INVALID_TYPE',
-                    `Nem támogatott lejátszó típus.`,
-                )
+                handleError('VIDEO', 'INVALID_TYPE', `Nem támogatott lejátszó típus.`)
                 break
             } else {
                 const videoPlayer = document.querySelector('#VideoPlayer') as HTMLDivElement
                 videoPlayer.innerHTML = data.output
-                Logger.log(
-                    'Unknown player type, but video or iframe found. Using provided output HTML.',
-                )
+                Logger.log('Unknown player type, but video or iframe found. Using provided output HTML.')
                 Toast.error(
                     'Hiba lépett fel a lejátszó betöltése közben.',
                     'Ellenőrizd, hogy nem tiltott-e ki a rendszer',
@@ -662,11 +632,7 @@ function getQualityDataFromIFrame(data: ServerResponse): Promise<EpisodeVideoDat
                 .getVideoData()
                 .then((videoData: EpisodeVideoData[]) => {
                     if (videoData.length === 0) {
-                        handleError(
-                            'VIDEO',
-                            'DATA_ERROR',
-                            'Videó adatok nem találhatók az iframe-ben.',
-                        )
+                        handleError('VIDEO', 'DATA_ERROR', 'Videó adatok nem találhatók az iframe-ben.')
                         reject('No video data found in the iframe.')
                         iframe.remove()
                         return
@@ -692,19 +658,30 @@ function IFrameEventListener(e: KeyboardEvent) {
         Logger.error('PlayerComm is not defined.')
         return
     }
-    if (settings.forwardSkip.enabled && checkShortcut(e, settings.forwardSkip.keyBind)) IFrameComm.skipForward()  // Forward skip
-    else if (settings.backwardSkip.enabled && checkShortcut(e, settings.backwardSkip.keyBind)) IFrameComm.skipBackward() // Backward skip
-    else  if (settings.nextEpisode.enabled && checkShortcut(e, settings.nextEpisode.keyBind)) nextEpisode()
+    if (settings.forwardSkip.enabled && checkShortcut(e, settings.forwardSkip.keyBind))
+        IFrameComm.skipForward() // Forward skip
+    else if (settings.backwardSkip.enabled && checkShortcut(e, settings.backwardSkip.keyBind))
+        IFrameComm.skipBackward() // Backward skip
+    else if (settings.nextEpisode.enabled && checkShortcut(e, settings.nextEpisode.keyBind)) nextEpisode()
     else if (settings.previousEpisode.enabled && checkShortcut(e, settings.previousEpisode.keyBind)) previousEpisode()
-    else if (e.key === " " || e.key === "Spacebar") IFrameComm.togglePlay() // Play/Pause toggle
-    else if (e.key === "ArrowUp") IFrameComm.volUp() // Volume up
-    else if (e.key === "ArrowDown") IFrameComm.volDown() // Volume down
-    else if (e.key === "ArrowRight") IFrameComm.seek(settings.skip.time) // Seek forward
-    else if (e.key === "ArrowLeft") IFrameComm.seek(-settings.skip.time) // Seek backward
-    else if (e.key === "m" || e.key === "M") IFrameComm.toggleMute() // Mute toggle
-    else if (e.key === "f" || e.key === "F") IFrameComm.toggleFullscreen() // Fullscreen toggle
-    else if (e.key === "k" || e.key === "K") IFrameComm.togglePlay() // Play/Pause toggle
-    else if (e.key.match(/[0-9]/)) IFrameComm.seekPercentage(Number(e.key) * 10) // Seek to percentage
+    else if (e.key === ' ' || e.key === 'Spacebar')
+        IFrameComm.togglePlay() // Play/Pause toggle
+    else if (e.key === 'ArrowUp')
+        IFrameComm.volUp() // Volume up
+    else if (e.key === 'ArrowDown')
+        IFrameComm.volDown() // Volume down
+    else if (e.key === 'ArrowRight')
+        IFrameComm.seek(settings.skip.time) // Seek forward
+    else if (e.key === 'ArrowLeft')
+        IFrameComm.seek(-settings.skip.time) // Seek backward
+    else if (e.key === 'm' || e.key === 'M')
+        IFrameComm.toggleMute() // Mute toggle
+    else if (e.key === 'f' || e.key === 'F')
+        IFrameComm.toggleFullscreen() // Fullscreen toggle
+    else if (e.key === 'k' || e.key === 'K')
+        IFrameComm.togglePlay() // Play/Pause toggle
+    else if (e.key.match(/[0-9]/))
+        IFrameComm.seekPercentage(Number(e.key) * 10) // Seek to percentage
     else return // If no shortcut matches, do nothing
     e.preventDefault()
     e.stopPropagation()
@@ -738,8 +715,7 @@ function loadIFramePlayer(data: ServerResponse) {
 
     document.querySelector('#VideoPlayer')!.innerHTML = ''
     document.querySelector('#VideoPlayer')?.appendChild(iframe)
-    IFrameComm.IFrame = (document.querySelector('#indavideoframe') as HTMLIFrameElement)
-        .contentWindow as Window
+    IFrameComm.IFrame = (document.querySelector('#indavideoframe') as HTMLIFrameElement).contentWindow as Window
 
     let isIframeLoaded = false
 
@@ -764,8 +740,7 @@ function loadIFramePlayer(data: ServerResponse) {
 
     IFrameComm.onPlayerReplaced = () => {
         addIFrameEventListeners()
-        IFrameComm!.IFrame = (document.querySelector('#indavideoframe') as HTMLIFrameElement)
-            .contentWindow as Window
+        IFrameComm!.IFrame = (document.querySelector('#indavideoframe') as HTMLIFrameElement).contentWindow as Window
     }
 
     IFrameComm.onToast = (
@@ -840,7 +815,11 @@ function loadHTML5Player(data: ServerResponse, qualityData?: EpisodeVideoData[])
         }
 
         if (['s4', 's5'].includes(currentServer)) {
-            Toast.warning('Erről a szerverről nem lehet letölteni a videót!', 'Kérlek válts egy másik szerverre a videó letöltéséhez.', { duration: 5000 },)
+            Toast.warning(
+                'Erről a szerverről nem lehet letölteni a videót!',
+                'Kérlek válts egy másik szerverre a videó letöltéséhez.',
+                { duration: 5000 },
+            )
             return
         }
 
@@ -857,11 +836,7 @@ function loadHTML5Player(data: ServerResponse, qualityData?: EpisodeVideoData[])
             },
             (e: Error) => {
                 Logger.error('Videó letöltése sikertelen: ' + e.message)
-                Toast.error(
-                    'Videó letöltése sikertelen.',
-                    'Hiba történt a videó letöltése közben.',
-                    { duration: 5000 },
-                )
+                Toast.error('Videó letöltése sikertelen.', 'Hiba történt a videó letöltése közben.', { duration: 5000 })
             },
         )
     }
@@ -891,7 +866,11 @@ function loadHLSPlayer(data: ServerResponse) {
         )
         Player.download = () => {
             if (['s4', 's5'].includes(currentServer)) {
-                Toast.warning('Erről a szerverről nem lehet letölteni a videót!', 'Kérlek válts egy másik szerverre a videó letöltéséhez.', { duration: 5000 },)
+                Toast.warning(
+                    'Erről a szerverről nem lehet letölteni a videót!',
+                    'Kérlek válts egy másik szerverre a videó letöltéséhez.',
+                    { duration: 5000 },
+                )
                 return
             }
             if (downloadCooldown) {
@@ -992,11 +971,7 @@ function loadHLSPlayer(data: ServerResponse) {
         if (Player instanceof HLSPlayer) {
             Player.onTokenExpired = () => {
                 Logger.warn('Expired token. Reloading page...')
-                handleError(
-                    'VIDEO',
-                    'TOKEN_EXPIRED',
-                    'A videó elérésének ideje lejárt. Az oldal újratöltése...',
-                )
+                handleError('VIDEO', 'TOKEN_EXPIRED', 'A videó elérésének ideje lejárt. Az oldal újratöltése...')
                 setTimeout(() => {
                     window.location.reload()
                 }, 2000)
@@ -1100,9 +1075,7 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                     .then((token) => {
                         if (token && token !== '') {
                             csrfToken = token
-                            Logger.log(
-                                'CSRF token refreshed in background. Retrying silent load...',
-                            )
+                            Logger.log('CSRF token refreshed in background. Retrying silent load...')
                             silentLoadVideo(server, vid, retryAttempt + 1)
                             return false
                         } else {
@@ -1136,29 +1109,17 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
             const newPlayerType = decidePlayerType(data)
 
             let currentImpl: 'Native' | 'HLS' | 'IFrame' =
-                Player instanceof NativePlayer
-                    ? 'Native'
-                    : Player instanceof HLSPlayer
-                      ? 'HLS'
-                      : 'IFrame'
+                Player instanceof NativePlayer ? 'Native' : Player instanceof HLSPlayer ? 'HLS' : 'IFrame'
 
             if (['dailymotion', 'mega'].includes(newPlayerType)) {
-                Logger.warn(
-                    'Cannot silently load video for iframe-based players. Falling back to full load.',
-                )
+                Logger.warn('Cannot silently load video for iframe-based players. Falling back to full load.')
                 handleServerResponse(data)
                 return data.button_vid_next
             }
 
-            if (
-                currentImpl === 'Native' &&
-                ['HTML5', 'indavideo', 'videa'].includes(newPlayerType)
-            ) {
+            if (currentImpl === 'Native' && ['HTML5', 'indavideo', 'videa'].includes(newPlayerType)) {
                 Logger.log('Silently loading video using NativePlayer...')
-                let qualityDataPromise: Promise<EpisodeVideoData[]> = [
-                    'indavideo',
-                    'videa',
-                ].includes(newPlayerType)
+                let qualityDataPromise: Promise<EpisodeVideoData[]> = ['indavideo', 'videa'].includes(newPlayerType)
                     ? getQualityDataFromIFrame(data)
                     : Promise.resolve(getQualityDataHTML5(data))
                 qualityDataPromise
@@ -1169,9 +1130,7 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                         }
                         window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`)
                         document.querySelector('#VideoPlayer')!.setAttribute('data-server', server)
-                        document
-                            .querySelector('#VideoPlayer')!
-                            .setAttribute('data-vid', String(vid))
+                        document.querySelector('#VideoPlayer')!.setAttribute('data-vid', String(vid))
                         Player!.epID = vid
                         Player!.loadNewVideo(videoData, MA.EPISODE.getEpisodeNumber())
                         Player!.curQuality = videoData[0]
@@ -1197,14 +1156,9 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                         }
                         window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`)
                         document.querySelector('#VideoPlayer')!.setAttribute('data-server', server)
-                        document
-                            .querySelector('#VideoPlayer')!
-                            .setAttribute('data-vid', String(vid))
+                        document.querySelector('#VideoPlayer')!.setAttribute('data-vid', String(vid))
                         ;(Player as HLSPlayer).epID = vid
-                        ;(Player as HLSPlayer).loadNewVideo(
-                            videoData,
-                            MA.EPISODE.getEpisodeNumber(),
-                        )
+                        ;(Player as HLSPlayer).loadNewVideo(videoData, MA.EPISODE.getEpisodeNumber())
                         ;(Player as HLSPlayer).curQuality = videoData[0]
                         Logger.success('Video silently loaded using HLSPlayer.')
                     })
@@ -1214,9 +1168,7 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                 return data.button_vid_next
             }
 
-            Logger.warn(
-                'Cannot silently load video for the current player type combination. Performing full reload.',
-            )
+            Logger.warn('Cannot silently load video for the current player type combination. Performing full reload.')
             handleServerResponse(data)
             return data.button_vid_next
         })
@@ -1265,9 +1217,7 @@ function setDailyLimit(data: ServerResponse) {
         if (prevButton) {
             prevButton.onclick = () => {
                 if (epSwitchCooldown) {
-                    Logger.warn(
-                        'Episode switch cooldown is active, skipping previous episode action.',
-                    )
+                    Logger.warn('Episode switch cooldown is active, skipping previous episode action.')
                     Toast.warning('Kérlek várj egy kicsit, mielőtt váltasz a részek között.', '', {
                         duration: 3000,
                     })
@@ -1278,9 +1228,7 @@ function setDailyLimit(data: ServerResponse) {
                     epSwitchCooldown = false
                 }, 3000)
 
-                const activeButton = document.querySelector(
-                    '.videoChange.active',
-                ) as HTMLButtonElement
+                const activeButton = document.querySelector('.videoChange.active') as HTMLButtonElement
                 if (activeButton) {
                     const epTags = activeButton.querySelector('.episode-tags')
                     if (epTags && !epTags.querySelector('.watched')) {
@@ -1316,9 +1264,7 @@ function setDailyLimit(data: ServerResponse) {
                     epSwitchCooldown = false
                 }, 3000)
 
-                const activeButton = document.querySelector(
-                    '.videoChange.active',
-                ) as HTMLButtonElement
+                const activeButton = document.querySelector('.videoChange.active') as HTMLButtonElement
                 if (activeButton) {
                     const epTags = activeButton.querySelector('.episode-tags')
                     if (epTags && !epTags.querySelector('.watched')) {
@@ -1368,13 +1314,16 @@ function setServers(data: ServerResponse) {
       <div class="mat-servers-grid">
   `
 
+    let isActive = (server: { server: serverType; hq: string; title: string; active: number }): boolean => {
+        return server.active === 1 || currentServer === server.server
+    }
+
     servers.forEach((server) => {
-        const isActive = server.active === 1
         const qualityIcon = getIcon(Number(server.hq.replace('hq', '')))
 
         serversHTML += `
       <button
-        class="mat-server-btn ${isActive ? 'mat-server-active' : ''}"
+        class="mat-server-btn ${isActive(server) ? 'mat-server-active' : ''}"
         data-server="${server.server}"
         data-vid="${videoID}"
         data-quality="${server.hq}"
@@ -1407,7 +1356,7 @@ function setServers(data: ServerResponse) {
     `
     }
 
-    const activeServerData = servers.find((server) => server.active === 1)
+    const activeServerData = servers.find((server) => isActive(server))
     if (activeServerData) {
         currentServer = activeServerData.server
         serversHTML += `
@@ -1422,7 +1371,7 @@ function setServers(data: ServerResponse) {
         </div>
       </button>
     `
-    } else currentServer = 's1'
+    } else if (!servers.some((server) => server.active === 1)) currentServer = 's1'
 
     serversHTML += `
     </div>
@@ -1499,4 +1448,11 @@ function addSettingsButton() {
 
 // TODO: Add "theatre" mode
 // TODO: Add video expiry handling
+// TODO: Fix server source default selection when the response does not contain an active server [ DONE ]
+// TODO: Fix after server switch, the op/ed skip shortcut not working
+/* TODO:
+        -
+
+
+ */
 

@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Card } from './ui/card'
 import NativePlayer from '../player/NativePlayer'
 import { ExternalLink, Play, Film, MonitorPlay } from 'lucide-react'
-import type { EpisodeVideoData, SettingsV019 } from '../global'
+import type { EpisodeVideoData, Settings } from '../global'
 import IFramePlayerComm from '../player/IFrameComm'
 
 interface PlayerPreviewProps {
-    settings: SettingsV019
+    settings: Settings
     customCSS: string
 }
 
@@ -200,7 +200,7 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
 
     return (
         <div className="space-y-4">
-            {settings.plyr.design.enabled && customCSS && <style dangerouslySetInnerHTML={{ __html: customCSS }} />}
+            {settings.plyr.design && customCSS && <style dangerouslySetInnerHTML={{ __html: customCSS }} />}
             <Card className="bg-[#0a0e17] border-[#205daa]/20 rounded-lg shadow-md overflow-hidden">
                 <div className="plyr-container" ref={containerRef}>
                     {loading && (
@@ -244,7 +244,7 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
                                 }`}
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="font-medium text-gray-200 group-hover:text-white truncate max-w-[130px]">
+                                    <span className="font-medium text-gray-200 group-hover:text-white truncate max-w-32.5">
                                         {ep.title}
                                     </span>
                                     <MonitorPlay className={`w-3 h-3 ${active ? 'text-[#3f9fff]' : 'text-gray-500'}`} />
@@ -265,7 +265,7 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
                 {selectedEpisode ? (
                     <div className="space-y-4">
                         <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0 mt-1">
+                            <div className="shrink-0 mt-1">
                                 <Play className="w-5 h-5 text-[#205daa]" />
                             </div>
                             <div>
@@ -280,7 +280,7 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
 
                         {selectedEpisode.sourcePage && (
                             <div className="flex items-center gap-3">
-                                <div className="flex-shrink-0">
+                                <div className="shrink-0">
                                     <ExternalLink className="w-4 h-4 text-gray-400" />
                                 </div>
                                 <div>
@@ -298,7 +298,7 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
 
                         {videoData && !loading && !error && (
                             <div className="flex items-start gap-3">
-                                <div className="flex-shrink-0 mt-1">
+                                <div className="shrink-0 mt-1">
                                     <MonitorPlay className="w-4 h-4 text-[#205daa]" />
                                 </div>
                                 <div className="text-xs text-gray-300">

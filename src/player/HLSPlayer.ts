@@ -2,7 +2,7 @@ import BasePlayer from './BasePlayer'
 import Logger from '../Logger'
 import MAT from '../MAT'
 import Hls from 'hls.js'
-import { SettingsV019, FansubData, EpisodeVideoData } from '../global'
+import { FansubData, EpisodeVideoData, Settings } from '../global'
 import { ACTIONS } from '../lib/actions'
 
 /**
@@ -12,7 +12,7 @@ import { ACTIONS } from '../lib/actions'
  * @param {string} selector - The selector for the video element
  * @param {Array} qualityData - The quality data for the video
  * @param {boolean} isDownloadable - Whether the video is downloadable or not
- * @param {SettingsV019} settings - The settings for the player
+ * @param {Settings} settings - The settings for the player
  * @param {number} episodeId - The ID of the episode
  * @param {number} datasheetId - The ID of the datasheet
  * @param {string} title - The title of the anime
@@ -22,19 +22,19 @@ class HLSPlayer extends BasePlayer {
     hls: Hls | null
     fansub: FansubData[] | null
     curQuality: EpisodeVideoData | null
-    private messageHandler: (event: MessageEvent) => void
+    private readonly messageHandler: (event: MessageEvent) => void
 
     constructor(
         selector: string,
         qualityData: EpisodeVideoData[],
         isDownloadable: boolean,
-        settings: SettingsV019 = MAT.settings,
+        settings: Settings = MAT.settings,
         episodeId: number,
         datasheetId: number,
         title: string,
         episodeNumber: number,
         malId: number,
-        playerID: number
+        playerID: number,
     ) {
         super(
             selector,
@@ -46,7 +46,7 @@ class HLSPlayer extends BasePlayer {
             title,
             episodeNumber,
             malId,
-            playerID
+            playerID,
         )
         this.hls = null
         this.fansub = null
@@ -59,9 +59,7 @@ class HLSPlayer extends BasePlayer {
         window.addEventListener('message', (event) => {
             switch (event.data.type) {
                 case ACTIONS.IFRAME.TOGGLE_PLAY:
-                    let btn = document.querySelector(
-                        ".plyr__controls__item[data-plyr='play']",
-                    ) as HTMLElement
+                    let btn = document.querySelector(".plyr__controls__item[data-plyr='play']") as HTMLElement
                     if (btn) {
                         btn.focus()
                         btn.click()
@@ -80,9 +78,7 @@ class HLSPlayer extends BasePlayer {
                     if (this.plyr) this.plyr.muted = !this.plyr.muted
                     break
                 case ACTIONS.IFRAME.TOGGLE_FULLSCREEN:
-                    let f = document.querySelector(
-                        ".plyr__controls__item[data-plyr='fullscreen']",
-                    ) as HTMLElement
+                    let f = document.querySelector(".plyr__controls__item[data-plyr='fullscreen']") as HTMLElement
                     if (f) {
                         f.focus()
                         f.click()
@@ -110,10 +106,7 @@ class HLSPlayer extends BasePlayer {
                     )
                     break
                 case ACTIONS.IFRAME.SEEK_PERCENTAGE:
-                    this.seekTo(
-                        (Math.max(0, Math.min(100, event.data.percentage)) / 100) *
-                            (this.plyr?.duration || 0),
-                    )
+                    this.seekTo((Math.max(0, Math.min(100, event.data.percentage)) / 100) * (this.plyr?.duration || 0))
                     break
                 case ACTIONS.IFRAME.GET_BOOKMARKS:
                     break
@@ -151,9 +144,7 @@ class HLSPlayer extends BasePlayer {
     changeQuality(quality: number, videoElement: HTMLVideoElement) {
         if (!this.hls) return
         const currentTime = this.plyr?.currentTime || videoElement.currentTime || 0
-        const qualityData = this.epData.find(
-            (data) => Number(data.quality) === Number(quality),
-        )
+        const qualityData = this.epData.find((data) => Number(data.quality) === Number(quality))
         if (!qualityData) {
             Logger.error('Quality data not found.')
             return
@@ -172,10 +163,7 @@ class HLSPlayer extends BasePlayer {
             if (this.epData.length === 0) {
                 Logger.error('Invalid source URL.', true)
                 window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED))
-                window.parent.postMessage(
-                    { type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED },
-                    '*',
-                )
+                window.parent.postMessage({ type: ACTIONS.IFRAME.PLAYER_REPLACE_FAILED }, '*')
                 return
             }
             let videoElement = this.createVideoElement()
@@ -212,20 +200,20 @@ class HLSPlayer extends BasePlayer {
         })
 
         if (Hls.isSupported()) {
-            if (this.epData[0].url.includes("magyaranime")){
-                let url = new URL(this.epData[0].url);
+            if (this.epData[0].url.includes('magyaranime')) {
+                let url = new URL(this.epData[0].url)
                 let token = url.searchParams.get('token')
-                let expires = url.searchParams.get("expires");
+                let expires = url.searchParams.get('expires')
                 this.hls = new Hls({
                     xhrSetup: (xhr: XMLHttpRequest, url: string) => {
-                        if (url.endsWith(".ts")){
-                            let newUrl = new URL(url);
-                            newUrl.searchParams.set("token", token || "");
-                            newUrl.searchParams.set("expires", expires || "");
-                            xhr.open("GET", newUrl.toString());
+                        if (url.endsWith('.ts')) {
+                            let newUrl = new URL(url)
+                            newUrl.searchParams.set('token', token || '')
+                            newUrl.searchParams.set('expires', expires || '')
+                            xhr.open('GET', newUrl.toString())
                         }
-                    }
-                });
+                    },
+                })
             } else this.hls = new Hls()
             this.hls.loadSource(this.epData[0].url)
             this.hls.attachMedia(videoElement)

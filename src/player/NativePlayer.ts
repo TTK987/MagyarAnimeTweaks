@@ -1,5 +1,5 @@
 import BasePlayer from "./BasePlayer";
-import {SettingsV019, EpisodeVideoData} from '../global';
+import { Settings, EpisodeVideoData } from '../global'
 
 class NativePlayer extends BasePlayer {
     curQuality: EpisodeVideoData | null
@@ -21,26 +21,26 @@ class NativePlayer extends BasePlayer {
         selector: string,
         qualityData: EpisodeVideoData[],
         isDownloadable: boolean = true,
-        settings: SettingsV019,
+        settings: Settings,
         epID: number,
         animeID: number,
         animeTitle: string,
         epNum: number,
         malId: number,
-        playerID: number
+        playerID: number,
     ) {
-        super(selector, qualityData, isDownloadable, settings, epID, animeID, animeTitle, epNum, malId, playerID);
+        super(selector, qualityData, isDownloadable, settings, epID, animeID, animeTitle, epNum, malId, playerID)
         this.curQuality = null
     }
 
     changeQuality(quality: number, videoElement: HTMLVideoElement) {
-        let currentTime = videoElement.currentTime;
-        const selectedQuality = this.epData.find(data => data.quality === quality);
+        let currentTime = videoElement.currentTime
+        const selectedQuality = this.epData.find((data) => data.quality === quality)
         if (selectedQuality) {
-            this.curQuality = selectedQuality;
-            videoElement.src = selectedQuality.url;
+            this.curQuality = selectedQuality
+            videoElement.src = selectedQuality.url
         }
-        videoElement.currentTime = currentTime;
+        videoElement.currentTime = currentTime
     }
 }
 

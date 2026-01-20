@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Switch } from './ui/switch'
-import type { SettingsV019 } from '../global'
+import type { Settings } from '../global'
 import {
     FaCheckCircle,
     FaExclamationTriangle,
@@ -13,7 +13,7 @@ import React from 'react'
 import { FaTerminal } from 'react-icons/fa6'
 
 interface props {
-    settings: SettingsV019
+    settings: Settings
     onSettingChange: (id: string, updatedSetting: { [key: string]: any }) => void
 }
 

@@ -11,7 +11,7 @@ import {Tabs} from '../../components/ui/tabs'
 import {createRoot} from 'react-dom/client'
 import Footer from '../../components/footer'
 import Navbar from '../../components/navbar'
-import type {SettingsV019} from '../../global'
+import type {Settings} from '../../global'
 import {useState, useEffect} from 'react'
 import Logger from '../../Logger'
 import Toast from '../../Toast'
@@ -21,8 +21,8 @@ import React from 'react'
 
 
 function SettingsSite() {
-    const [currentSetting, setCurrentSetting] = useState<SettingsV019>(MAT.getDefaultSettings())
-    const [savedSetting, setSavedSetting] = useState<SettingsV019>(MAT.getDefaultSettings())
+    const [currentSetting, setCurrentSetting] = useState<Settings>(MAT.getDefaultSettings())
+    const [savedSetting, setSavedSetting] = useState<Settings>(MAT.getDefaultSettings())
     const [css, setCSS] = useState<string>('')
 
     function onSave() {
@@ -50,8 +50,8 @@ function SettingsSite() {
     }
 
     function onSettingsChange(id: string, updatedSetting: { [key: string]: any }) {
-        setCurrentSetting((prevSettings: SettingsV019) => {
-            let newSettings: SettingsV019 = {...prevSettings}
+        setCurrentSetting((prevSettings: Settings) => {
+            let newSettings: Settings = {...prevSettings}
             if (id.includes('.')) {
                 const keys = id.split('.')
                 const lastKey = keys.pop()!
@@ -64,7 +64,7 @@ function SettingsSite() {
                 }
                 target[lastKey] = updatedSetting
             } else if (id === '') {
-                newSettings = updatedSetting as SettingsV019
+                newSettings = updatedSetting as Settings
             } else {
                 // @ts-ignore
                 newSettings[id] = updatedSetting
@@ -75,7 +75,7 @@ function SettingsSite() {
     }
 
     useEffect(() => {
-        MAT.loadSettings().then((settings: SettingsV019) => {
+        MAT.loadSettings().then((settings: Settings) => {
             if (settings) {
                 setCurrentSetting({...settings})
                 setSavedSetting({...settings})
@@ -90,7 +90,7 @@ function SettingsSite() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Navbar version={MAT.getVersion()} eap={MAT.isEAP()}/>
+            <Navbar version={MAT.version} eap={MAT.isEAP()}/>
             <main className="grow container mx-auto px-4 py-6 min-h-screen">
                 <Tabs defaultValue="normal" className="min-w-full">
                     <div className="flex flex-row justify-between items-center mb-6 gap-4 mt-4">
@@ -239,7 +239,7 @@ function SettingsSite() {
                     </div>
                 </Tabs>
             </main>
-            <Footer version={MAT.getVersion()} eap={MAT.isEAP()}/>
+            <Footer version={MAT.version} eap={MAT.isEAP()}/>
         </div>
     )
 }

@@ -5,12 +5,12 @@ import PlayerPreview from "./player-preview"
 import {Card, CardContent, CardHeader, CardTitle} from "./ui/card"
 import {Switch} from "./ui/switch"
 import {Button} from "./ui/button"
-import type {SettingsV019} from "../global"
+import type {Settings} from "../global"
 import MAT from "../MAT"
 import Toast from "../Toast"
 
 interface PlyrSettingsTabProps {
-    settings: SettingsV019
+    settings: Settings
     onSettingsChange: (id: string, updatedSetting: { [key: string]: any }) => void
     onCSSChange: (css: string) => void
 }
@@ -68,7 +68,7 @@ export default function PlyrSettingsTab({settings, onSettingsChange, onCSSChange
     }
 
     const handleMainToggleChange = (checked: boolean) => {
-        const updatedSetting = {...settings.plyr.design, enabled: checked}
+        const updatedSetting = {...settings.plyr, design: checked}
         onSettingsChange("plyr.design", updatedSetting)
     }
 
@@ -96,7 +96,7 @@ export default function PlyrSettingsTab({settings, onSettingsChange, onCSSChange
                             <Palette className="h-5 w-5 text-[#3f9fff]"/>
                             <CardTitle className="text-white text-lg font-medium">Lejátszó testreszabás</CardTitle>
                         </div>
-                        <Switch checked={settings.plyr.design.enabled} onCheckedChange={handleMainToggleChange}/>
+                        <Switch checked={settings.plyr.design} onCheckedChange={handleMainToggleChange}/>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -105,7 +105,7 @@ export default function PlyrSettingsTab({settings, onSettingsChange, onCSSChange
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-white mb-1">Szerkesztési mód</p>
-                                <p className="text-xs text-[#fff]/70">
+                                <p className="text-xs text-white/70">
                                     {isAdvancedMode
                                         ? "Közvetlen CSS szerkesztés teljes kontrollal"
                                         : "Egyszerű színválasztó használata"}
@@ -113,10 +113,10 @@ export default function PlyrSettingsTab({settings, onSettingsChange, onCSSChange
                             </div>
                             <div className="flex items-center gap-2">
                                 <span
-                                    className={`text-xs ${!isAdvancedMode ? "text-white" : "text-[#fff]/50"}`}>Egyszerű</span>
+                                    className={`text-xs ${!isAdvancedMode ? "text-white" : "text-white/50"}`}>Egyszerű</span>
                                 <Switch checked={isAdvancedMode} onCheckedChange={setIsAdvancedMode}/>
                                 <span
-                                    className={`text-xs ${isAdvancedMode ? "text-white" : "text-[#fff]/50"}`}>Haladó</span>
+                                    className={`text-xs ${isAdvancedMode ? "text-white" : "text-white/50"}`}>Haladó</span>
                             </div>
                         </div>
 
@@ -152,7 +152,7 @@ export default function PlyrSettingsTab({settings, onSettingsChange, onCSSChange
                                 />
                                 {/* Character count indicator */}
                                 <div className="flex items-center justify-between">
-                                    <p className="text-xs text-[#fff]/70">Módosítsd a CSS-t a lejátszó megjelenésének
+                                    <p className="text-xs text-white/70">Módosítsd a CSS-t a lejátszó megjelenésének
                                         testreszabásához</p>
                                     <div className={`flex items-center gap-1 text-xs ${getCharacterCountColor(plyrCSS.length)}`}>
                                         {getCharacterCountIcon(plyrCSS.length)}
@@ -186,7 +186,7 @@ export default function PlyrSettingsTab({settings, onSettingsChange, onCSSChange
                             </div>
                         )}
                     </div>
-                    <p className="text-xs text-[#fff]/70 mt-4">Testreszabhatod a videólejátszó megjelenését és színeit</p>
+                    <p className="text-xs text-white/70 mt-4">Testreszabhatod a videólejátszó megjelenését és színeit</p>
                 </CardContent>
             </Card>
 

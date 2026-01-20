@@ -1,7 +1,7 @@
 import BasePlayer from "./BasePlayer";
 import Logger from "../Logger";
 import MAT from "../MAT";
-import {SettingsV019} from '../global';
+import {Settings} from '../global';
 import { ACTIONS } from '../lib/actions'
 
 /**
@@ -21,7 +21,7 @@ class MegaPlayer extends BasePlayer {
      */
     constructor(
         selector: string,
-        settings: SettingsV019 = MAT.settings,
+        settings: Settings = MAT.settings,
         epID: number,
         animeID: number,
         animeTitle: string,

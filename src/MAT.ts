@@ -1,10 +1,12 @@
 import Logger from './Logger'
-import { SettingsV019 } from './global'
+import { Settings } from './global'
 
 class MAT {
-    settings: SettingsV019
+    settings: Settings
+    version: string
     constructor() {
         this.settings = this.getDefaultSettings()
+        this.version = chrome.runtime.getManifest().version || '0.0.0'
     }
 
     /**
@@ -14,7 +16,7 @@ class MAT {
      * - Tries to load the settings from the preferred storage (local or sync)
      * - If the preferred storage is not available, it tries to load the other storage
      * - If the other storage is not available, it loads the default settings
-     * @returns {Promise<SettingsV019>} The settings from the storage
+     * @returns {Promise<Settings>} The settings from the storage
      * @since v0.1.8
      * @example
      * MAT.loadSettings().then((settings) => {
@@ -22,11 +24,11 @@ class MAT {
      * });
      *
      */
-    loadSettings(): Promise<SettingsV019> {
+    loadSettings(): Promise<Settings> {
         return new Promise((resolve) => {
             chrome.storage.sync.get('settings', (result) => {
                 if (result && result.settings) {
-                    this.settings = result.settings as SettingsV019
+                    this.settings = result.settings as Settings
                     Logger.success('Settings loaded from storage', true)
                     resolve(this.settings)
                 } else {
@@ -78,21 +80,21 @@ class MAT {
                                       },
                                   },
                                   {
-                                        id: randomId + 3,
-                                        action: { type: 'block' },
-                                        condition: {
-                                            urlFilter: '*://magyaranime.eu/data/search/search.js*',
-                                            resourceTypes: ['script'],
-                                        },
+                                      id: randomId + 3,
+                                      action: { type: 'block' },
+                                      condition: {
+                                          urlFilter: '*://magyaranime.eu/data/search/search.js*',
+                                          resourceTypes: ['script'],
+                                      },
                                   },
                                   {
-                                        id: randomId + 4,
-                                        action: { type: 'block' },
-                                        condition: {
-                                            urlFilter: '*://magyaranime.eu/css/player/player_noframe.css?*',
-                                            resourceTypes: ['stylesheet'],
-                                        },
-                                  }
+                                      id: randomId + 4,
+                                      action: { type: 'block' },
+                                      condition: {
+                                          urlFilter: '*://magyaranime.eu/css/player/player_noframe.css?*',
+                                          resourceTypes: ['stylesheet'],
+                                      },
+                                  },
                               ] as chrome.declarativeNetRequest.Rule[])
                             : ([] as chrome.declarativeNetRequest.Rule[])
                     chrome.declarativeNetRequest
@@ -101,9 +103,7 @@ class MAT {
                             removeRuleIds: [],
                         })
                         .then(() => {
-                            Logger.log(
-                                `Default player is now "${this.settings.advanced.player}"`,
-                            )
+                            Logger.log(`Default player is now "${this.settings.advanced.player}"`)
                         })
                         .catch((error) => {
                             Logger.error(`Failed to add new dynamic rules: ${error}`, true)
@@ -133,6 +133,7 @@ class MAT {
     /**
      * Get the version of the extension
      * @returns {String} The version of the extension
+     * @deprecated
      */
     getVersion(): string {
         return chrome.runtime.getManifest().version || '0.0.0'
@@ -140,12 +141,12 @@ class MAT {
 
     /**
      * Get the default settings of the extension
-     * @returns {SettingsV019} The default settings of the extension
+     * @returns {Settings} The default settings of the extension
      */
-    getDefaultSettings(): SettingsV019 {
+    getDefaultSettings(): Settings {
         return {
-            forwardSkip: {
-                /* Forward skip settings (default: ctrl + →) */ enabled: true,
+            forwardSkip: { /* Forward skip settings (default: ctrl + →) */
+                enabled: true,
                 time: 85,
                 keyBind: {
                     ctrlKey: true,
@@ -154,8 +155,8 @@ class MAT {
                     key: 'ArrowRight',
                 },
             },
-            backwardSkip: {
-                /* Backward skip settings (default: ctrl + ←) */ enabled: true,
+            backwardSkip: { /* Backward skip settings (default: ctrl + ←) */
+                enabled: true,
                 time: 85,
                 keyBind: {
                     ctrlKey: true,
@@ -164,8 +165,8 @@ class MAT {
                     key: 'ArrowLeft',
                 },
             },
-            nextEpisode: {
-                /* Next episode settings (default: alt + →)  */ enabled: true,
+            nextEpisode: { /* Next episode settings (default: alt + →)  */
+                enabled: true,
                 keyBind: {
                     ctrlKey: false,
                     altKey: true,
@@ -173,8 +174,8 @@ class MAT {
                     key: 'ArrowRight',
                 },
             },
-            previousEpisode: {
-                /* Previous episode settings (default: alt + ←) */ enabled: true,
+            previousEpisode: { /* Previous episode settings (default: alt + ←) */
+                enabled: true,
                 keyBind: {
                     ctrlKey: false,
                     altKey: true,
@@ -217,15 +218,89 @@ class MAT {
                  * %group% - Fansub group name (e.g. "Akio Fansub")
                  */
             },
+            nav: { /* Navigation settings */
+                searchBox: {
+                    enabled: true /* Search box in the navigation bar (default: true) */,
+                    openSearch: { /* Open the search page (default: ctrl + Enter) */
+                        ctrlKey: true,
+                        altKey: false,
+                        shiftKey: false,
+                        key: 'Enter',
+                    },
+                    open: { /* Open the search box (default: alt + /) */
+                        ctrlKey: false,
+                        altKey: true,
+                        shiftKey: false,
+                        key: '/',
+                    },
+                    close: { /* Close the search box (default: shift + Escape) */
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: true,
+                        key: 'Escape',
+                    }
+                },
+                episode: { /* Episode page navigation */
+                    enabled: true /* Enable episode page navigation (default: true) */,
+                    open: { /* Open anime episode (default: Enter) */
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: false,
+                        key: 'Enter',
+                    }
+                }
+            },
             plyr: {
                 /* Plyr settings */
-                design: {
-                    /* Plyr design settings */
-                    enabled: /* Plyr design settings (default: false) */ false,
+                design: false /* Plyr design settings (default: false) */,
+                shortcuts: {
+                    playPause: {
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: false,
+                        key: 'Space',
+                    },
+                    muteUnmute: {
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: false,
+                        key: 'KeyM',
+                    },
+                    fullscreen: {
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: false,
+                        key: 'KeyF',
+                    },
+                    volumeUp: {
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: false,
+                        key: 'ArrowUp',
+                    },
+                    volumeDown: {
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: false,
+                        key: 'ArrowDown',
+                    },
                 },
+                plugins: {
+                    aniSkip: {
+                        enabled: false /* Enable AniSkip plugin (default: false) */,
+                        skipOP: true /* Skip opening (default: true) */,
+                        skipED: true /* Skip ending (default: true) */,
+                        keyBind: {
+                            ctrlKey: false,
+                            altKey: false,
+                            shiftKey: false,
+                            key: 'KeyS',
+                        }
+                    }
+                }
             },
             eap: false /* Enable Early Access Program (default: false) */,
-            version: this.getVersion() /* Version of the extension */,
+            version: this.version /* Version of the extension */,
         }
     }
 
@@ -235,8 +310,8 @@ class MAT {
      */
     loadPlyrCSS(): Promise<string> {
         return new Promise((resolve) => {
-            chrome.storage.local.get("plyrCSS", (result) => {
-                resolve(result.plyrCSS as string || this.getDefaultPlyrCSS())
+            chrome.storage.local.get('plyrCSS', (result) => {
+                resolve((result.plyrCSS as string) || this.getDefaultPlyrCSS())
             })
         })
     }
@@ -247,21 +322,22 @@ class MAT {
      */
     savePlyrCSS(css: string) {
         // Attempt to clean the CSS string by removing HTML tags and invalid characters
-        css = css.replace(/<([a-z][a-z0-9]*)\b[^>]*>[\s\S]*?<\/\1>/gi,'')
-                 .replace(/<[^>]+>/g, '')
-                 .replace(/[^{}:;,.#\w\-\s()\/%"]/g, '');
+        css = css
+            .replace(/<([a-z][a-z0-9]*)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+            .replace(/<[^>]+>/g, '')
+            .replace(/[^{}:;,.#\w\-\s()\/%"]/g, '')
 
         // Limit the CSS string length to 10000 characters
         if (css.length > 10000) {
-            Logger.error("Error: Plyr CSS is too long (max 10000 characters)", true)
+            Logger.error('Error: Plyr CSS is too long (max 10000 characters)', true)
             return
         }
 
         chrome.storage.local.set({ plyrCSS: css }, () => {
             if (chrome.runtime.lastError) {
-                Logger.error("Error: Plyr CSS not saved", true)
+                Logger.error('Error: Plyr CSS not saved', true)
             } else {
-                Logger.success("Plyr CSS saved", true)
+                Logger.success('Plyr CSS saved', true)
             }
         })
     }

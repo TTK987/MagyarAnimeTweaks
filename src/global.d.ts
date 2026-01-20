@@ -1,5 +1,73 @@
 /// <reference types="vite/client" />
 
+type SettingsV0110 = {
+    forwardSkip: {
+        enabled: boolean
+        time: number
+        keyBind: keyBind
+    }
+    backwardSkip: {
+        enabled: boolean
+        time: number
+        keyBind: keyBind
+    }
+    nextEpisode: {
+        enabled: boolean
+        keyBind: keyBind
+    }
+    previousEpisode: {
+        enabled: boolean
+        keyBind: keyBind
+    }
+    autoNextEpisode: { enabled: boolean; time: number }
+    autoplay: { enabled: boolean }
+    bookmarks: { enabled: boolean }
+    resume: {
+        enabled: boolean
+        mode: 'auto' | 'ask'
+        clearAfter: '1w' | '1m' | '3m' | '1y' | 'never'
+    }
+    skip: { time: number }
+    advanced: {
+        consoleLog: boolean
+        player: 'plyr' | 'default'
+        downloadName: string
+    }
+    nav: {
+        searchBox: {
+            enabled: boolean
+            open: keyBind
+            close: keyBind
+            openSearch: keyBind
+        }
+        episode: {
+            enabled: boolean
+            open: keyBind
+        }
+    }
+    plyr: {
+        design: boolean
+        shortcuts: {
+            playPause: keyBind
+            muteUnmute: keyBind
+            volumeUp: keyBind
+            volumeDown: keyBind
+            fullscreen: keyBind
+        }
+        plugins: {
+            aniSkip: {
+                enabled: boolean
+                skipOP: boolean
+                skipED: boolean
+                keyBind: keyBind
+            }
+        }
+    }
+    eap: boolean
+    version: string
+}
+
+
 type SettingsV019 = {
     forwardSkip: {
         enabled: boolean
@@ -270,11 +338,13 @@ type MillisecondTimestamp = number & { readonly __brand: 'MillisecondTimestamp' 
 
 
 
-
-
+// Current settings type
+type Settings = SettingsV0110
 
 
 export {
+    Settings,
+    SettingsV0110,
     SettingsV019,
     SettingsV018,
     SettingsV017,
