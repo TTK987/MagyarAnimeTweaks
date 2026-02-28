@@ -187,15 +187,6 @@ export class NavigationEngine<I extends NavItem> {
         return this.activeIndex
     }
 
-    setActiveIndex(index: number, options?: { scroll?: boolean }): void {
-        const scroll = options?.scroll ?? true
-        if (index < 0 || index >= this.items.length) {
-            this.applyFocus(-1, scroll)
-            return
-        }
-        this.applyFocus(index, scroll)
-    }
-
     destroy(): void {
         if (this.isInitialized) {
             document.removeEventListener('keydown', this.handleKeyDown)
