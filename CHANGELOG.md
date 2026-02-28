@@ -42,6 +42,7 @@
     - Indavideo.hu forrásnál kevesebb adatforgalom: a videó elem `preload` attribútuma kikapcsolásra került.
     - Automatikus szerverválasztás, ha csak egy szerver érhető el, de az `active` hamis értékre van állítva.
     - S4/S5 szerverek letöltési lehetőségének megszüntetése.
+    - Aloldalról visszalépés után nem aktív a navigáció.[#3](https://github.com/TTK987/MagyarAnimeTweaks/issues/3#issuecomment-3515382627 )
     - Mega.nz forrásnál hibás UI megjelenés javítása.
     > Köszönet Sali-nak (MA moderátor) a hiba bejelentésért Edge böngészőben, a BNP animénél. (Ő kérte, hogy így írjam ki xd)
 
