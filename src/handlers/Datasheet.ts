@@ -132,7 +132,7 @@ export function initDatasheetNav(settings: Settings) {
         settingsID: 'episode'
     });
 
-    const observer = attachNavMutationObserver(engine, {
+    let observer = attachNavMutationObserver(engine, {
         childList: true,
         subtree: true,
         preserveActive: true,
@@ -141,24 +141,43 @@ export function initDatasheetNav(settings: Settings) {
     engine.init();
 
     const onPageShow = (e: PageTransitionEvent) => {
-        if (e.persisted) {
-            if (engine.getActiveIndex() === -1) engine.refreshItems(false);
+        if (!e.persisted) return;
+
+        engine.init();
+
+        if (observer) {
+            observer.disconnect();
+        }
+        observer = attachNavMutationObserver(engine, {
+            childList: true,
+            subtree: true,
+            preserveActive: true,
+        });
+
+        if (engine.getActiveIndex() === -1) engine.refreshItems(false);
+        else engine.refreshItems(true);
+    };
+
+    const onPageHide = (e?: PageTransitionEvent) => {
+        observer.disconnect();
+
+        const persisted = !!(e && 'persisted' in e && (e as PageTransitionEvent).persisted);
+        if (!persisted) {
+            engine.destroy();
+            window.removeEventListener('pageshow', onPageShow);
+            window.removeEventListener('pagehide', onPageHide as any);
         }
     };
 
-    const onPageHide = () => {
-        observer.disconnect();
-        engine.destroy();
-        window.removeEventListener('pageshow', onPageShow);
-        window.removeEventListener('pagehide', onPageHide);
-    };
-
     window.addEventListener('pageshow', onPageShow);
-    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('pagehide', onPageHide as any);
 
     return {
         destroy: () => {
             onPageHide();
+            window.removeEventListener('pageshow', onPageShow);
+            window.removeEventListener('pagehide', onPageHide as any);
+            engine.destroy();
         },
     };
 }

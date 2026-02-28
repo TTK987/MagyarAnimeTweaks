@@ -29,6 +29,7 @@ export class NavigationEngine<I extends NavItem> {
     private readonly settings: Settings
     private readonly settingsID: keyof Settings['nav']
     private readonly history = History
+    private isInitialized = false
 
     constructor(config: GridNavEngineConfig<I>) {
         this.getItemsFn = config.getItems
@@ -47,7 +48,10 @@ export class NavigationEngine<I extends NavItem> {
     }
 
     init(): void {
-        document.addEventListener('keydown', this.handleKeyDown)
+        if (!this.isInitialized) {
+            document.addEventListener('keydown', this.handleKeyDown)
+            this.isInitialized = true
+        }
         this.refreshItems(true)
     }
 
@@ -193,7 +197,10 @@ export class NavigationEngine<I extends NavItem> {
     }
 
     destroy(): void {
-        document.removeEventListener('keydown', this.handleKeyDown)
+        if (this.isInitialized) {
+            document.removeEventListener('keydown', this.handleKeyDown)
+            this.isInitialized = false
+        }
         this.items = []
         this.activeIndex = -1
     }

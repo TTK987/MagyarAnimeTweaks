@@ -204,7 +204,7 @@ section .row {
     });
 
     // Attach a general nav mutation observer (keeps items in sync on DOM changes)
-    const generalObserver = attachNavMutationObserver(engine, {
+    let generalObserver = attachNavMutationObserver(engine, {
         childList: true,
         subtree: true,
         preserveActive: true,
@@ -238,25 +238,49 @@ section .row {
     engine.init();
 
     const onPageShow = (e: PageTransitionEvent) => {
-        if (e.persisted) {
-            if (engine.getActiveIndex() === -1) engine.refreshItems(false);
+        if (!e.persisted) return;
+
+        engine.init();
+
+        if (generalObserver) {
+            generalObserver.disconnect();
+        }
+        generalObserver = attachNavMutationObserver(engine, {
+            childList: true,
+            subtree: true,
+            preserveActive: true,
+        });
+
+        if (engine.getActiveIndex() === -1) engine.refreshItems(false);
+        else engine.refreshItems(true);
+
+        // History container might get re-hydrated after restore.
+        if (!checkElozmenyek()) {
+            eloObserver.observe(document.body, { childList: true, subtree: true });
         }
     };
 
-    const onPageHide = () => {
+    const onPageHide = (e?: PageTransitionEvent) => {
         eloObserver.disconnect();
         generalObserver.disconnect();
-        engine.destroy();
-        window.removeEventListener('pageshow', onPageShow);
-        window.removeEventListener('pagehide', onPageHide);
+
+        const persisted = !!(e && 'persisted' in e && (e as PageTransitionEvent).persisted);
+        if (!persisted) {
+            engine.destroy();
+            window.removeEventListener('pageshow', onPageShow);
+            window.removeEventListener('pagehide', onPageHide as any);
+        }
     };
 
     window.addEventListener('pageshow', onPageShow);
-    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('pagehide', onPageHide as any);
 
     return {
         destroy: () => {
             onPageHide();
+            window.removeEventListener('pageshow', onPageShow);
+            window.removeEventListener('pagehide', onPageHide as any);
+            engine.destroy();
         },
     };
 }
