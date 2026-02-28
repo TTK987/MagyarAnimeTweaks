@@ -1,7 +1,10 @@
 import Logger from './Logger'
 import onLoad from './lib/load'
 import Fuse from 'fuse.js'
+import { fetchJSON } from './lib/fetch-utils'
+import { Settings } from './global'
 import MAT from './MAT'
+import { checkShortcut, createKeyBind } from './lib/shortcuts'
 
 type animeData = Array<{
     id: string
@@ -13,8 +16,14 @@ type animeData = Array<{
 }>
 let animes: animeData = []
 let fuse: Fuse<animeData[number]> | null = null
+let isOpen: boolean = false
 
-onLoad(init)
+let settings: Settings
+
+MAT.loadSettings().then((s) => {
+    settings=s
+    onLoad(init)
+})
 
 function renderResults(results: animeData) {
     const output = results
@@ -38,6 +47,27 @@ function searchAnime(query: string) {
     const isIdSearch = q.startsWith('#')
     const idTerm = isIdSearch ? q.replace(/^#\s*/, '') : ''
     const isMALSearch = q.includes('myanimelist')
+
+    if (isIdSearch && idTerm) {
+        const exactIdMatch = animes.find((val) => val.id === idTerm)
+        if (exactIdMatch) {
+            renderResults([exactIdMatch])
+            return
+        }
+    }
+
+    if (isMALSearch) {
+        const malID = query.match(/myanimelist\.net\/anime\/(\d+)/)?.[1]
+        const exactMalMatch = animes.find((val) => {
+            const malLower = val.myanimelist.toLowerCase()
+            if (malLower === q) return true
+            return !!(malID && malLower.includes(malID));
+        })
+        if (exactMalMatch) {
+            renderResults([exactMalMatch])
+            return
+        }
+    }
 
     if (!fuse && animes.length > 0) {
         fuse = new Fuse(animes, {
@@ -69,28 +99,7 @@ function searchAnime(query: string) {
 
         const val = res.item
 
-        if (isMALSearch) {
-            const malLower = val.myanimelist.toLowerCase()
-            const malID = query.match(/myanimelist\.net\/anime\/(\d+)/)?.[1]
-            if (malLower === q) score += 80
-            else if (malID && malLower.includes(malID)) score += 50
-        }
-
-        if (isIdSearch && idTerm) {
-            if (val.id === idTerm) score += 120
-            else if (val.id.startsWith(idTerm)) score += 90
-            else if (val.id.includes(idTerm)) score += 60
-        }
-
         scoredResults.push({ item: val, score })
-    }
-
-    if (isIdSearch && idTerm) {
-        for (const val of animes) {
-            if (val.id === idTerm && !scoredResults.find((r) => r.item === val)) {
-                scoredResults.push({ item: val, score: 1000 })
-            }
-        }
     }
 
     scoredResults.sort((a, b) => b.score - a.score)
@@ -126,14 +135,9 @@ function setupSearch() {
 function init() {
     document.querySelector('#gen-seacrh-btn')?.addEventListener('click', () => {
         if (animes.length === 0) {
-            fetch('data/search/data_search.php', {
-                headers: {
-                    'x-requested-with': 'XMLHttpRequest',
-                    'MagyarAnimeTweaks': 'v'+MAT.version,
-                },
-            })
-                .then((response) => response.json())
+            fetchJSON<Record<string, animeData[number]>>('data/search/data_search.php')
                 .then((data) => {
+                    isOpen = true
                     animes = Object.values(data)
                 })
                 .catch((error) => {
@@ -148,24 +152,25 @@ function init() {
         if (document.activeElement === searchField || document.activeElement?.closest('#search_box')) {
             const results = Array.from(document.querySelectorAll<HTMLAnchorElement>('#search_box a'))
             let focusedIndex = results.findIndex((a) => a.classList.contains('search-result-focused'))
-            if (event.key === 'Escape') {
+            // Close search box
+            if (checkShortcut(event, settings.nav.searchBox.close)) {
                 searchField.value = ''
                 const searchBox = document.getElementById('search_box')
-                if (searchBox) searchBox.innerHTML = ''
-                searchField.blur()
                 const searchButton = document.getElementById('gen-seacrh-btn')
-                if (searchButton) searchButton.dispatchEvent(new Event('click'))
+                if (isOpen && searchBox && searchButton) {
+                    searchField.value = ''
+                    searchBox.innerHTML = ''
+                    searchField.blur()
+                    searchButton.dispatchEvent(new Event('click'))
+                    isOpen = false
+                }
             } else if (event.key === 'ArrowDown') {
-                event.preventDefault()
-                event.stopImmediatePropagation()
                 if (results.length > 0) {
                     let nextIndex = focusedIndex === -1 ? 0 : (focusedIndex + 1) % results.length
                     results.forEach((a) => a.classList.remove('search-result-focused'))
                     results[nextIndex].classList.add('search-result-focused')
                 }
             } else if (event.key === 'ArrowUp') {
-                event.preventDefault()
-                event.stopImmediatePropagation()
                 if (results.length > 0) {
                     let prevIndex
                     if (focusedIndex === -1) {
@@ -178,18 +183,21 @@ function init() {
                     results.forEach((a) => a.classList.remove('search-result-focused'))
                     results[prevIndex].classList.add('search-result-focused')
                 }
-            } else if (event.key === 'Enter') {
-                event.preventDefault()
-                event.stopImmediatePropagation()
+            } else if (checkShortcut(event,createKeyBind(false,false,false,false,'Enter'))) {
                 if (focusedIndex !== -1 && results[focusedIndex]) {
                     window.location.href = results[focusedIndex].href
                 }
-            }
+            } else if (checkShortcut(event,settings.nav.searchBox.openSearch)) {
+                (document.querySelector('.search-submit') as HTMLButtonElement)?.click()
+            } else return
+            event.preventDefault()
+            event.stopImmediatePropagation()
         } else {
-            if (event.key === '/' && !['INPUT', 'TEXTAREA'].includes((document.activeElement as HTMLElement).tagName)) {
+            if (checkShortcut(event, settings.nav.searchBox.open) && !['INPUT', 'TEXTAREA'].includes((document.activeElement as HTMLElement).tagName)) {
                 event.preventDefault()
                 event.stopImmediatePropagation()
                 ;(document.querySelector('#gen-seacrh-btn') as HTMLButtonElement)?.dispatchEvent(new Event('click'))
+                isOpen = true
             }
         }
     })

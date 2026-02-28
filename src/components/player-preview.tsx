@@ -60,6 +60,11 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
     const commRef = useRef<IFramePlayerComm | null>(null)
     const activeLoadIndex = useRef<number | null>(null)
+    const settingsRef = useRef<Settings>(settings)
+
+    useEffect(() => {
+        settingsRef.current = settings
+    }, [settings])
 
     const [videoData, setVideoData] = useState<EpisodeVideoData[] | null>(null)
     const [loading, setLoading] = useState<boolean>(true)
@@ -166,7 +171,7 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
             '#mat-preview-player',
             videoData,
             false,
-            settings,
+            settingsRef.current,
             0,
             0,
             selectedEpisode.title,
@@ -184,12 +189,12 @@ export default function PlayerPreview({ settings, customCSS }: PlayerPreviewProp
         plyrRef.current.previousEpisode = () => {}
         plyrRef.current.nextEpisode = () => {}
         // Disable plugins not relevant for preview
-        plyrRef.current.Resume.disable()
+        plyrRef.current.History.disable()
         plyrRef.current.Bookmark.disable()
         plyrRef.current.AniSkip.disable()
 
         plyrRef.current.replace()
-    }, [videoData, settings, selectedEpisode])
+    }, [videoData, selectedEpisode])
 
     const destroyPlayerInstant = () => {
         cleanup()

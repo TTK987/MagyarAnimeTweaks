@@ -1,7 +1,7 @@
 import {Card, CardContent} from "./ui/card";
 import {Button} from "./ui/button";
 import React from "react";
-import {Anime, type Episode} from "../Resume";
+import {Anime, type Episode} from "../History";
 import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger} from "./ui/alert-dialog"
 import {Clock, Eye, ImageIcon, Play, Trash2} from "lucide-react"
 import {formatDate, formatTime} from "../lib/time-utils";

@@ -1,19 +1,28 @@
 import Logger from '../../Logger'
 import { formatTime } from '../../lib/time-utils'
-import AniSkip, { SkipInterval, SkipType } from '../../api/AniSkip'
+import AniSkip, { SkipInterval, SkipTimesResponse, SkipType } from '../../api/AniSkip'
 import BasePlayer from '../BasePlayer'
+import { checkShortcut } from '../../lib/shortcuts'
 
 export class AniSkipPlugin {
     private ctx: BasePlayer
     private isEnabled: boolean = true
     private aniSkip?: AniSkip
-    private aniSkipSegments: { op?: SkipInterval; ed?: SkipInterval } = {}
-    private aniSkipCycleShown: { op?: boolean; ed?: boolean } = {}
-    private aniSkipTimers: { op?: number; ed?: number } = {}
-    private keyHandlerRef?: Function
+    private aniSkipSegments: Record<SkipType, SkipInterval | undefined>
+    private aniSkipButtonVisible: Record<SkipType, boolean>
+    private aniSkipButtonHideTimers: Record<SkipType, number | undefined>
+    private aniSkipLastShownTime: Record<SkipType, number | undefined>
+    private videoDuration: number = 0
+    private lastSkipTime: number = 0
+    private skipCooldown: number = 1500 // 1.5 seconds cooldown
+    private buttonDisplayDuration: number = 3000 // 3 seconds display time
 
     constructor(ctx: BasePlayer) {
         this.ctx = ctx
+        this.aniSkipSegments = {} as Record<SkipType, SkipInterval | undefined>
+        this.aniSkipButtonVisible = {} as Record<SkipType, boolean>
+        this.aniSkipButtonHideTimers = {} as Record<SkipType, number | undefined>
+        this.aniSkipLastShownTime = {} as Record<SkipType, number | undefined>
     }
 
     private get settings() {
@@ -22,11 +31,6 @@ export class AniSkipPlugin {
 
     disable() {
         this.isEnabled = false
-        try {
-            if (this.keyHandlerRef && this.settings && this.settings.keyBind) {
-                this.ctx.offKeyDown(this.settings.keyBind, this.keyHandlerRef)
-            }
-        } catch (e) {}
     }
 
     async init(videoElement: HTMLVideoElement) {
@@ -40,24 +44,32 @@ export class AniSkipPlugin {
         Logger.log(`AniSkip: initializing (malId=${this.ctx.malId}, ep=${this.ctx.epNum})`)
         this.injectAniSkipCss()
 
-        const duration = videoElement.duration || this.ctx.plyr?.duration || 0
+        // Wait for video duration to be available
+        this.videoDuration = videoElement.duration || this.ctx.plyr?.duration || 0
+        if (!this.videoDuration || this.videoDuration <= 0 || !isFinite(this.videoDuration)) {
+            Logger.log('AniSkip: waiting for video duration...')
+            await new Promise<void>((resolve) => {
+                const onDurationChange = () => {
+                    this.videoDuration = videoElement.duration || this.ctx.plyr?.duration || 0
+                    if (this.videoDuration && this.videoDuration > 0 && isFinite(this.videoDuration)) {
+                        Logger.log(`AniSkip: video duration available: ${this.videoDuration.toFixed(2)}s`)
+                        videoElement.removeEventListener('durationchange', onDurationChange)
+                        resolve()
+                    }
+                }
+                videoElement.addEventListener('durationchange', onDurationChange)
+                onDurationChange()
+            })
+        }
 
         if (!this.aniSkip) this.aniSkip = new AniSkip()
 
-        let resp: any
-
-        const types: SkipType[] = []
-        if (this.settings.skipOP) types.push('op')
-        if (this.settings.skipED) types.push('ed')
-        if (!types.length) {
-            Logger.warn('AniSkip: both OP and ED skipping disabled in settings; aborting.')
-            return
-        }
+        let resp: SkipTimesResponse
 
         try {
             resp = await this.aniSkip.getMalSkipTimes(this.ctx.malId, this.ctx.epNum, {
-                types: types,
-                episodeLength: duration,
+                types: this.settings.skips,
+                episodeLength: this.videoDuration,
             })
         } catch (err: any) {
             if (err?.message?.includes('404')) {
@@ -69,70 +81,67 @@ export class AniSkipPlugin {
         }
 
         if (!resp || !resp.results || resp.results.length === 0) {
-            Logger.warn('AniSkip: OP/ED segments array empty after processing.')
+            Logger.warn('AniSkip: no skip segments found after processing.')
             return
         }
 
         Logger.log(`AniSkip: ${resp.results.length} segment(s) returned.`)
 
-        // Ensure internal state objects exist
-        this.aniSkipSegments = this.aniSkipSegments || { op: undefined, ed: undefined }
-        this.aniSkipCycleShown = this.aniSkipCycleShown || { op: false, ed: false }
-        this.aniSkipTimers = this.aniSkipTimers || { op: undefined, ed: undefined }
-
-        // Register key handler using BasePlayer API (so it can be unregistered later)
         try {
-            if (this.settings.keyBind) {
-                // store reference so we can unregister
-                this.keyHandlerRef = (_ev: KeyboardEvent) => {
-                    // Attempt to trigger currently visible AniSkip button, or fallback to OP then ED
-                    const visibleBtn = document.querySelector('.mat-aniskip-button:not([style*="display: none"])') as HTMLButtonElement | null
-                    if (visibleBtn) {
-                        visibleBtn.click()
-                        return
-                    }
-                    const opBtn = document.querySelector('.mat-aniskip-button[data-segment="op"]') as HTMLButtonElement | null
-                    const edBtn = document.querySelector('.mat-aniskip-button[data-segment="ed"]') as HTMLButtonElement | null
-                    if (opBtn) {
-                        opBtn.click()
-                        return
-                    }
-                    if (edBtn) {
-                        edBtn.click()
+            document.addEventListener('keydown', (ev) => {
+                if (!checkShortcut(ev, this.settings.keyBind)) return
+                if (!this.ctx.plyr) return
+                // Check cooldown
+                const now = Date.now()
+                if (now - this.lastSkipTime < this.skipCooldown) {
+                    Logger.log('AniSkip: skip on cooldown, ignoring keybind.')
+                    return
+                }
+                const currentTime = this.ctx.plyr.currentTime
+                // Find a segment we are currently inside
+                for (const segKey of Object.keys(this.aniSkipSegments)) {
+                    const seg = segKey as SkipType
+                    const interval = this.aniSkipSegments[seg]
+                    if (!interval) continue
+                    if (currentTime >= interval.startTime && currentTime < interval.endTime) {
+                        Logger.log(`AniSkip: keybind skip ${seg.toUpperCase()} -> jumping to ${interval.endTime.toFixed(2)}`)
+                        this.lastSkipTime = now
+                        this.ctx.plyr.currentTime = interval.endTime
+                        const labelMap: Record<string, string> = { op: 'OP átugrása', ed: 'ED átugrása' }
+                        const human = labelMap[seg.toLowerCase()] || `${seg.toUpperCase()} átugrása`
+                        this.ctx.Toast('info', human, '', { duration: 600 })
                         return
                     }
                 }
-                this.ctx.onKeyDown(this.settings.keyBind, this.keyHandlerRef)
-                Logger.log('AniSkip: registered keyBind listener.')
-            }
+                Logger.log('AniSkip: keybind pressed but not inside any segment.')
+            })
+            Logger.log('AniSkip: registered keyBind listener.')
         } catch (e) {
             Logger.warn('AniSkip: failed to register keyBind listener: ' + e)
         }
 
-        type SegmentType = 'op' | 'ed'
         type Interval = { startTime: number; endTime: number }
 
         resp.results.forEach((r: any) => {
-            const type = r?.skipType as SegmentType
-            if (type !== 'op' && type !== 'ed') {
-                Logger.log(`AniSkip: ignoring non OP/ED segment type=${r?.skipType}`)
+            const rawType = r?.skipType
+            if (!rawType) {
+                Logger.log(`AniSkip: ignoring segment with missing skipType`)
                 return
             }
+            const type: SkipType = String(rawType) as SkipType
+
             const interval: Interval | undefined = r?.interval
             if (!interval) {
                 Logger.warn('AniSkip: invalid interval data; skipping.')
                 return
             }
 
+            // store by arbitrary skip type
             this.aniSkipSegments[type] = interval
-            this.aniSkipCycleShown[type] = false
+            this.aniSkipButtonVisible[type] = false
 
             Logger.log(
-                `AniSkip: registered ${type.toUpperCase()} segment start=${interval.startTime.toFixed(
-                    2,
-                )} (${formatTime(interval.startTime)}) end=${interval.endTime.toFixed(
-                    2,
-                )} (${formatTime(interval.endTime)})`,
+                `AniSkip: registered ${type.toUpperCase()} segment start=${interval.startTime.toFixed(2)} (${formatTime(interval.startTime)}) end=${interval.endTime.toFixed(2)} (${formatTime(interval.endTime)})`,
             )
 
             if (document.querySelector(`.mat-aniskip-button[data-segment="${type}"]`)) {
@@ -147,7 +156,8 @@ export class AniSkipPlugin {
             }
 
             const btn = document.createElement('button')
-            const human = type === 'op' ? 'OP átugrása' : 'ED átugrása'
+            const labelMap: Record<string, string> = { op: 'OP átugrása', ed: 'ED átugrása' }
+            const human = labelMap[type.toLowerCase()] || `${type.toUpperCase()} átugrása`
             btn.className = 'mat-aniskip-button'
             btn.setAttribute('data-segment', type)
             btn.innerHTML = `
@@ -161,9 +171,14 @@ export class AniSkipPlugin {
                 e.preventDefault()
                 e.stopPropagation()
                 if (!this.ctx.plyr) return
-                Logger.log(
-                    `AniSkip: user clicked ${type.toUpperCase()} skip -> jumping to ${interval.endTime.toFixed(2)}`,
-                )
+                // Check cooldown
+                const now = Date.now()
+                if (now - this.lastSkipTime < this.skipCooldown) {
+                    Logger.log('AniSkip: skip on cooldown, ignoring click.')
+                    return
+                }
+                Logger.log(`AniSkip: user clicked ${type.toUpperCase()} skip -> jumping to ${interval.endTime.toFixed(2)}`,)
+                this.lastSkipTime = now
                 this.ctx.plyr.currentTime = interval.endTime
                 this.hideAniSkipButton(type)
                 this.ctx.Toast('info', human, '', { duration: 600 })
@@ -179,9 +194,13 @@ export class AniSkipPlugin {
             videoElement.setAttribute(boundKey, '1')
             Logger.log('AniSkip: timeupdate listener attached.')
         }
+
+        // Inject timeline markers after segments are registered
+        this.injectTimelineMarkers()
     }
 
-    private showAniSkipButton(type: 'op' | 'ed') {
+    private showAniSkipButton(type: SkipType) {
+        if (this.aniSkipButtonVisible[type]) return // already visible
         const btn = document.querySelector(`.mat-aniskip-button[data-segment="${type}"]`) as HTMLElement | null
         if (!btn) {
             Logger.warn(`AniSkip: show requested but button not found for ${type}`)
@@ -189,48 +208,132 @@ export class AniSkipPlugin {
         }
         btn.style.display = 'flex'
         btn.style.opacity = '1'
-        Logger.log(`AniSkip: displaying ${type.toUpperCase()} skip button (will auto-hide).`)
-        if (this.aniSkipTimers[type]) window.clearTimeout(this.aniSkipTimers[type] as number)
-        this.aniSkipTimers[type] = window.setTimeout(() => this.hideAniSkipButton(type), 5000)
+        this.aniSkipButtonVisible[type] = true
+        Logger.log(`AniSkip: displaying ${type.toUpperCase()} skip button.`)
+
+        // Clear any existing hide timer
+        if (this.aniSkipButtonHideTimers[type]) {
+            clearTimeout(this.aniSkipButtonHideTimers[type])
+        }
+
+        // Set auto-hide timer for 3 seconds
+        this.aniSkipButtonHideTimers[type] = window.setTimeout(() => {
+            this.hideAniSkipButton(type)
+            Logger.log(`AniSkip: auto-hiding ${type.toUpperCase()} skip button after ${this.buttonDisplayDuration / 1000}s.`)
+        }, this.buttonDisplayDuration)
     }
 
-    private hideAniSkipButton(type: 'op' | 'ed') {
+    private hideAniSkipButton(type: SkipType) {
+        if (!this.aniSkipButtonVisible[type]) return // already hidden
         const btn = document.querySelector(`.mat-aniskip-button[data-segment="${type}"]`) as HTMLElement | null
         if (!btn) return
-        if (btn.style.display !== 'none') {
-            Logger.log(`AniSkip: hiding ${type.toUpperCase()} skip button.`)
-        }
         btn.style.opacity = '0'
         btn.style.display = 'none'
+        this.aniSkipButtonVisible[type] = false
+
+        // Clear any pending hide timer
+        if (this.aniSkipButtonHideTimers[type]) {
+            clearTimeout(this.aniSkipButtonHideTimers[type])
+            this.aniSkipButtonHideTimers[type] = undefined
+        }
+
+        Logger.log(`AniSkip: hiding ${type.toUpperCase()} skip button.`)
     }
 
     private handleAniSkipTime() {
         if (!this.ctx.plyr) return
         const t = this.ctx.plyr.currentTime
-        ;(['op', 'ed'] as const).forEach((seg) => {
+        Object.keys(this.aniSkipSegments).forEach((segKey) => {
+            const seg = segKey as SkipType
             const interval = this.aniSkipSegments[seg]
             if (!interval) return
-            // If we've moved back before the start window, reset the shown cycle
-            if (t < interval.startTime - 1.0) {
-                if (this.aniSkipCycleShown[seg]) {
-                    Logger.log(
-                        `AniSkip: reset display cycle for ${seg.toUpperCase()} (current=${t.toFixed(
-                            2,
-                        )} start=${interval.startTime.toFixed(2)})`,
-                    )
+
+            const isInsideSegment = t >= interval.startTime && t < interval.endTime
+
+            if (isInsideSegment) {
+                if (this.settings.autoSkip.includes(seg)) {
+                    Logger.log(`AniSkip: auto-skipping ${seg.toUpperCase()} at ${t.toFixed(2)}s -> jumping to ${interval.endTime.toFixed(2)}s.`,)
+                    this.ctx.seekTo(interval.endTime)
+                    const labelMap: Record<string, string> = { op: 'OP átugrása', ed: 'ED átugrása' }
+                    const human = labelMap[seg.toLowerCase()] || `${seg.toUpperCase()} átugrása`
+                    this.ctx.Toast('info', human, '', { duration: 600 })
+                    return
                 }
-                this.aniSkipCycleShown[seg] = false
+                if (this.aniSkipLastShownTime[seg] === undefined) {
+                    this.aniSkipLastShownTime[seg] = t
+                    this.showAniSkipButton(seg)
+                }
+            } else {
+                this.aniSkipLastShownTime[seg] = undefined
+                if (this.aniSkipButtonVisible[seg]) {
+                    this.hideAniSkipButton(seg)
+                }
             }
-            // Show the skip button once when we enter the segment start window
-            if (!this.aniSkipCycleShown[seg] && t >= interval.startTime && t <= interval.startTime + 0.8) {
-                Logger.log(
-                    `AniSkip: trigger show window for ${seg.toUpperCase()} at ${t.toFixed(
-                        2,
-                    )} (segment start=${interval.startTime.toFixed(2)})`,
-                )
-                this.aniSkipCycleShown[seg] = true
-                this.showAniSkipButton(seg)
+        })
+    }
+
+    private injectTimelineMarkers() {
+        if (this.videoDuration <= 0) {
+            Logger.warn('AniSkip: cannot inject timeline markers (no duration).')
+            return
+        }
+
+        // Plyr structure: .plyr__progress > input[type=range] + .plyr__progress__buffer + .plyr__progress__played
+        const progressRoot = document.querySelector('.plyr__progress') as HTMLElement | null
+        if (!progressRoot) {
+            Logger.warn('AniSkip: cannot find .plyr__progress for timeline markers.')
+            return
+        }
+
+        // Ensure parent can hold absolutely positioned overlay
+        const parentStyle = getComputedStyle(progressRoot)
+        if (parentStyle.position === 'static') {
+            progressRoot.style.position = 'relative'
+        }
+
+        // Create or get marker track container (sibling overlay that doesn't interfere with input)
+        let markerTrack = progressRoot.querySelector('.mat-aniskip-marker-track') as HTMLElement | null
+        if (!markerTrack) {
+            markerTrack = document.createElement('div')
+            markerTrack.className = 'mat-aniskip-marker-track mat-aniskip-gradient-track'
+            progressRoot.appendChild(markerTrack)
+            Logger.log('AniSkip: marker track container created.')
+        }
+
+        // Clear existing markers
+        markerTrack.innerHTML = ''
+
+        Object.keys(this.aniSkipSegments).forEach((segKey) => {
+            const seg = segKey as SkipType
+            const interval = this.aniSkipSegments[seg]
+            if (!interval) return
+
+            const startPct = (interval.startTime / this.videoDuration) * 100
+            const widthPct = ((interval.endTime - interval.startTime) / this.videoDuration) * 100
+
+            const marker = document.createElement('div')
+            marker.className = 'mat-aniskip-marker'
+            marker.setAttribute('data-segment', seg)
+
+            const colorMap: Record<string, string> = {
+                op: 'var(--mat-aniskip-op, #ffc832)',
+                ed: 'var(--mat-aniskip-ed, #b464ff)',
             }
+            const bgColor = colorMap[seg.toLowerCase()] || 'var(--mat-aniskip-other, #64c8ff)'
+
+            marker.style.left = `${Math.max(0, Math.min(100, startPct))}%`
+            marker.style.width = `${Math.max(0, Math.min(100 - startPct, widthPct))}%`
+            marker.style.setProperty('--marker-color', bgColor)
+
+            const labelMap: Record<string, string> = { op: 'OP', ed: 'ED' }
+            marker.title = labelMap[seg.toLowerCase()] || seg.toUpperCase()
+
+            markerTrack.appendChild(marker)
+            Logger.log(
+                `AniSkip: timeline marker for ${seg.toUpperCase()} injected at ${startPct.toFixed(
+                    1,
+                )}% width ${widthPct.toFixed(1)}%.`,
+            )
         })
     }
 
@@ -258,6 +361,13 @@ export class AniSkipPlugin {
         const style = document.createElement('style')
         style.id = 'MATweaks-aniskip-style'
         style.textContent = `
+        /* AniSkip custom properties */
+        :root {
+          --mat-aniskip-op: #ffc832;
+          --mat-aniskip-ed: #b464ff;
+          --mat-aniskip-other: #64c8ff;
+        }
+
         #MATweaks-aniskip-overlay { position:absolute; right:1rem; bottom:4.2rem; display:flex; flex-direction:column; gap:6px; z-index:1000; align-items:flex-end; pointer-events:none; }
         #MATweaks-aniskip-overlay .mat-aniskip-button { pointer-events:auto; border-radius:8px; cursor:pointer; border:none; padding:6px 12px 6px 10px; font-size:12px; line-height:1.2; display:none; align-items:center; gap:6px; color:#fff; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); font-weight:500; letter-spacing:.25px; box-shadow:0 4px 12px -2px rgba(0,0,0,.4); transition:background .25s, transform .25s, opacity .35s; }
         #MATweaks-aniskip-overlay .mat-aniskip-button:hover { background:rgba(0,0,0,.7); }
@@ -266,6 +376,30 @@ export class AniSkipPlugin {
         @media (max-width: 700px) {
           #MATweaks-aniskip-overlay { bottom:4.8rem; }
           #MATweaks-aniskip-overlay .mat-aniskip-button { font-size:11px; padding:5px 10px; }
+        }
+
+        .mat-aniskip-marker-track {
+          position: absolute;
+          top: 10px;
+          left: 0;
+          right: 0;
+          height: 5px;
+          transform: translateY(-50%);
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        .mat-aniskip-marker {
+          position: absolute;
+          height: 95%;
+          top: 0;
+          background: var(--marker-color);
+          opacity: 0.6;
+          transition: opacity 0.2s ease;
+        }
+
+        .plyr__progress:hover .mat-aniskip-marker {
+          opacity: 0.8;
         }
     `
         document.head.appendChild(style)

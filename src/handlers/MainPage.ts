@@ -1,4 +1,5 @@
-import { NavigationEngine, MatNavItem, buildDomGrid, ensureNavStyleElement, createMatFocusChangeHandler } from '../lib/navigationEngine';
+import { NavigationEngine, MatNavItem, buildDomGrid, ensureNavStyleElement, createMatFocusChangeHandler, attachNavMutationObserver } from '../modules/navigation/navigationEngine';
+import { Settings } from '../global'
 
 type MainPageKbItem = MatNavItem<{
     episodeHref: string | null;
@@ -78,7 +79,7 @@ function getDatasheetLink(el: HTMLElement): string | null {
     return null
 }
 
-export function initMainPageNavigation(): void {
+export function initMainPageNavigation(settings: Settings) {
     const styleCSS = `
 .elozmenyek_helye_magas {
     height: 330px !important;
@@ -198,7 +199,64 @@ section .row {
                 window.location.href = target;
             }
         },
+        settings,
+        settingsID: 'mainPage'
     });
 
+    // Attach a general nav mutation observer (keeps items in sync on DOM changes)
+    const generalObserver = attachNavMutationObserver(engine, {
+        childList: true,
+        subtree: true,
+        preserveActive: true,
+    });
+
+    // Specialized observer: wait for #elozmenyek_helye to have .elozmeny_item children,
+    // then recompute everything and reset the nav state fully (clear active index).
+    const checkElozmenyek = (): boolean => {
+        const container = document.getElementById('elozmenyek_helye') as HTMLElement | null;
+        if (!container) return false;
+        const items = container.querySelectorAll('.elozmeny_item');
+        if (items && items.length > 0) {
+            // Recompute and reset navigation state fully
+            engine.refreshItems(true);
+            return true;
+        }
+        return false;
+    };
+
+    const eloObserver = new MutationObserver(() => {
+        if (checkElozmenyek()) {
+            eloObserver.disconnect();
+        }
+    });
+
+    // If items already exist, run immediately; otherwise observe the whole document until they appear
+    if (!checkElozmenyek()) {
+        eloObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
     engine.init();
+
+    const onPageShow = (e: PageTransitionEvent) => {
+        if (e.persisted) {
+            if (engine.getActiveIndex() === -1) engine.refreshItems(false);
+        }
+    };
+
+    const onPageHide = () => {
+        eloObserver.disconnect();
+        generalObserver.disconnect();
+        engine.destroy();
+        window.removeEventListener('pageshow', onPageShow);
+        window.removeEventListener('pagehide', onPageHide);
+    };
+
+    window.addEventListener('pageshow', onPageShow);
+    window.addEventListener('pagehide', onPageHide);
+
+    return {
+        destroy: () => {
+            onPageHide();
+        },
+    };
 }

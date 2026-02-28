@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+import { SkipType } from './api/AniSkip'
+
 type SettingsV0110 = {
     forwardSkip: {
         enabled: boolean
@@ -22,7 +24,7 @@ type SettingsV0110 = {
     autoNextEpisode: { enabled: boolean; time: number }
     autoplay: { enabled: boolean }
     bookmarks: { enabled: boolean }
-    resume: {
+    history: {
         enabled: boolean
         mode: 'auto' | 'ask'
         clearAfter: '1w' | '1m' | '3m' | '1y' | 'never'
@@ -30,7 +32,6 @@ type SettingsV0110 = {
     skip: { time: number }
     advanced: {
         consoleLog: boolean
-        player: 'plyr' | 'default'
         downloadName: string
     }
     nav: {
@@ -44,22 +45,26 @@ type SettingsV0110 = {
             enabled: boolean
             open: keyBind
         }
+        mainPage: {
+            enabled: boolean
+            open: keyBind
+        }
     }
     plyr: {
         design: boolean
         shortcuts: {
-            playPause: keyBind
-            muteUnmute: keyBind
-            volumeUp: keyBind
-            volumeDown: keyBind
-            fullscreen: keyBind
+            playPause: keyBind[]
+            muteUnmute: keyBind[]
+            volumeUp: keyBind[]
+            volumeDown: keyBind[]
+            fullscreen: keyBind[]
         }
         plugins: {
             aniSkip: {
                 enabled: boolean
-                skipOP: boolean
-                skipED: boolean
+                skips: SkipType[]
                 keyBind: keyBind
+                autoSkip: SkipType[]
             }
         }
     }
@@ -67,38 +72,37 @@ type SettingsV0110 = {
     version: string
 }
 
-
 type SettingsV019 = {
     forwardSkip: {
         enabled: boolean
         time: number
-        keyBind: keyBind
+        keyBind: keyBindLegacy
     }
     backwardSkip: {
         enabled: boolean
         time: number
-        keyBind: keyBind
+        keyBind: keyBindLegacy
     }
     nextEpisode: {
         enabled: boolean
-        keyBind: keyBind
+        keyBind: keyBindLegacy
     }
     previousEpisode: {
         enabled: boolean
-        keyBind: keyBind
+        keyBind: keyBindLegacy
     }
     autoNextEpisode: { enabled: boolean; time: number }
     autoplay: { enabled: boolean }
     bookmarks: { enabled: boolean }
     resume: {
-        enabled: boolean;
-        mode: "auto" | "ask"
-        clearAfter: "1w" | "1m" | "3m" | "1y" | "never"
+        enabled: boolean
+        mode: 'auto' | 'ask'
+        clearAfter: '1w' | '1m' | '3m' | '1y' | 'never'
     }
     skip: { time: number } // Value to skip in seconds using arrow keys only
     advanced: {
         consoleLog: boolean
-        player: "plyr" | "default"
+        player: 'plyr' | 'default'
         downloadName: string
     }
     plyr: {
@@ -111,87 +115,67 @@ type SettingsV019 = {
     version: string
 }
 
-type SettingsV018 =  {
+type SettingsV018 = {
     forwardSkip: {
-        enabled: boolean;
-        time: number;
-        keyBind: {
-            ctrlKey: boolean;
-            altKey: boolean;
-            shiftKey: boolean;
-            key: string;
-        };
-    };
+        enabled: boolean
+        time: number
+        keyBind: keyBindLegacy
+    }
     backwardSkip: {
-        enabled: boolean;
-        time: number;
-        keyBind: {
-            ctrlKey: boolean;
-            altKey: boolean;
-            shiftKey: boolean;
-            key: string;
-        };
-    };
+        enabled: boolean
+        time: number
+        keyBind: keyBindLegacy
+    }
     nextEpisode: {
-        enabled: boolean;
-        keyBind: {
-            ctrlKey: boolean;
-            altKey: boolean;
-            shiftKey: boolean;
-            key: string;
-        };
-    };
+        enabled: boolean
+        keyBind: keyBindLegacy
+    }
     previousEpisode: {
-        enabled: boolean;
-        keyBind: {
-            ctrlKey: boolean;
-            altKey: boolean;
-            shiftKey: boolean;
-            key: string;
-        };
-    };
+        enabled: boolean
+        keyBind: keyBindLegacy
+    }
     autoNextEpisode: {
-        enabled: boolean;
-        time: number;
-    };
+        enabled: boolean
+        time: number
+    }
     autoplay: {
-        enabled: boolean;
-    };
+        enabled: boolean
+    }
     bookmarks: {
-        enabled: boolean;
-    };
+        enabled: boolean
+    }
     resume: {
-        enabled: boolean;
-        mode: 'ask' | 'auto';
-    };
+        enabled: boolean
+        mode: 'ask' | 'auto'
+    }
     advanced: {
-        enabled: boolean;
+        enabled: boolean
         settings: {
             ConsoleLog: {
-                enabled: boolean;
-            };
+                enabled: boolean
+            }
             DefaultPlayer: {
-                player: string;
-            };
-        };
+                player: string
+            }
+        }
         plyr: {
             design: {
-                enabled: boolean;
+                enabled: boolean
                 settings: {
-                    svgColor: string;
-                    hoverBGColor: string;
-                    mainColor: string;
-                    hoverColor: string;
-                };
-            };
-        };
-        downloadName: string;
-    };
+                    svgColor: string
+                    hoverBGColor: string
+                    mainColor: string
+                    hoverColor: string
+                }
+            }
+        }
+        downloadName: string
+    }
     private: {
-        eap: boolean;
-    };
-    version: string;
-};
+        eap: boolean
+    }
+    version: string
+}
 
 type SettingsV017 = {
     forwardSkip: {
@@ -256,13 +240,20 @@ type SettingsV017 = {
         };
         downloadName: string;
     };
-};
+}
 
+type keyBindLegacy = {
+    ctrlKey: boolean
+    altKey: boolean
+    shiftKey: boolean
+    key: string
+}
 
 type keyBind = {
     ctrlKey: boolean
     altKey: boolean
     shiftKey: boolean
+    metaKey: boolean
     key: string
 }
 
@@ -332,11 +323,6 @@ type serverType = 's1' | 's2' | 's3' | 's4' | 's5'
 
 // Timestamp related types
 type UnixTimestamp = number & { readonly __brand: 'UnixTimestamp' }
-type MillisecondTimestamp = number & { readonly __brand: 'MillisecondTimestamp' }
-
-
-
-
 
 // Current settings type
 type Settings = SettingsV0110

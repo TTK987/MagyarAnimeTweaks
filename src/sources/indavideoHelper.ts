@@ -39,13 +39,94 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 let preloadObserver: MutationObserver = new MutationObserver((mutations, obs) => {
-    mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-            if (node instanceof HTMLVideoElement) {
-                node.preload = 'none'
+    const removePreloadFromElement = (el: Element | null) => {
+        if (!el || !(el instanceof Element)) return
+        const tag = el.tagName
+        if (tag === 'VIDEO' || tag === 'SOURCE' || el instanceof HTMLMediaElement || el instanceof HTMLSourceElement) {
+            if ((el as Element).hasAttribute('preload')) {
+                (el as Element).removeAttribute('preload')
             }
-        })
+        }
+    }
+
+    const walkAndRemove = (node: Node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            removePreloadFromElement(node as Element)
+            ;(node as Element).querySelectorAll && (node as Element)
+                .querySelectorAll('video[preload], source[preload]')
+                .forEach((el) => removePreloadFromElement(el))
+        }
+    }
+
+    // Handle mutations
+    mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => walkAndRemove(node))
+        if (mutation.type === 'attributes' && mutation.target) {
+            removePreloadFromElement(mutation.target as Element)
+        }
     })
 })
 
-preloadObserver.observe(document.body, { childList: true, subtree: true })
+// Initial sweep for elements already in DOM
+document.querySelectorAll('video[preload], source[preload]').forEach((el) => {
+    el.removeAttribute('preload')
+})
+
+;(function hardenPreloadPrevention() {
+    // Override the preload property to prevent setting it
+    try {
+        const mediaProto: any = HTMLMediaElement.prototype
+        const sourceProto: any = HTMLSourceElement.prototype
+
+        const overrideProp = (proto: any) => {
+            const desc = Object.getOwnPropertyDescriptor(proto, 'preload')
+            if (!desc || !desc.configurable) return
+            Object.defineProperty(proto, 'preload', {
+                configurable: true,
+                enumerable: desc.enumerable,
+                get: function () {
+                    return this.getAttribute ? this.getAttribute('preload') : ''
+                },
+                set: function (_v: any) {
+                    this.removeAttribute && this.removeAttribute('preload')
+                },
+            })
+        }
+
+        overrideProp(mediaProto)
+        overrideProp(sourceProto)
+    } catch (e) {}
+
+    const wrapSrcSetter = (proto: any) => {
+        const desc = Object.getOwnPropertyDescriptor(proto, 'src')
+        if (!desc || !desc.set) return
+        Object.defineProperty(proto, 'src', {
+            configurable: true,
+            enumerable: desc.enumerable,
+            get: desc.get,
+            set: function (v: any) {
+                try {
+                    this.removeAttribute && this.removeAttribute('preload')
+                } catch (e) {
+                    /* ignore */
+                }
+                return desc.set!.call(this, v)
+            },
+        })
+    }
+
+    try {
+        wrapSrcSetter(HTMLMediaElement.prototype)
+        wrapSrcSetter(HTMLSourceElement.prototype)
+    } catch (e) {
+        /* ignore */
+    }
+})()
+
+if (document.body) {
+    preloadObserver.observe(document.body, { childList: true, subtree: true })
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        preloadObserver.observe(document.body, { childList: true, subtree: true })
+    })
+}

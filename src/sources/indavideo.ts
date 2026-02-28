@@ -42,6 +42,10 @@ function checkEmbedBan(): boolean {
     ) !== null;
 }
 
+function checkNoVideo(): boolean {
+    return document.querySelector('img[src="https://assets.indavideo.hu/images/default/video_box/no.jpg"]') !== null;
+}
+
 
 window.addEventListener('message', async (event) => {
     if (!event.data || typeof event.data.type !== 'string') return
@@ -98,6 +102,8 @@ window.addEventListener('message', async (event) => {
                         ?.href || ''
                 gatewayIframe.style.display = 'none'
                 document.body.appendChild(gatewayIframe)
+            } else if (checkNoVideo()) {
+                return gatewayUp(ACTIONS.INDA_NO_VIDEO)
             } else if (!isGateway) {
                 try {
                     let data = addExpiry(await getIndavideoToken())

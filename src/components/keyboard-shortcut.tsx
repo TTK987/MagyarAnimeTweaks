@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useId } from 'react'
+import { useKeyboardRecording } from './keyboard-recording-context'
 import { FaKeyboard } from 'react-icons/fa'
 import React from 'react'
 
@@ -8,6 +9,7 @@ interface KeyboardShortcutProps {
               ctrlKey: boolean
               altKey: boolean
               shiftKey: boolean
+              metaKey?: boolean
               key: string
           }
         | undefined
@@ -15,13 +17,17 @@ interface KeyboardShortcutProps {
         ctrlKey: boolean
         altKey: boolean
         shiftKey: boolean
+        metaKey: boolean
         key: string
     }) => void
+    autoFocus?: boolean
 }
 
-export function KeyboardShortcut({ value, onChange }: KeyboardShortcutProps) {
+export function KeyboardShortcut({ value, onChange, autoFocus = false }: KeyboardShortcutProps) {
     const inputRef = useRef<HTMLDivElement>(null)
-    const [isRecording, setIsRecording] = useState(false)
+    const uniqueId = useId()
+    const { startRecording, stopRecording, isRecording } = useKeyboardRecording()
+    const recording = isRecording(uniqueId)
     const [shortcut, setShortcut] = useState(value)
 
     // Format key for display
@@ -41,7 +47,7 @@ export function KeyboardShortcut({ value, onChange }: KeyboardShortcutProps) {
 
     // Handle key press
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (!isRecording) return
+        if (!recording) return
 
         e.preventDefault()
 
@@ -54,17 +60,18 @@ export function KeyboardShortcut({ value, onChange }: KeyboardShortcutProps) {
             ctrlKey: e.ctrlKey,
             altKey: e.altKey,
             shiftKey: e.shiftKey,
+            metaKey: e.metaKey,
             key: e.key,
         }
 
         setShortcut(newShortcut)
         onChange(newShortcut)
-        setIsRecording(false)
+        stopRecording()
     }
 
     // Start recording
-    const startRecording = () => {
-        setIsRecording(true)
+    const handleStartRecording = () => {
+        startRecording(uniqueId)
         if (inputRef.current) {
             inputRef.current.focus()
         }
@@ -73,28 +80,38 @@ export function KeyboardShortcut({ value, onChange }: KeyboardShortcutProps) {
     // Add and remove event listeners
     useEffect(() => {
         setShortcut(value)
-        if (isRecording) {
+    }, [value])
+
+    // Auto-start recording when autoFocus is true
+    useEffect(() => {
+        if (autoFocus) {
+            handleStartRecording()
+        }
+    }, [])
+
+    useEffect(() => {
+        if (recording) {
             window.addEventListener('keydown', handleKeyDown)
         }
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown)
         }
-    }, [isRecording, value])
+    }, [recording])
 
     return (
         <div className="relative">
             <div
                 ref={inputRef}
-                onClick={startRecording}
+                onClick={handleStartRecording}
                 className={`flex items-center gap-2 p-2 rounded-md cursor-pointer ${
-                    isRecording
+                    recording
                         ? 'bg-[#3f9fff]/20 border border-[#3f9fff] text-white'
                         : 'bg-[#182031] border border-[#205daa]/30 text-white'
                 } focus:outline-none focus:ring-2 focus:ring-[#3f9fff]`}
                 tabIndex={0}
             >
-                {isRecording ? (
+                {recording ? (
                     <div className="flex items-center justify-center w-full py-1 text-center">
                         <FaKeyboard className="mr-2 h-4 w-4 text-[#3f9fff]" />
                         <span className="text-[#3f9fff]">Nyomj le egy billentyűkombinációt...</span>

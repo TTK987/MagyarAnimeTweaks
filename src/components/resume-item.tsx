@@ -14,6 +14,7 @@ interface ResumeSettingCardProps {
     title: string
     description: string
     onSettingChange: (id: string, updatedSetting: { [key: string]: any }) => void
+    className?: string
 }
 
 export default function ResumeSettingCard({
@@ -23,6 +24,7 @@ export default function ResumeSettingCard({
     title,
     description,
     onSettingChange,
+    className,
 }: ResumeSettingCardProps) {
     const handleToggleChange = (checked: boolean) => {
         const updatedSetting = { ...setting, enabled: checked }
@@ -40,7 +42,7 @@ export default function ResumeSettingCard({
     }
 
     return (
-        <Card className="bg-[#0a0e17] border-[#205daa]/20 rounded-lg shadow-md p-1 hover:shadow-lg transition-shadow duration-300 ease-in-out w-full">
+        <Card className={`bg-[#0a0e17] border-[#205daa]/20 rounded-lg shadow-md p-1 hover:shadow-lg transition-shadow duration-300 ease-in-out w-full ${className || ''}`}>
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">

@@ -2,12 +2,14 @@ import { ACTIONS } from '../lib/actions'
 import Logger from '../Logger'
 import HLSPlayer from '../player/HLSPlayer'
 import Bookmark from '../Bookmark'
-import Resume from '../Resume'
+import Resume from '../History'
 import { EpisodeVideoData } from '../global'
-import { renderFileName, getQualityData } from '../lib/utils'
+import { getQualityData } from './dailymotion-utils'
 import {downloadHLS} from '../downloads';
 import {prettyFileSize} from '../lib/utils';
 import MAT from '../MAT'
+import { renderFileName } from '../modules/downloads/file-name'
+import { addCSS } from '../lib/dom-utils'
 
 Logger.success('[dailymotion.js] Script loaded', true)
 let Player = new HLSPlayer('#player', [], true, MAT.settings, 0, 0, '', 0,0, 0)
@@ -23,7 +25,7 @@ function messageHandler(event: MessageEvent) {
             document.write('<!DOCTYPE html><html lang="hu"><head><title>MATweaks | Dailymotion</title></head><body><div id="player" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></div></body></html>');
             document.close();
             window.addEventListener('message', messageHandler); // Re-add the message handler after replacing the document
-            Player.addCSS(`
+            addCSS(`
                 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
                 body {
                     font-family: 'Roboto', sans-serif;
@@ -110,6 +112,10 @@ function messageHandler(event: MessageEvent) {
             Player.seekTo(plyr.currentTime + Number(event.data.time));
             break;
         }
+        case (ACTIONS.IFRAME.SEEK_TO): {
+            Player.seekTo(Number(event.data.time));
+            break;
+        }
         case (ACTIONS.IFRAME.SEEK_PERCENTAGE): {
             if (!Player.plyr) break;
             Player.plyr.currentTime = Player.plyr.duration * (event.data.percentage / 100)
@@ -130,6 +136,15 @@ function messageHandler(event: MessageEvent) {
 }
 
 window.addEventListener('message', messageHandler)
+
+// Listen for T key to toggle theatre mode from inside iframe
+document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes((document.activeElement as HTMLElement)?.tagName)) return
+    if (e.key.toLowerCase() === 't' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+        e.preventDefault()
+        window.parent.postMessage({ type: ACTIONS.IFRAME.TOGGLE_THEATRE_MODE }, '*')
+    }
+})
 
 
 function handleDailymotionReplace() {

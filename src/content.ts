@@ -1,24 +1,32 @@
-import MAT from './MAT'
-import Bookmarks from './Bookmark'
-import Resume from './Resume'
-import Logger from './Logger'
-import MagyarAnime from './MagyarAnime'
+import { createElement, createHiddenIframe, createPlayerIframe, addCSS } from './lib/dom-utils'
+import { ERROR_CODE_MAP, type ErrorArea, type ErrorTypeByArea } from './lib/errors/MATError'
 import type { ServerResponse, EpisodeVideoData, serverType, Settings } from './global'
-import Toast, { Options } from './Toast'
-import NativePlayer from './player/NativePlayer'
-import { parseVideoData, prettyFileSize, renderFileName } from './lib/utils'
-import HLSPlayer from './player/HLSPlayer'
-import IFramePlayerComm from './player/IFrameComm'
-import { download, downloadHLS } from './downloads'
-import { showVideoRemovedError, showError } from './lib/video-error-utils'
-import { ERROR_CODES, ERROR_MESSAGES } from './lib/error-catalog'
-import { decidePlayerType, genVideoHTML } from './lib/player-utils'
-import { checkShortcut } from './lib/shortcuts'
-import { getIcon } from './lib/icons'
-import { initDatasheetNav } from './handlers/Datasheet'
+import { initTheatreMode, toggleTheatreMode } from './modules/TheatreMode'
+import { decidePlayerType, genVideoHTML } from './player/player-utils'
+import { renderFileName } from './modules/downloads/file-name'
+import { showMATError, MATErrorContext } from './lib/errors'
 import { initMainPageNavigation } from './handlers/MainPage'
-import onLoad from './lib/load'
+import { parseVideoData } from './sources/dailymotion-utils'
+import { initDatasheetNav } from './handlers/Datasheet'
+import { download, downloadHLS } from './downloads'
+import IFramePlayerComm from './player/IFrameComm'
 import { parseExpiryFromUrl } from './lib/expiry'
+import NativePlayer from './player/NativePlayer'
+import { checkShortcut } from './lib/shortcuts'
+import { prettyFileSize } from './lib/utils'
+import { postForm } from './lib/fetch-utils'
+import HLSPlayer from './player/HLSPlayer'
+import { isFirefox } from './lib/browser'
+import Toast, { Options } from './Toast'
+import MagyarAnime from './MagyarAnime'
+import { getIcon } from './lib/icons'
+import Bookmarks from './Bookmark'
+import History from './History'
+import onLoad from './lib/load'
+import Logger from './Logger'
+import MAT from './MAT'
+// ↑↑ I was bored... ↑↑
+
 
 let settings: Settings = MAT.getDefaultSettings()
 let MA: MagyarAnime = new MagyarAnime(document, window.location.href)
@@ -37,9 +45,6 @@ let isVideoLoading = false
 
 const serverTypeList: serverType[] = ['s1', 's2', 's3', 's4', 's5']
 
-function genErrorSchema(area: string, shortcode: string, errorCode: string): string {
-    return `EP${MA.EPISODE.getId()}-${currentServer.toUpperCase()}-${area}-${shortcode}-${errorCode}`
-}
 function clearVideoPlayer() {
     const videoPlayer = document.querySelector('#VideoPlayer') as HTMLDivElement
     if (!videoPlayer) return
@@ -58,25 +63,58 @@ function clearVideoPlayer() {
         </div>
 `
 }
-function handleError(area: keyof typeof ERROR_CODES, type: string, customMessage?: string): void {
-    const errorCode = ERROR_CODES[area][type as keyof (typeof ERROR_CODES)[typeof area]] || '999'
-    const message =
-        customMessage ||
-        ERROR_MESSAGES[area][type as keyof (typeof ERROR_MESSAGES)[typeof area]] ||
-        'Ismeretlen hiba történt.'
-    const schema = genErrorSchema(area.toUpperCase(), type.toUpperCase(), errorCode)
+
+function handleError<A extends ErrorArea>(
+    area: A,
+    type: ErrorTypeByArea<A>,
+    customMessage?: string,
+    location?: string,
+    originalError?: Error | unknown
+): void {
+    // Get the error key from the mapping
+    const errorKey = (ERROR_CODE_MAP[area] as Record<string, string>)[type as string] || 'I003'
+
+    // Build error context
+    const context: MATErrorContext = {
+        episodeId: MA.EPISODE.getId(),
+        server: currentServer,
+        location: location,
+        originalError: originalError,
+        data: customMessage ? { customMessage } : undefined,
+    }
+
+    // Cleanup player state
     if (Player) Player.destroy()
     Player = undefined
     IFrameComm?.removeMSGListeners()
     IFrameComm = undefined
     removeIFrameEventListeners()
 
-    Logger.error(message)
-    showError(`Hiba történt: ${message}`, schema)
+    // Log the error
+    Logger.error(`[MAT-${errorKey}] ${customMessage || 'Error occurred'}`)
+
+    // Determine if EAP is enabled
+    const isEAP = settings.eap || false
+
+    // Generate report URL for MagyarAnime
+    const reportUrl = !MA.isIndaPlayPage && currentServer
+        ? `https://magyaranime.eu/hibajelentes/${MA.EPISODE.getId()}/${currentServer.toLowerCase().replace('s', '')}/?deleted=1`
+        : undefined
+
+    // Show the error UI
+    showMATError(errorKey, context, {
+        isEAP,
+        episodeId: MA.EPISODE.getId(),
+        server: currentServer,
+        videoTitle: MA.EPISODE.getTitle(),
+        episodeNumber: MA.EPISODE.getEpisodeNumber(),
+        isVideoRemoved: errorKey === 'V008',
+        reportUrl,
+    })
 }
 
 if (MA.isIndaPlayPage) {
-    MA.addCSS('.gen-video-holder.txt-center { min-height: 500px; }')
+    addCSS('.gen-video-holder.txt-center { min-height: 500px; }')
     loadSettings()
         .then(() => {
             if (document.querySelector('#lejatszo')) {
@@ -84,7 +122,8 @@ if (MA.isIndaPlayPage) {
                 if (videoElement) {
                     let sources = Array.from(videoElement.querySelectorAll('source'))
                     if (sources.length === 0) {
-                        handleError('VIDEO', 'NO_SOURCES', 'Nincsenek videó források a videó elemben.')
+                        // Error: MAT-V002 @ IndaPlay.VideoElement.NoSources
+                        handleError('VIDEO', 'NO_SOURCES', 'Nincsenek videó források a videó elemben.', 'IndaPlay.VideoElement.NoSources')
                         return
                     }
 
@@ -97,7 +136,8 @@ if (MA.isIndaPlayPage) {
                         .filter((data): data is EpisodeVideoData => data !== null)
 
                     if (videoData.length === 0) {
-                        handleError('VIDEO', 'DATA_ERROR', 'Nem sikerült videó adatokat kinyerni a videó elemből.')
+                        // Error: MAT-V004 @ IndaPlay.VideoElement.DataError
+                        handleError('VIDEO', 'DATA_ERROR', 'Nem sikerült videó adatokat kinyerni a videó elemből.', 'IndaPlay.VideoElement.DataError')
                         return
                     }
 
@@ -113,23 +153,20 @@ if (MA.isIndaPlayPage) {
                         .getVideoData()
                         .then((videoData) => {
                             if (videoData.length === 0) {
+                                // Error: MAT-V004 @ IndaPlay.IFrame.NoVideoData
                                 handleError(
                                     'VIDEO',
                                     'DATA_ERROR',
                                     'Indavideo videó adatok nem találhatók az iframe-ben.',
+                                    'IndaPlay.IFrame.NoVideoData'
                                 )
                                 return
                             }
                             vData = videoData
                         })
                         .catch((error) => {
-                            showVideoRemovedError(
-                                MA.EPISODE.getTitle(),
-                                MA.EPISODE.getEpisodeNumber(),
-                                currentServer,
-                                MA.EPISODE.getId(),
-                                true,
-                            )
+                            // Error: MAT-V008 @ IndaPlay.IFrame.VideoRemoved
+                            handleError('VIDEO', 'REMOVED', 'A videó törölve lett vagy nem elérhető.', 'IndaPlay.IFrame.VideoRemoved', error)
                         })
                 }
             }
@@ -167,49 +204,56 @@ function initializeExtension() {
         .then(() => {
             if (MA.isMaintenancePage()) MaintenancePage()
             else if (MA.isMainPage()) {
-                if (MAT.isEAP()) initMainPageNavigation()
-                addSettingsButton()
+                if (MAT.settings.nav.mainPage.enabled) initMainPageNavigation(settings)
             } else {
-                addSettingsButton()
                 if (MA.isEpisodePage) EpisodePage()
                 else if (MA.isDatasheetPage) DatasheetPage()
             }
+            addSettingsButton()
+
+            addPopupIframe()
+
             Logger.success('Extension initialized.')
         })
         .catch((error) => {
             Logger.error('Error while initializing extension: ' + error, true)
-            showError('Hiba történt az kiterjesztés inicializálása közben.', 'EP' + MA.EPISODE.getId() + '-INIT-001')
+            // Error: MAT-I001 @ Init.ExtensionInit
+            handleError('PLAYER', 'INIT_ERROR', 'Hiba történt a bővítmény inicializálásakor.', 'Init.ExtensionInit', error)
         })
+}
+function DatasheetPage() {
+    if (MAT.settings.nav.episode.enabled) initDatasheetNav(settings)
+    Promise.all([
+        MA.ANIME.getEpisodes()
+    ]).then((d) => {
+        console.log({
+            image: MA.ANIME.getImage(),
+            title: MA.ANIME.getTitle(),
+            description: MA.ANIME.getDescription(),
+            ageRating: MA.ANIME.getAgeRating(),
+            season: MA.ANIME.getSeason(),
+            episodeCount: MA.ANIME.getEpisodeCount(),
+            maxEpisodeCount: MA.ANIME.getMaxEpisodeCount(),
+            releaseDate: MA.ANIME.getReleaseDate(),
+            views: MA.ANIME.getViews(),
+            episodes: d[0],
+            source: MA.ANIME.getSource(),
+            checks: {
+                isEpisodePage: MA.isEpisodePage,
+                isAnimePage: MA.isDatasheetPage,
+                isMaintenancePage: MA.isMaintenancePage(),
+            },
+        })
+    })
 }
 function MaintenancePage() {
     Logger.error('MagyarAnime is under maintenance.')
     Toast.error(
         'Karbantartás alatt',
         'A MagyarAnime karbantartás alatt van. Kérlek próbáld meg később. És lehetőleg légy türelmes, amíg a karbantartás tart.',
-        { duration: 1000000 },
+        { duration: Infinity },
     )
     return
-}
-function DatasheetPage() {
-    console.log({
-        image: MA.ANIME.getImage(),
-        title: MA.ANIME.getTitle(),
-        description: MA.ANIME.getDescription(),
-        ageRating: MA.ANIME.getAgeRating(),
-        season: MA.ANIME.getSeason(),
-        episodeCount: MA.ANIME.getEpisodeCount(),
-        maxEpisodeCount: MA.ANIME.getMaxEpisodeCount(),
-        releaseDate: MA.ANIME.getReleaseDate(),
-        views: MA.ANIME.getViews(),
-        episodes: MA.ANIME.getEpisodes(),
-        source: MA.ANIME.getSource(),
-        checks: {
-            isEpisodePage: MA.isEpisodePage,
-            isAnimePage: MA.isDatasheetPage,
-            isMaintenancePage: MA.isMaintenancePage(),
-        },
-    })
-    if (MAT.isEAP()) initDatasheetNav()
 }
 function EpisodePage() {
     console.log({
@@ -236,10 +280,8 @@ function EpisodePage() {
         })
     }
 
-    if (settings.advanced.player !== 'plyr') return
-
     Bookmarks.loadBookmarks().then(() => Logger.success('Bookmarks loaded.'))
-    Resume.loadData().then(() => Logger.success('Resume data loaded.'))
+    History.loadData().then(() => Logger.success('History data loaded.'))
 
     if (!MA.isIndaPlayPage)
         MA.EPISODE.getMALId().then((id) => {
@@ -248,7 +290,7 @@ function EpisodePage() {
 
     document.querySelector('#ttkeztkapcsoldki')?.remove()
 
-    MA.addCSS(`#lejatszo, #indavideoframe {max-width: 100%;} .plyr {max-width: 100%; width: 100%; height: 100%;}`)
+    addCSS(`#lejatszo, #indavideoframe {max-width: 100%;} .plyr {max-width: 100%; width: 100%; height: 100%;}`)
 
     videoID = MA.EPISODE.getId()
 
@@ -294,7 +336,8 @@ function EpisodePage() {
 
     csrfToken = MA.getCSRFTokenFromHTML()
     if (csrfToken === '') {
-        handleError('CSRF', 'NOT_FOUND')
+        // Error: MAT-C001 @ EpisodePage.CSRFToken.NotFound
+        handleError('CSRF', 'NOT_FOUND', undefined, 'EpisodePage.CSRFToken.NotFound')
         return
     }
 
@@ -302,13 +345,15 @@ function EpisodePage() {
 
     let videoPlayer = document.querySelector('#VideoPlayer') as HTMLVideoElement
     if (!videoPlayer) {
-        handleError('SERVER', 'NOT_FOUND')
+        // Error: MAT-S001 @ EpisodePage.VideoPlayer.NotFound
+        handleError('SERVER', 'NOT_FOUND', undefined, 'EpisodePage.VideoPlayer.NotFound')
         return
     }
 
     let server = videoPlayer.getAttribute('data-server') as serverType
     if (!server || !serverTypeList.includes(server)) {
-        handleError('SERVER', 'INVALID', `Érvénytelen szerver: ${server}`)
+        // Error: MAT-S002 @ EpisodePage.Server.Invalid
+        handleError('SERVER', 'INVALID', `Érvénytelen szerver: ${server}`, 'EpisodePage.Server.Invalid')
         return
     }
 
@@ -323,10 +368,12 @@ function EpisodePage() {
             let server = target.getAttribute('data-server') as serverType
             let vid = Number(target.getAttribute('data-vid'))
             if (!server || !serverTypeList.includes(server) || isNaN(vid) || vid < 1 || vid > 80000) {
+                // Error: MAT-S007 @ EpisodePage.VideoChange.InvalidArgs
                 handleError(
-                    'REQUEST',
+                    'SERVER',
                     'INVALID_ARGS',
                     `Érvénytelen szerver vagy videó ID: szerver: ${server}, vid: ${vid}`,
+                    'EpisodePage.VideoChange.InvalidArgs'
                 )
                 return
             }
@@ -395,48 +442,45 @@ function roadblock() {
         }
     </style>
     `
-    document.head.insertAdjacentHTML('beforeend', style)
+    addCSS(style)
 }
 function getServerResponse(server: serverType, vid: number): Promise<ServerResponse> {
     if (!serverTypeList.includes(server) || vid < 1 || vid > 80000 || !csrfToken) {
         if (!csrfToken) {
-            handleError('CSRF', 'NOT_FOUND')
-        } else if (!['s1', 's2', 's3', 's4'].includes(server)) {
-            handleError('REQUEST', 'INVALID_ARGS', `Érvénytelen szerver: ${server}`)
+            // Error: MAT-C001 @ GetServerResponse.CSRFToken.NotFound
+            handleError('CSRF', 'NOT_FOUND', undefined, 'GetServerResponse.CSRFToken.NotFound')
+        } else if (!serverTypeList.includes(server)) {
+            // Error: MAT-S007 @ GetServerResponse.Server.Invalid
+            handleError('SERVER', 'INVALID_ARGS', `Érvénytelen szerver: ${server}`, 'GetServerResponse.Server.Invalid')
         } else {
-            handleError('REQUEST', 'INVALID_ARGS', `Érvénytelen videó ID: ${vid}`)
+            // Error: MAT-S007 @ GetServerResponse.VideoID.Invalid
+            handleError('SERVER', 'INVALID_ARGS', `Érvénytelen videó ID: ${vid}`, 'GetServerResponse.VideoID.Invalid')
         }
         return Promise.reject('Invalid arguments')
     }
 
-    const requestBody = new URLSearchParams({
+    return postForm('https://magyaranime.eu/data/lejatszo/data_player.php', {
         server: server,
-        vid: vid.toString(),
+        vid: vid,
         csrf_token: csrfToken,
-    })
-
-    return fetch('https://magyaranime.eu/data/lejatszo/data_player.php', {
-        method: 'POST',
+    }, {
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            MagyarAnimeTweaks: 'v' + MAT.getVersion(),
-            Accept: 'application/json, text/javascript; q=0.01',
-            'X-Requested-With': 'XMLHttpRequest',
             'User-Agent': navigator.userAgent,
-            Referer: window.location.href,
-            Origin: window.location.href,
+            'Referer': window.location.href,
+            'Origin': window.location.href,
         },
-        body: requestBody.toString(),
     })
         .then((response) => {
             if (!response.ok) {
-                handleError('REQUEST', 'RESPONSE_ERROR', `Szerver hiba: ${response.statusText}`)
+                // Error: MAT-S004 @ GetServerResponse.Response.NotOK
+                handleError('SERVER', 'RESPONSE_ERROR', `Szerver hiba: ${response.statusText}`, 'GetServerResponse.Response.NotOK')
                 return Promise.reject(`Error while loading video: ${response.statusText}`)
             }
             return response.json()
         })
         .catch((e) => {
-            handleError('REQUEST', 'FETCH_ERROR', `Hálózati hiba: ${e}`)
+            // Error: MAT-S005 @ GetServerResponse.Fetch.Error
+            handleError('SERVER', 'FETCH_ERROR', `Hálózati hiba: ${e}`, 'GetServerResponse.Fetch.Error', e)
             return Promise.reject(e)
         })
 }
@@ -447,7 +491,8 @@ function loadVideo(server: serverType, vid: number) {
     }
 
     if (!server || !vid) {
-        handleError('REQUEST', 'INVALID_ARGS', 'Szerver vagy videó ID nem definiált.')
+        // Error: MAT-S007 @ LoadVideo.Args.Invalid
+        handleError('SERVER', 'INVALID_ARGS', 'Szerver vagy videó ID nem definiált.', 'LoadVideo.Args.Invalid')
         return
     }
 
@@ -469,7 +514,8 @@ function loadVideo(server: serverType, vid: number) {
             handleServerResponse(data)
         })
         .catch((error) => {
-            handleError('PLAYER', 'LOAD_ERROR', `Videó betöltési hiba: ${error}`)
+            // Error: MAT-P002 @ LoadVideo.ServerResponse.Error
+            handleError('PLAYER', 'LOAD_ERROR', `Videó betöltési hiba: ${error}`, 'LoadVideo.ServerResponse.Error', error)
         })
         .finally(() => {
             isVideoLoading = false
@@ -502,15 +548,17 @@ function handleServerResponse(data: ServerResponse) {
                     )
                     return
                 } else {
-                    handleError('CSRF', 'EXPIRED')
+                    // Error: MAT-C002 @ HandleServerResponse.CSRFToken.Expired
+                    handleError('CSRF', 'EXPIRED', undefined, 'HandleServerResponse.CSRFToken.Expired')
                     setTimeout(() => {
                         window.location.reload()
                     }, 1000)
                     return
                 }
             })
-            .catch(() => {
-                handleError('CSRF', 'EXPIRED')
+            .catch((error) => {
+                // Error: MAT-C002 @ HandleServerResponse.CSRFToken.FetchFailed
+                handleError('CSRF', 'EXPIRED', undefined, 'HandleServerResponse.CSRFToken.FetchFailed', error)
                 setTimeout(() => {
                     window.location.reload()
                 })
@@ -519,7 +567,8 @@ function handleServerResponse(data: ServerResponse) {
     }
 
     if (data.error && data.error !== '') {
-        handleError('SERVER', 'RESPONSE_ERROR', data.error)
+        // Error: MAT-S004 @ HandleServerResponse.Server.Error
+        handleError('SERVER', 'RESPONSE_ERROR', data.error, 'HandleServerResponse.Server.Error')
     }
 
     if (Player) Player.destroy()
@@ -535,7 +584,8 @@ function handleServerResponse(data: ServerResponse) {
                 Logger.log('HLS player detected, loading video...')
                 loadHLSPlayer(data)
             } else {
-                handleError('VIDEO', 'NO_SOURCES', 'HLS URL nem található.')
+                // Error: MAT-V002 @ HandleServerResponse.HLS.NoURL
+                handleError('VIDEO', 'NO_SOURCES', 'HLS URL nem található.', 'HandleServerResponse.HLS.NoURL')
             }
             break
         case 'HTML5':
@@ -557,7 +607,8 @@ function handleServerResponse(data: ServerResponse) {
                     loadHTML5Player(data, videoData)
                 })
                 .catch((error) => {
-                    handleError('VIDEO', 'DATA_ERROR', `Indavideo videó adatok betöltési hiba: ${error}`)
+                    // Error: MAT-V004 @ HandleServerResponse.Indavideo.DataError
+                    handleError('VIDEO', 'DATA_ERROR', `Indavideo videó adatok betöltési hiba: ${error}`, 'HandleServerResponse.Indavideo.DataError', error)
                 })
             break
         case 'videa':
@@ -567,7 +618,8 @@ function handleServerResponse(data: ServerResponse) {
                     loadHTML5Player(data, videoData)
                 })
                 .catch((error) => {
-                    handleError('VIDEO', 'DATA_ERROR', `Videa videó adatok betöltési hiba: ${error}`)
+                    // Error: MAT-V004 @ HandleServerResponse.Videa.DataError
+                    handleError('VIDEO', 'DATA_ERROR', `Videa videó adatok betöltési hiba: ${error}`, 'HandleServerResponse.Videa.DataError', error)
                 })
             break
         case 'Unknown':
@@ -575,7 +627,8 @@ function handleServerResponse(data: ServerResponse) {
                 data.output.match(/<video[^>]*src="([^"]+)"[^>]*>/) ||
                 data.output.match(/<iframe[^>]*src="([^"]+)"[^>]*>/)
             ) {
-                handleError('VIDEO', 'INVALID_TYPE', `Nem támogatott lejátszó típus.`)
+                // Error: MAT-V005 @ HandleServerResponse.Unknown.UnsupportedType
+                handleError('VIDEO', 'INVALID_TYPE', `Nem támogatott lejátszó típus.`, 'HandleServerResponse.Unknown.UnsupportedType')
                 break
             } else {
                 const videoPlayer = document.querySelector('#VideoPlayer') as HTMLDivElement
@@ -593,7 +646,8 @@ function handleServerResponse(data: ServerResponse) {
 function getQualityDataHTML5(data: ServerResponse): EpisodeVideoData[] {
     const videoSources = [...data.output.matchAll(/<source\s+src="([^"]+)"[^>]*size="(\d+)"/g)]
     if (videoSources.length === 0) {
-        handleError('VIDEO', 'NO_SOURCES')
+        // Error: MAT-V002 @ GetQualityDataHTML5.NoSources
+        handleError('VIDEO', 'NO_SOURCES', undefined, 'GetQualityDataHTML5.NoSources')
         return []
     }
 
@@ -612,27 +666,22 @@ function getQualityDataFromIFrame(data: ServerResponse): Promise<EpisodeVideoDat
         IFrameComm = new IFramePlayerComm()
         const iframeMatch = data.output.match(/<iframe[^>]*src="([^"]+)"[^>]*>/)
         if (!iframeMatch) {
-            handleError('VIDEO', 'IFRAME_MISSING')
+            // Error: MAT-V003 @ GetQualityDataFromIFrame.NoIframe
+            handleError('VIDEO', 'IFRAME_MISSING', undefined, 'GetQualityDataFromIFrame.NoIframe')
             reject('No iframe found in the output.')
             return
         }
-        let iframe = document.createElement('iframe')
-        iframe.src = iframeMatch[1]
-        iframe.id = 'indavideoframe'
-        iframe.style.width = '0px'
-        iframe.style.height = '0px'
-        iframe.style.display = 'none'
-        iframe.style.border = 'none'
+        let iframe = createHiddenIframe(iframeMatch[1], 'indavideoframe')
         IFrameComm.IFrame = iframe.contentWindow
         document.body.appendChild(iframe)
-        IFrameComm.IFrame = (document.querySelector('iframe#indavideoframe') as HTMLIFrameElement)
-            .contentWindow as Window
+        IFrameComm.IFrame = (document.querySelector('iframe#indavideoframe') as HTMLIFrameElement).contentWindow as Window
         IFrameComm.onFrameLoaded = () => {
             IFrameComm!
                 .getVideoData()
                 .then((videoData: EpisodeVideoData[]) => {
                     if (videoData.length === 0) {
-                        handleError('VIDEO', 'DATA_ERROR', 'Videó adatok nem találhatók az iframe-ben.')
+                        // Error: MAT-V004 @ GetQualityDataFromIFrame.NoVideoData
+                        handleError('VIDEO', 'DATA_ERROR', 'Videó adatok nem találhatók az iframe-ben.', 'GetQualityDataFromIFrame.NoVideoData')
                         reject('No video data found in the iframe.')
                         iframe.remove()
                         return
@@ -642,12 +691,8 @@ function getQualityDataFromIFrame(data: ServerResponse): Promise<EpisodeVideoDat
                 })
                 .catch((error) => {
                     iframe.remove()
-                    showVideoRemovedError(
-                        MA.EPISODE.getTitle(),
-                        MA.EPISODE.getEpisodeNumber(),
-                        currentServer,
-                        MA.EPISODE.getId(),
-                    )
+                    // Error: MAT-V008 @ GetQualityDataFromIFrame.VideoRemoved
+                    handleError('VIDEO', 'REMOVED', 'A videó törölve lett vagy nem elérhető.', 'GetQualityDataFromIFrame.VideoRemoved', error)
                 })
         }
     })
@@ -658,30 +703,19 @@ function IFrameEventListener(e: KeyboardEvent) {
         Logger.error('PlayerComm is not defined.')
         return
     }
-    if (settings.forwardSkip.enabled && checkShortcut(e, settings.forwardSkip.keyBind))
-        IFrameComm.skipForward() // Forward skip
-    else if (settings.backwardSkip.enabled && checkShortcut(e, settings.backwardSkip.keyBind))
-        IFrameComm.skipBackward() // Backward skip
-    else if (settings.nextEpisode.enabled && checkShortcut(e, settings.nextEpisode.keyBind)) nextEpisode()
+    if (     settings.forwardSkip.enabled     && checkShortcut(e, settings.forwardSkip.keyBind    )) IFrameComm.skipForward() // Forward skip
+    else if (settings.backwardSkip.enabled    && checkShortcut(e, settings.backwardSkip.keyBind   )) IFrameComm.skipBackward() // Backward skip
+    else if (settings.nextEpisode.enabled     && checkShortcut(e, settings.nextEpisode.keyBind    )) nextEpisode()
     else if (settings.previousEpisode.enabled && checkShortcut(e, settings.previousEpisode.keyBind)) previousEpisode()
-    else if (e.key === ' ' || e.key === 'Spacebar')
-        IFrameComm.togglePlay() // Play/Pause toggle
-    else if (e.key === 'ArrowUp')
-        IFrameComm.volUp() // Volume up
-    else if (e.key === 'ArrowDown')
-        IFrameComm.volDown() // Volume down
-    else if (e.key === 'ArrowRight')
-        IFrameComm.seek(settings.skip.time) // Seek forward
-    else if (e.key === 'ArrowLeft')
-        IFrameComm.seek(-settings.skip.time) // Seek backward
-    else if (e.key === 'm' || e.key === 'M')
-        IFrameComm.toggleMute() // Mute toggle
-    else if (e.key === 'f' || e.key === 'F')
-        IFrameComm.toggleFullscreen() // Fullscreen toggle
-    else if (e.key === 'k' || e.key === 'K')
-        IFrameComm.togglePlay() // Play/Pause toggle
-    else if (e.key.match(/[0-9]/))
-        IFrameComm.seekPercentage(Number(e.key) * 10) // Seek to percentage
+    else if (checkShortcut(e, settings.plyr.shortcuts.playPause )) IFrameComm.togglePlay()       // Play/Pause toggle
+    else if (checkShortcut(e, settings.plyr.shortcuts.muteUnmute)) IFrameComm.toggleMute()       // Mute toggle
+    else if (checkShortcut(e, settings.plyr.shortcuts.volumeUp  )) IFrameComm.volUp()            // Volume up
+    else if (checkShortcut(e, settings.plyr.shortcuts.volumeDown)) IFrameComm.volDown()          // Volume down
+    else if (checkShortcut(e, settings.plyr.shortcuts.fullscreen)) IFrameComm.toggleFullscreen() // Fullscreen toggle
+    else if (e.key === 'ArrowRight')       IFrameComm.seek(settings.skip.time)           // Seek forward
+    else if (e.key === 'ArrowLeft')        IFrameComm.seek(-settings.skip.time)          // Seek backward
+    else if (e.key.match(/[0-9]/)) IFrameComm.seekPercentage(Number(e.key) * 10) // Seek to percentage
+    else if (e.key.toLowerCase() === 't' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) toggleTheatreMode() // Theatre mode toggle
     else return // If no shortcut matches, do nothing
     e.preventDefault()
     e.stopPropagation()
@@ -696,21 +730,11 @@ function loadIFramePlayer(data: ServerResponse) {
     IFrameComm = new IFramePlayerComm()
     const iframeMatch = data.output.match(/<iframe[^>]*src="([^"]+)"[^>]*>/)
     if (!iframeMatch) {
-        handleError('VIDEO', 'IFRAME_MISSING')
+        // Error: MAT-V003 @ LoadIFramePlayer.NoIframe
+        handleError('VIDEO', 'IFRAME_MISSING', undefined, 'LoadIFramePlayer.NoIframe')
         return
     }
-    let iframe = document.createElement('iframe')
-    iframe.src = iframeMatch[1]
-    iframe.id = 'indavideoframe'
-    iframe.style.width = '100%'
-    iframe.style.height = '100%'
-    iframe.style.border = 'none'
-    iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen')
-    iframe.setAttribute('allowfullscreen', 'true')
-    iframe.setAttribute('scrolling', 'no')
-    iframe.setAttribute('referrerpolicy', 'no-referrer')
-    iframe.setAttribute('title', 'video-player')
-    iframe.setAttribute('type', 'text/html')
+    let iframe = createPlayerIframe(iframeMatch[1], 'indavideoframe')
     IFrameComm.IFrame = iframe.contentWindow
 
     document.querySelector('#VideoPlayer')!.innerHTML = ''
@@ -722,7 +746,7 @@ function loadIFramePlayer(data: ServerResponse) {
     IFrameComm.onFrameLoaded = () => {
         if (isIframeLoaded) return
         isIframeLoaded = true
-        if (!IFrameComm || settings.advanced.player !== 'plyr') return
+        if (!IFrameComm) return
         IFrameComm.replacePlayer(
             MA.EPISODE.getTitle(),
             MA.EPISODE.getEpisodeNumber(),
@@ -765,13 +789,18 @@ function loadIFramePlayer(data: ServerResponse) {
                 break
         }
     }
+
+    IFrameComm.onToggleTheatreMode = () => {
+        toggleTheatreMode()
+    }
 }
 function loadHTML5Player(data: ServerResponse, qualityData?: EpisodeVideoData[]) {
     let videoData: EpisodeVideoData[]
     if (!qualityData) {
         videoData = getQualityDataHTML5(data)
         if (videoData.length === 0) {
-            handleError('VIDEO', 'NO_SOURCES', 'HTML5 videó források nem találhatók.')
+            // Error: MAT-V002 @ LoadHTML5Player.NoSources
+            handleError('VIDEO', 'NO_SOURCES', 'HTML5 videó források nem találhatók.', 'LoadHTML5Player.NoSources')
             return
         }
     } else {
@@ -810,7 +839,8 @@ function loadHTML5Player(data: ServerResponse, qualityData?: EpisodeVideoData[])
         }, 5000)
 
         if (!Player || !Player.curQuality) {
-            handleError('VIDEO', 'DOWNLOAD_ERROR', 'Aktuális videó adatok nem találhatók.')
+            // Error: MAT-V006 @ LoadHTML5Player.Download.NoQuality
+            handleError('VIDEO', 'DOWNLOAD_ERROR', 'Aktuális videó adatok nem találhatók.', 'LoadHTML5Player.Download.NoQuality')
             return
         }
 
@@ -843,12 +873,14 @@ function loadHTML5Player(data: ServerResponse, qualityData?: EpisodeVideoData[])
     Player.autoNextEpisode = nextEpisode
     Player.nextEpisode = nextEpisode
     Player.previousEpisode = previousEpisode
+    Player.onVideoExpire = onTokenExpired
     Player.replace()
 }
 function loadHLSPlayer(data: ServerResponse) {
     parseVideoData(atob(data.hls_url)).then((videoData) => {
         if (videoData.length === 0) {
-            handleError('VIDEO', 'NO_SOURCES', 'HLS videó források nem találhatók.')
+            // Error: MAT-V002 @ LoadHLSPlayer.NoSources
+            handleError('VIDEO', 'NO_SOURCES', 'HLS videó források nem találhatók.', 'LoadHLSPlayer.NoSources')
             return
         }
         document.querySelector('#VideoPlayer')!.innerHTML = genVideoHTML(videoData)
@@ -888,7 +920,8 @@ function loadHLSPlayer(data: ServerResponse) {
             let currentVideoData = videoData[Player?.plyr?.quality ?? 0]
 
             if (!currentVideoData) {
-                handleError('VIDEO', 'DOWNLOAD_ERROR', 'Aktuális videó adatok nem találhatók.')
+                // Error: MAT-V006 @ LoadHLSPlayer.Download.NoQuality
+                handleError('VIDEO', 'DOWNLOAD_ERROR', 'Aktuális videó adatok nem találhatók.', 'LoadHLSPlayer.Download.NoQuality')
                 return
             }
 
@@ -967,19 +1000,15 @@ function loadHLSPlayer(data: ServerResponse) {
         Player.autoNextEpisode = nextEpisode
         Player.nextEpisode = nextEpisode
         Player.previousEpisode = previousEpisode
-        Player.replace()
+
         if (Player instanceof HLSPlayer) {
-            Player.onTokenExpired = () => {
-                Logger.warn('Expired token. Reloading page...')
-                handleError('VIDEO', 'TOKEN_EXPIRED', 'A videó elérésének ideje lejárt. Az oldal újratöltése...')
-                setTimeout(() => {
-                    window.location.reload()
-                }, 2000)
-            }
+            Player.onTokenExpiredHandler = onTokenExpired
             Player.onRateLimit = () => {
                 Toast.warning('Túl sok kérést küldtél.', '', { duration: 5000 })
             }
         }
+
+        Player.replace()
     })
 }
 function nextEpisode() {
@@ -1055,7 +1084,8 @@ function previousEpisode() {
 }
 function silentLoadVideo(server: serverType, vid: number, retryAttempt: number = 0) {
     if (!server || !vid) {
-        handleError('REQUEST', 'INVALID_ARGS', 'Szerver vagy videó ID nem definiált.')
+        // Error: MAT-S007 @ SilentLoadVideo.Args.Invalid
+        handleError('SERVER', 'INVALID_ARGS', 'Szerver vagy videó ID nem definiált.', 'SilentLoadVideo.Args.Invalid')
         return
     }
 
@@ -1065,7 +1095,8 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                 Logger.log('Server requested CSRF refresh. Attempting background token refresh...')
                 if (retryAttempt >= 1) {
                     Logger.error('CSRF refresh already attempted. Failing silently and reloading.')
-                    handleError('CSRF', 'EXPIRED')
+                    // Error: MAT-C002 @ SilentLoadVideo.CSRFToken.RetryFailed
+                    handleError('CSRF', 'EXPIRED', undefined, 'SilentLoadVideo.CSRFToken.RetryFailed')
                     setTimeout(() => {
                         window.location.reload()
                     }, 1000)
@@ -1079,7 +1110,8 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                             silentLoadVideo(server, vid, retryAttempt + 1)
                             return false
                         } else {
-                            handleError('CSRF', 'EXPIRED')
+                            // Error: MAT-C002 @ SilentLoadVideo.CSRFToken.RefreshFailed
+                            handleError('CSRF', 'EXPIRED', undefined, 'SilentLoadVideo.CSRFToken.RefreshFailed')
                             setTimeout(() => {
                                 window.location.reload()
                             }, 1000)
@@ -1088,7 +1120,8 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                     })
                     .catch((e) => {
                         Logger.error('Background CSRF refresh failed: ' + e)
-                        handleError('CSRF', 'EXPIRED')
+                        // Error: MAT-C002 @ SilentLoadVideo.CSRFToken.FetchError
+                        handleError('CSRF', 'EXPIRED', undefined, 'SilentLoadVideo.CSRFToken.FetchError', e)
                         setTimeout(() => {
                             window.location.reload()
                         }, 1000)
@@ -1098,7 +1131,8 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
 
             if (data.error && data.error !== '') {
                 Logger.error(`Hiba a videó háttérben történő betöltése közben: ${data.error}`)
-                handleError('SERVER', 'RESPONSE_ERROR', data.error)
+                // Error: MAT-S004 @ SilentLoadVideo.Server.Error
+                handleError('SERVER', 'RESPONSE_ERROR', data.error, 'SilentLoadVideo.Server.Error')
                 return false
             }
             videoID = vid
@@ -1125,7 +1159,8 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                 qualityDataPromise
                     .then((videoData) => {
                         if (videoData.length === 0) {
-                            handleError('VIDEO', 'NO_SOURCES', 'Videó források nem találhatók.')
+                            // Error: MAT-V002 @ SilentLoadVideo.Native.NoSources
+                            handleError('VIDEO', 'NO_SOURCES', 'Videó források nem találhatók.', 'SilentLoadVideo.Native.NoSources')
                             return data.button_vid_next
                         }
                         window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`)
@@ -1137,7 +1172,8 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                         Logger.success('Video silently loaded using NativePlayer.')
                     })
                     .catch((error) => {
-                        handleError('VIDEO', 'DATA_ERROR', `Videó adatok betöltési hiba: ${error}`)
+                        // Error: MAT-V004 @ SilentLoadVideo.Native.DataError
+                        handleError('VIDEO', 'DATA_ERROR', `Videó adatok betöltési hiba: ${error}`, 'SilentLoadVideo.Native.DataError', error)
                     })
                 return data.button_vid_next
             }
@@ -1145,13 +1181,15 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
             if (currentImpl === 'HLS' && newPlayerType === 'HLS') {
                 Logger.log('Silently loading video using HLSPlayer...')
                 if (!data.hls_url) {
-                    handleError('VIDEO', 'NO_SOURCES', 'HLS URL nem található.')
+                    // Error: MAT-V002 @ SilentLoadVideo.HLS.NoURL
+                    handleError('VIDEO', 'NO_SOURCES', 'HLS URL nem található.', 'SilentLoadVideo.HLS.NoURL')
                     return data.button_vid_next
                 }
                 parseVideoData(atob(data.hls_url))
                     .then((videoData) => {
                         if (videoData.length === 0) {
-                            handleError('VIDEO', 'NO_SOURCES', 'Videó források nem találhatók.')
+                            // Error: MAT-V002 @ SilentLoadVideo.HLS.NoSources
+                            handleError('VIDEO', 'NO_SOURCES', 'Videó források nem találhatók.', 'SilentLoadVideo.HLS.NoSources')
                             return data.button_vid_next
                         }
                         window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`)
@@ -1163,7 +1201,8 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                         Logger.success('Video silently loaded using HLSPlayer.')
                     })
                     .catch((error) => {
-                        handleError('VIDEO', 'DATA_ERROR', `Videó adatok betöltési hiba: ${error}`)
+                        // Error: MAT-V004 @ SilentLoadVideo.HLS.DataError
+                        handleError('VIDEO', 'DATA_ERROR', `Videó adatok betöltési hiba: ${error}`, 'SilentLoadVideo.HLS.DataError', error)
                     })
                 return data.button_vid_next
             }
@@ -1181,9 +1220,15 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                 )
         })
         .catch((error) => {
-            handleError('PLAYER', 'LOAD_ERROR', `Videó betöltési hiba (silent load): ${error}`)
+            // Error: MAT-P002 @ SilentLoadVideo.Catch.LoadError
+            handleError('PLAYER', 'LOAD_ERROR', `Videó betöltési hiba (silent load): ${error}`, 'SilentLoadVideo.Catch.LoadError', error)
             Logger.error(`Hiba történt a videó háttérben történő betöltése közben: ${error}`)
         })
+}
+function onTokenExpired() {
+    Logger.warn('Token expired. Reloading video sources...')
+    Toast.warning('A videó elérésének ideje lejárt. Újratöltés...', 'A token időkorlátja miatt a videó forrásainak újratöltése szükséges.', { duration: 3000 })
+    silentLoadVideo(currentServer, videoID)
 }
 
 // UI Related Functions
@@ -1284,19 +1329,33 @@ function setDailyLimit(data: ServerResponse) {
         }
     }
 
-    if (sessionID !== -1) {
-        let sessionInfo = document.createElement('div')
-        sessionInfo.style.fontSize = '8px'
-        sessionInfo.style.color = 'var(--text-secondary)'
-        sessionInfo.style.marginTop = '5px'
-        sessionInfo.style.textAlign = 'center'
-        sessionInfo.innerText = `Session ID: ${sessionID}`
-        dailyLimit.appendChild(sessionInfo)
-    }
+    let sessionInfo = createElement('span', {
+        innerText: `Session ID: ${sessionID !== -1 ? sessionID : 'N/A'}`,
+        styles: {
+            fontSize: '8px',
+            color: 'var(--text-secondary)',
+        },
+    })
+
+    let sessionContainer = createElement('div', {
+        id: 'sessionInfoContainer',
+        styles: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: '5px',
+        },
+        children: [sessionInfo],
+        parent: dailyLimit,
+    })
+
+    dailyLimit.appendChild(sessionContainer)
+
 }
 function setServers(data: ServerResponse) {
     if (!data.servers) {
-        handleError('SERVER', 'DATA_MISSING', 'Szerver lista nem található.')
+        // Error: MAT-S003 @ SetServers.ServerList.NotFound
+        handleError('SERVER', 'DATA_MISSING', 'Szerver lista nem található.', 'SetServers.ServerList.NotFound')
         return
     }
 
@@ -1304,7 +1363,8 @@ function setServers(data: ServerResponse) {
     const serverList = document.querySelector('#VideoPlayerServers') as HTMLDivElement
 
     if (!serverList) {
-        handleError('SERVER', 'DATA_MISSING', 'Szerver lista konténer nem található.')
+        // Error: MAT-S003 @ SetServers.ServerContainer.NotFound
+        handleError('SERVER', 'DATA_MISSING', 'Szerver lista konténer nem található.', 'SetServers.ServerContainer.NotFound')
         return
     }
 
@@ -1414,15 +1474,22 @@ function setServers(data: ServerResponse) {
             }
         })
     }
+
+    // Initialize Theatre Mode (only once)
+    if (!document.getElementById('matTheatreToggle')) {
+        initTheatreMode()
+        Logger.log('Theatre mode initialized.')
+    }
 }
 function addSettingsButton() {
     let accountMenu = document.querySelector(
         '#gen-header > div > div > div > div > nav > div.gen-header-info-box > div.gen-account-holder > div > ul',
     )
     if (accountMenu) {
-        let settingsButton = document.createElement('li')
-        settingsButton.className = 'gen-account-menu-item'
-        settingsButton.innerHTML = `<a class="gen-account-menu-link" id="MATweaks-settings-button"><i class="fas fa-cog"></i>MATweaks beállítások</a>`
+        let settingsButton = createElement('li', {
+            className: 'gen-account-menu-item',
+            innerHTML: `<a class="gen-account-menu-link" id="MATweaks-settings-button"><i class="fas fa-cog"></i>MATweaks beállítások</a>`,
+        })
         accountMenu.insertBefore(settingsButton, accountMenu.children[4])
         settingsButton.onclick = () => {
             chrome.runtime
@@ -1446,13 +1513,36 @@ function addSettingsButton() {
     }
 }
 
-// TODO: Add "theatre" mode
-// TODO: Add video expiry handling
-// TODO: Fix server source default selection when the response does not contain an active server [ DONE ]
-// TODO: Fix after server switch, the op/ed skip shortcut not working
-/* TODO:
-        -
-
-
- */
+function addPopupIframe() {
+    // TODO: try to make this work on firefox as well
+    if (isFirefox()) return // Firefox doesn't really support this...
+    const searchBlock = document.querySelector('.gen-menu-search-block') as HTMLDivElement
+    if (searchBlock) {
+        // Button to toggle popup
+        const popupToggleBtn = createElement('button', {
+                id: 'MATPopupToggle',
+                styles: {
+                    marginLeft: '3px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '0',
+                },
+                innerHTML: `<img src="${chrome.runtime.getURL('img/MATLogo-128.png')}" alt="MATweaks" style="width: 24px; height: 24px; border-radius: 4px;">`,
+            })
+        popupToggleBtn.onclick = () => {
+            const existingPopup = document.querySelector('#MATPopupIframe') as HTMLIFrameElement
+            if (existingPopup) {
+                existingPopup.style.display = existingPopup.style.display === 'none' ? 'block' : 'none'
+                return
+            }
+            const iframe = createElement('iframe', {
+                id: 'MATPopupIframe',
+            })
+            iframe.src = chrome.runtime.getURL('src/pages/popup/index.html')
+            document.body.appendChild(iframe)
+        }
+        searchBlock.appendChild(popupToggleBtn)
+    }
+}
 

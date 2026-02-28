@@ -1,10 +1,11 @@
-import Resume, { Episode } from '../../Resume'
+import Resume, { Episode } from '../../History'
 import Logger from '../../Logger'
 import { formatTime } from '../../lib/time-utils'
 import Toast from '../../Toast'
 import BasePlayer from '../BasePlayer'
+import { addCSS } from '../../lib/dom-utils'
 
-export class ResumePlugin {
+export class HistoryPlugin {
     private ctx: BasePlayer
     private isEnabled: boolean = true
 
@@ -24,16 +25,14 @@ export class ResumePlugin {
                 this.addResumeEventListeners()
                 this.checkResume().then((response) => {
                     if (response) return
-                    this.ctx.addCSS(
-                        `#MATweaks-resume-Toast { left: 50%; transform: translateX(-50%); background: var(--black-color); color: white; border-radius: 5px; z-index: 1000; transition: opacity 1s; justify-content: center; display: flex; position: absolute; width: auto; bottom: 4em; background: #00000069; align-items: center; padding: 3px; } #MATweaks-resume-button { border-radius: 5px; box-shadow: 3px 3px 3px 2px rgb(0 0 0 / 20%); cursor: pointer; color: var(--white-color); border: none; height: auto; line-height: 2; text-transform: uppercase; -webkit-border-radius: 5px; -moz-border-radius: 5px; transition: all 0.5s ease-in-out; -moz-transition: all 0.5s ease-in-out; -ms-transition: all 0.5s ease-in-out; -o-transition: all 0.5s ease-in-out; -webkit-transition: all 0.5s ease-in-out; text-shadow: 1px 1px #000; font-weight: 500; background: #ffffff26; font-size: x-small; margin: 3px; display: flex; align-items: center; justify-content: space-between; width: 120px; padding: 5px; } #MATweaks-resume-button:hover { background: #ffffff4d; }#MATweaks-resume-button svg { width: 16px; height: 16px; margin-left: 5px; }`,
-                    )
+                    addCSS(`#MATweaks-resume-Toast { left: 50%; transform: translateX(-50%); background: var(--black-color); color: white; border-radius: 5px; z-index: 1000; transition: opacity 1s; justify-content: center; display: flex; position: absolute; width: auto; bottom: 4em; background: #00000069; align-items: center; padding: 3px; } #MATweaks-resume-button { border-radius: 5px; box-shadow: 3px 3px 3px 2px rgb(0 0 0 / 20%); cursor: pointer; color: var(--white-color); border: none; height: auto; line-height: 2; text-transform: uppercase; -webkit-border-radius: 5px; -moz-border-radius: 5px; transition: all 0.5s ease-in-out; -moz-transition: all 0.5s ease-in-out; -ms-transition: all 0.5s ease-in-out; -o-transition: all 0.5s ease-in-out; -webkit-transition: all 0.5s ease-in-out; text-shadow: 1px 1px #000; font-weight: 500; background: #ffffff26; font-size: x-small; margin: 3px; display: flex; align-items: center; justify-content: space-between; width: 120px; padding: 5px; } #MATweaks-resume-button:hover { background: #ffffff4d; }#MATweaks-resume-button svg { width: 16px; height: 16px; margin-left: 5px; }`,)
                     let curResumeData = Resume.getDataByEpisodeId(this.ctx.epID)
                     if (!curResumeData) return
-                    if (this.ctx.settings.resume.mode === 'auto') {
+                    if (this.ctx.settings.history.mode === 'auto') {
                         this.ctx.seekTo(curResumeData.epTime)
                         Logger.log('Resumed playback.')
                         this.ctx.Toast('success', 'Folytatás sikeres.')
-                    } else if (this.ctx.settings.resume.mode === 'ask')
+                    } else if (this.ctx.settings.history.mode === 'ask')
                         this.askUserToResume(curResumeData).then((response) => {
                             if (response) {
                                 this.ctx.seekTo(curResumeData?.epTime)
@@ -44,11 +43,11 @@ export class ResumePlugin {
                             }
                         })
                     else {
-                        Logger.error('Invalid resume mode: ' + this.ctx.settings.resume.mode)
+                        Logger.error('Invalid resume mode: ' + this.ctx.settings.history.mode)
                         this.ctx.Toast(
                             'error',
                             'Hiba történt',
-                            'Érvénytelen folytatás mód: ' + this.ctx.settings.resume.mode,
+                            'Érvénytelen folytatás mód: ' + this.ctx.settings.history.mode,
                         )
                     }
                 })
@@ -170,11 +169,7 @@ export class ResumePlugin {
                 })
                 .catch((e) => {
                     Logger.error('Error while removing resume data: ' + e)
-                    this.ctx.Toast(
-                        'error',
-                        'Hiba történt',
-                        'Hiba a folytatás adatok eltávolítása közben.',
-                    )
+                    this.ctx.Toast('error', 'Hiba történt', 'Hiba a folytatás adatok eltávolítása közben.')
                 })
         }
         const video = document.querySelector(this.ctx.selector) as HTMLVideoElement

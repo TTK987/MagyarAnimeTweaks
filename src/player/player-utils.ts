@@ -1,5 +1,6 @@
 import type { ServerResponse, EpisodeVideoData } from '../global'
 
+
 export function decidePlayerType(
     data: ServerResponse,
 ): 'HLS' | 'HTML5' | 'indavideo' | 'videa' | 'dailymotion' | 'mega' | 'Unknown' {

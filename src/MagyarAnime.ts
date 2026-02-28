@@ -1,5 +1,6 @@
 import { EpisodeListItem, EpisodeData, SourceData, FansubData } from './global'
-import MAT from './MAT'
+import { addCSS as addCSSToPage } from './lib/dom-utils'
+import { fetchText } from './lib/fetch-utils'
 
 /**
  * This class is responsible for fetching Data from the MagyarAnime page by scraping it.
@@ -65,40 +66,14 @@ class MagyarAnime {
     }
 
     /**
-     * Adds custom CSS to the page
-     * @param {String} css - The CSS to add (Automatically minifies the CSS)
-     * @since v0.1.8
-     */
-    addCSS(css: string) {
-        const style = document.createElement('style')
-        style.textContent = css
-            .replace(/\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g, '')
-            .replace(/[\r\n\t]+/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-        style.id = 'MAT_CSS'
-        document.head.appendChild(style)
-    }
-
-    /**
      * Get the CSRF token from the page
      * @returns {String} The CSRF token
      * @since v0.1.9.7
      */
     async fetchCSRFToken(): Promise<string> {
         try {
-            const response = fetch(this.url, {
-                method: 'GET',
-                headers: {
-                    MagyarAnimeTweaks: 'v' + MAT.version,
-                    'x-requested-with': 'XMLHttpRequest',
-                },
-                credentials: 'include',
-            })
-            const html = new DOMParser().parseFromString(
-                await response.then((res) => res.text()),
-                'text/html',
-            )
+            const text = await fetchText(this.url, { withCredentials: true })
+            const html = new DOMParser().parseFromString(text, 'text/html')
             return (
                 (html.querySelector('meta[name="magyaranime"]') as HTMLMetaElement)?.content || ''
             ).trim()
@@ -142,11 +117,7 @@ class Anime {
     getMALLink(): string {
         try {
             return (
-                (
-                    this.document.querySelector(
-                        '.gen-button.gen-button-dark.adatlap_gomb2',
-                    ) as HTMLAnchorElement
-                )?.href || ''
+                (this.document.querySelector('.gen-button.gen-button-dark.adatlap_gomb2') as HTMLAnchorElement)?.href || ''
             )
         } catch {
             return ''
@@ -160,12 +131,27 @@ class Anime {
      */
     getImage(): string {
         try {
-            return (
-                (this.document.querySelector('.gentech-tv-show-img-holder img') as HTMLImageElement)
-                    ?.src || ''
-            )
+            return (this.document.querySelector('.gentech-tv-show-img-holder img') as HTMLImageElement)?.src || ''
         } catch (e) {
             return ''
+        }
+    }
+
+
+    /**
+     * Get the ID of the anime
+     * @returns {Number} The ID of the anime (or -1 if not found)
+     * @since v0.1.10
+     */
+    getId(): number {
+        try {
+            const match = window.location.pathname.match(/\/leiras\/(\d+)\//)
+            if (match) {
+                return parseInt(match[1]) || -1
+            }
+            return -1
+        } catch {
+            return -1
         }
     }
 
@@ -176,10 +162,7 @@ class Anime {
      */
     getTitle(): string {
         try {
-            return (
-                (this.document.querySelector('.gen-title.aname1') as HTMLHeadingElement)
-                    ?.innerText || ''
-            )
+            return (this.document.querySelector('.gen-title.aname1') as HTMLHeadingElement)?.innerText || ''
         } catch (e) {
             return ''
         }
@@ -194,10 +177,7 @@ class Anime {
         try {
             return (
                 /Ismertető:(.*)(\[[Ff]orrás:|\([Ff]orrás:|\([Ss]ource:|\[[Ss]ource:)?/gms
-                    .exec(
-                        (this.document.querySelector('.leiras_text') as HTMLDivElement)?.innerText,
-                    )?.[1]
-                    ?.trim() || ''
+                    .exec((this.document.querySelector('.leiras_text') as HTMLDivElement)?.innerText)?.[1]?.trim() || ''
             )
         } catch {
             return ''
@@ -231,11 +211,8 @@ class Anime {
     getSeason(): string {
         try {
             return (
-                (
-                    this.document.querySelector(
-                        '.gen-single-meta-holder > ul > li:nth-child(2)',
-                    ) as HTMLLIElement
-                )?.innerText || ''
+                (this.document.querySelector('.gen-single-meta-holder > ul > li:nth-child(2)') as HTMLLIElement)
+                    ?.innerText || ''
             )
         } catch {
             return ''
@@ -331,31 +308,52 @@ class Anime {
      * @returns {Array<{title: String, link: String, epNumber: Number, status: String}>} The episodes of the anime
      * @since v0.1.8
      */
-    getEpisodes(): EpisodeListItem[] {
+    async getEpisodes(): Promise<EpisodeListItem[]> {
+        const selector = '.owl-stage > .owl-item, .owl-stage > .item'
+
+        const collect = (): EpisodeListItem[] => {
+            const items = [...this.document.querySelectorAll(selector)]
+            if (!items.length) return []
+            return items.map((item) => ({
+                title: item.querySelector('.gen-episode-info h3 a')?.textContent || '',
+                link: (item.querySelector('.gen-episode-info h3 a') as HTMLAnchorElement)?.href || '',
+                epNumber:
+                    parseInt(
+                        <string>(
+                            (item.querySelector('.gen-episode-info h3 a') as HTMLAnchorElement)?.textContent?.match(
+                                /(\d+)\.?\s?[rR]ész/,
+                            )?.[1]
+                        ),
+                    ) || -1,
+                status: item.querySelector('.badge')?.textContent || '',
+                thumbnail: (item.querySelector('.gen-episode-img img') as HTMLImageElement)?.getAttribute("data-src") || (item.querySelector('.gen-episode-img img') as HTMLImageElement)?.src || '',
+            }))
+        }
+
         try {
-            return (
-                [
-                    ...this.document.querySelectorAll('.owl-stage > .owl-item, .owl-stage > .item'),
-                ].map((item) => ({
-                    title: item.querySelector('.gen-episode-info h3 a')?.textContent || '',
-                    link:
-                        (item.querySelector('.gen-episode-info h3 a') as HTMLAnchorElement)?.href ||
-                        '',
-                    epNumber:
-                        parseInt(
-                            <string>(
-                                (
-                                    item.querySelector(
-                                        '.gen-episode-info h3 a',
-                                    ) as HTMLAnchorElement
-                                )?.textContent?.match(/(\d+)\.?\s?[rR]ész/)?.[1]
-                            ),
-                        ) || -1,
-                    status: item.querySelector('.badge')?.textContent || '',
-                    thumbnail:
-                        (item.querySelector('.gen-episode-img img') as HTMLImageElement)?.src || '',
-                })) || []
-            )
+            const existing = collect()
+            if (existing.length) return existing
+
+            return await new Promise<EpisodeListItem[]>((resolve) => {
+                const timeoutId = window.setTimeout(() => {
+                    observer.disconnect()
+                    resolve(collect())
+                }, 5000)
+
+                const observer = new MutationObserver(() => {
+                    const episodes = collect()
+                    if (episodes.length) {
+                        window.clearTimeout(timeoutId)
+                        observer.disconnect()
+                        resolve(episodes)
+                    }
+                })
+
+                observer.observe(this.document.body, {
+                    childList: true,
+                    subtree: true,
+                })
+            })
         } catch {
             return []
         }
@@ -369,9 +367,7 @@ class Anime {
     getSource(): SourceData[] {
         try {
             return (
-                [
-                    ...this.document.querySelectorAll('.gen-button.gen-button-dark.adatlap_gomb2'),
-                ].map((sourceItem) => ({
+                [...this.document.querySelectorAll('.gen-button.gen-button-dark.adatlap_gomb2[href*="https://"]')].map((sourceItem) => ({
                     site: sourceItem.textContent?.toLowerCase().trim() || '',
                     link: (sourceItem as HTMLAnchorElement).href || '',
                 })) || []
@@ -410,15 +406,7 @@ class Episode {
     getMALId(): Promise<number> {
         return new Promise((resolve, reject) => {
             try {
-                fetch(this.getAnimeLink(), {
-                    method: 'GET',
-                    headers: {
-                        MagyarAnimeTweaks: 'v' + MAT.version,
-                        'x-requested-with': 'XMLHttpRequest',
-                    },
-                    credentials: 'include',
-                })
-                    .then((response) => response.text())
+                fetchText(this.getAnimeLink(), { withCredentials: true })
                     .then((html) => {
                         let tempMA = new MagyarAnime(
                             new DOMParser().parseFromString(html, 'text/html'),

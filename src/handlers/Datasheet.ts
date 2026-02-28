@@ -5,13 +5,14 @@ import {
     ensureNavStyleElement,
     MatNavItem,
     NavigationEngine
-} from '../lib/navigationEngine'
+} from '../modules/navigation/navigationEngine';
+import { Settings } from '../global'
 
 export type DatasheetItem = MatNavItem<{
     episodeHref: string | null;
 }>;
 
-export function initDatasheetNav() {
+export function initDatasheetNav(settings: Settings) {
     const styleCSS = `
 .mat-focus .gen-episode-img {
     outline: 2px solid #3F9FFF;
@@ -127,6 +128,8 @@ export function initDatasheetNav() {
                 window.location.href = target;
             }
         },
+        settings,
+        settingsID: 'episode'
     });
 
     const observer = attachNavMutationObserver(engine, {

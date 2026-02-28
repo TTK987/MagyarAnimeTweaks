@@ -1,21 +1,20 @@
-
 import MAT from "../../MAT"
-import Resume from "../../Resume"
+import Resume from "../../History"
 import { FaCog, FaBookmark, FaHistory, FaSpinner, FaTrash, FaPlay, FaImage, FaExternalLinkAlt } from "react-icons/fa"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent } from "../../components/ui/card"
 import { Clock } from "lucide-react"
 import React from "react"
 import { createRoot } from "react-dom/client"
-import type { Anime, Episode } from "../../Resume"
+import type { Anime, Episode } from "../../History"
 import {formatTime} from "../../lib/time-utils";
 import Logger from "../../Logger";
 
 function Popup() {
     const [loading, setLoading] = React.useState(true)
     const [latest, setLatest] = React.useState<{
-        anime: Anime | null
-        episode: Episode | null
+        anime: Anime
+        episode: Episode
     } | null>(null)
     const [error, setError] = React.useState(false)
     const [isFeatureEnabled, setIsFeatureEnabled] = React.useState(true)
@@ -32,7 +31,7 @@ function Popup() {
             })
         MAT.loadSettings()
             .then(() => {
-                setIsFeatureEnabled(MAT.settings.resume.enabled)
+                setIsFeatureEnabled(MAT.settings.history.enabled)
             })
             .catch(() => {
                 Logger.error("Hiba a beállítások betöltésekor", true)
@@ -68,9 +67,9 @@ function Popup() {
             <span className="text-xl font-bold">
               Magyar<span className="text-[#3f9fff]">Anime</span>Tweaks
               <span className="ml-2 inline-flex items-center rounded-full bg-[#205daa]/30 px-2 py-0.5 text-xs font-medium text-[#3f9fff]">
-                v{MAT.getVersion()}
+                v{MAT.version}
               </span>
-                {MAT.isEAP() && (
+                {MAT.eap && (
                     <span className="ml-1 inline-flex items-center rounded-full bg-[#aa2020]/30 px-2 py-0.5 text-xs font-medium text-[#ff3f3f]">
                   EAP
                 </span>
@@ -147,7 +146,7 @@ function Popup() {
                         <div className="error-state">
                             <div className="error-icon">⚠️</div>
                             <span>Az előzmények funkció le van tiltva</span>
-                            <p className="text-xs text-[#fff]/50 mt-1">
+                            <p className="text-xs text-white/50 mt-1">
                                 Engedélyezd a <strong>Előzmények</strong> funkciót a beállításokban, hogy megjelenjen a legutóbbi epizódod.
                             </p>
                         </div>
@@ -186,7 +185,7 @@ function Popup() {
 
                                         {/* Episode Info */}
                                         <div className="flex items-center justify-between mb-3">
-                                            <div className="flex items-center gap-2 text-xs text-[#fff]/70">
+                                            <div className="flex items-center gap-2 text-xs text-white/70">
                                                 <span className="text-[#3f9fff] font-medium">{latest.episode.epNum}. rész</span>
                                                 <span>•</span>
                                                 <div className="flex items-center gap-1">
@@ -198,7 +197,7 @@ function Popup() {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => handleDelete(latest?.episode?.epID || -1)}
-                                                className="h-6 w-6 p-0 text-[#fff]/50 hover:text-red-400 hover:bg-red-500/20"
+                                                className="h-6 w-6 p-0 text-white/50 hover:text-red-400 hover:bg-red-500/20"
                                                 title="Törlés"
                                             >
                                                 <FaTrash className="h-3 w-3" />
@@ -218,11 +217,11 @@ function Popup() {
                             ) : (
                                 <Card className="bg-[#0a0e17] border-[#205daa]/20 rounded-lg shadow-md">
                                     <CardContent className="flex flex-col items-center justify-center py-6">
-                                        <div className="text-[#fff]/30 mb-2">
+                                        <div className="text-white/30 mb-2">
                                             <FaHistory className="text-xl" />
                                         </div>
-                                        <span className="text-[#fff]/70 text-sm text-center">Nincs elkezdett epizód</span>
-                                        <p className="text-[#fff]/50 text-xs text-center mt-1">Kezdj el nézni egy animét!</p>
+                                        <span className="text-white/70 text-sm text-center">Nincs elkezdett epizód</span>
+                                        <p className="text-white/50 text-xs text-center mt-1">Kezdj el nézni egy animét!</p>
                                     </CardContent>
                                 </Card>
                             )}

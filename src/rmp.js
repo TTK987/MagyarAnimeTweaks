@@ -12,6 +12,15 @@ const observer = new MutationObserver((mutations) => {
                 }
                 node.parentNode.removeChild(node);
                 observer.disconnect();
+            } else if (node.tagName === 'STYLE') {
+                // Remove the
+                // "#VideoPlayer .plyr {
+                // 	  max-width: 1200px !important;
+                // 	  margin: 0 !important;
+                // 	  max-height: 100%;
+                // 	}"
+                // 	style from the page
+                node.textContent = node.textContent.replace(/#VideoPlayer\s*\.plyr\s*{[^}]*}/g, '')
             }
         });
     });
@@ -39,16 +48,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 400);
     }
 })
-
-// Used to copy error ID to clipboard, if there is an error
-window.copyToClipboard = (text, btn) => {
-    navigator.clipboard.writeText(text).then(() => {
-        const original = btn.innerHTML
-        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-        setTimeout(() => {
-            btn.innerHTML = original
-        }, 1500)
-    }).catch(() => {
-        console.error('Failed to copy error ID to clipboard.')
-    })
-}

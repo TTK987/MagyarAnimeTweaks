@@ -1,4 +1,6 @@
-export type SkipType = 'op' | 'ed' | 'mixed' | 'recap' | 'preview'
+import { fetchJSON } from '../lib/fetch-utils'
+
+export type SkipType = 'op' | 'ed' | 'mixed-op' | 'mixed-ed' | 'recap'
 
 export interface SkipInterval {
     startTime: number // seconds (float)
@@ -52,30 +54,10 @@ export default class AniSkip {
         if (q.episodeLength != null) url.searchParams.set('episodeLength', String(q.episodeLength))
         else url.searchParams.set('episodeLength', '0')
 
-        const controller = this.timeoutMs ? new AbortController() : undefined
-        const timeout = this.timeoutMs
-            ? setTimeout(() => controller!.abort(), this.timeoutMs)
-            : undefined
-
-        try {
-            const resp = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    Accept: 'application/json',
-                },
-                signal: controller?.signal,
-            })
-
-            if (!resp.ok) {
-                const body = await resp.text().catch(() => '')
-                throw new Error(
-                    `AniSkip MAL request failed ${resp.status}: ${body || resp.statusText}`,
-                )
-            }
-            return resp.json() as Promise<SkipTimesResponse>
-        } finally {
-            if (timeout) clearTimeout(timeout)
-        }
+        return fetchJSON<SkipTimesResponse>(url.toString(), {
+            timeout: this.timeoutMs,
+            baseHeaders: { 'Accept': 'application/json' },
+        })
     }
 }
 

@@ -55,7 +55,7 @@ function PermissionsPage() {
 
     return (
         <div className="min-h-screen bg-[#182031] text-white">
-            <Navbar version={MAT.getVersion()} eap={MAT.isEAP()} />
+            <Navbar version={MAT.version} eap={MAT.eap} />
             <main className="container mx-auto px-4 py-8">
                 <div className="flex justify-center mt-12">
                     <div className="w-full max-w-2xl">
@@ -67,7 +67,7 @@ function PermissionsPage() {
                                     </div>
                                 </div>
                                 <CardTitle className="text-2xl font-bold text-white">Engedélyek szükségesek</CardTitle>
-                                <p className="text-[#fff]/70 mt-2">
+                                <p className="text-white/70 mt-2">
                                     A bővítmény működéséhez hozzáférés szükséges az alábbi weboldalakhoz
                                 </p>
                             </CardHeader>
@@ -161,7 +161,7 @@ function PermissionsPage() {
                 </div>
             </main>
 
-            <Footer version={MAT.getVersion()} eap={MAT.isEAP()} />
+            <Footer version={MAT.version} eap={MAT.eap} />
         </div>
     )
 }

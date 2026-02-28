@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 @font-face {
-    font-family: 'Fira Code', monospace;
+    font-family: 'Fira Code';
 }
 @layer utilities {
 

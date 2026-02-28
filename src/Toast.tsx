@@ -586,6 +586,7 @@ class Toast {
 
         // Set auto-dismiss timer
         if (duration > 0) {
+            if (duration === Infinity) return id // Don't set a timer for infinite duration
             const timer = setTimeout(() => {
                 instance.remove(id)
             }, duration)

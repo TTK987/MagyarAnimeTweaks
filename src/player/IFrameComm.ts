@@ -66,8 +66,14 @@ class IFramePlayerComm {
             case ACTIONS.IFRAME.PLAYER_REPLACED:
                 this.onPlayerReplaced()
                 break
+            case ACTIONS.IFRAME.TOKEN_EXPIRED:
+                window.dispatchEvent(new Event(ACTIONS.IFRAME.TOKEN_EXPIRED))
+                break
             case ACTIONS.IFRAME.PLAYER_REPLACE_FAILED:
                 this.onPlayerReplaceFailed()
+                break
+            case ACTIONS.IFRAME.TOGGLE_THEATRE_MODE:
+                this.onToggleTheatreMode()
                 break
             default:
                 break
@@ -126,6 +132,11 @@ class IFramePlayerComm {
      * Handler for when the player replacement fails.
      */
     onPlayerReplaceFailed() {}
+
+    /**
+     * Handler for toggling theatre mode from within the iframe.
+     */
+    onToggleTheatreMode() {}
 
     /**
      * Gets the current playback time of the IFrame player.
@@ -220,6 +231,14 @@ class IFramePlayerComm {
      */
     seek(time: number) {
         this.sendAction(ACTIONS.IFRAME.SEEK, { time })
+    }
+
+    /**
+     * Seeks to an absolute time position in the IFrame player.
+     * @param {number} time - The absolute time in seconds to seek to.
+     */
+    seekTo(time: number) {
+        this.sendAction(ACTIONS.IFRAME.SEEK_TO, { time })
     }
 
     /**

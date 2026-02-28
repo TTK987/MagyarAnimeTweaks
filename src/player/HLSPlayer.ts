@@ -90,6 +90,9 @@ class HLSPlayer extends BasePlayer {
                 case ACTIONS.IFRAME.SEEK:
                     this.seekTo(event.data.epTime)
                     break
+                case ACTIONS.IFRAME.SEEK_TO:
+                    this.seekTo(Number(event.data.time))
+                    break
                 case ACTIONS.IFRAME.BACKWARD_SKIP:
                     this.skipBackward()
                     break
@@ -117,9 +120,28 @@ class HLSPlayer extends BasePlayer {
         })
     }
 
-    onTokenExpired() {}
+
+    onTokenExpiredHandler() {
+        Logger.warn('HLS token has expired, notifying parent window.', true)
+        window.parent.postMessage({ type: ACTIONS.IFRAME.TOKEN_EXPIRED }, '*')
+    }
+
+
+    onTokenExpired() {
+        if (this.hasTriggeredExpiry) return
+        this.hasTriggeredExpiry = true
+        this.onTokenExpiredHandler()
+    }
 
     onRateLimit() {}
+
+    /**
+     * Handle token / video expiry from BasePlayer's monitorVideoExpiry
+     * Delegates to the same path as HTTP 403 expiry
+     */
+    onVideoExpire() {
+        this.onTokenExpired()
+    }
 
     addEventListeners() {
         window.addEventListener('message', this.messageHandler)

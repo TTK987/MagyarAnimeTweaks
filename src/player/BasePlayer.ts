@@ -6,11 +6,13 @@ import Toast, { Options } from '../Toast'
 import { EpisodeVideoData, keyBind, Settings } from '../global'
 import 'plyr/dist/plyr.css'
 import { ACTIONS } from '../lib/actions'
-import { ResumePlugin } from './plugins/resume'
+import { HistoryPlugin } from './plugins/history'
 import { BookmarkPlugin } from './plugins/bookmark'
 import { AniSkipPlugin } from './plugins/aniskip'
 import { AntiFocusPlugin } from './plugins/antifocus'
 import { isExpired } from '../lib/expiry'
+import { checkShortcut, createKeyBind } from '../lib/shortcuts'
+import { addCSS, applyStyles, createElement } from '../lib/dom-utils'
 
 export default class BasePlayer {
     selector: string
@@ -30,15 +32,12 @@ export default class BasePlayer {
     private cursorAutoHideTimer?: number
     private readonly cursorAutoHideDelayMs: number = 2000
     private keydownHandler?: (event: KeyboardEvent) => void
-    private keyupHandler?: (event: KeyboardEvent) => void
     private fullscreenChangeHandler?: () => void
     private cursorActivityHandler?: () => void
-
-    private keyDownListeners: Map<string, Function[]>
-    private keyUpListeners: Map<string, Function[]>
+    protected hasTriggeredExpiry: boolean = false
 
     // Plugins for the player
-    Resume: ResumePlugin
+    History: HistoryPlugin
     Bookmark: BookmarkPlugin
     AniSkip: AniSkipPlugin
     AntiFocus: AntiFocusPlugin
@@ -91,14 +90,10 @@ export default class BasePlayer {
         this.playerID = playerID
 
         // Initialize plugins
-        this.Resume = new ResumePlugin(this)
+        this.History = new HistoryPlugin(this)
         this.Bookmark = new BookmarkPlugin(this)
         this.AniSkip = new AniSkipPlugin(this)
         this.AntiFocus = new AntiFocusPlugin(this)
-
-        // Initialize keyboard listener maps
-        this.keyDownListeners = new Map<string, Function[]>()
-        this.keyUpListeners = new Map<string, Function[]>()
 
         Logger.log(
             JSON.stringify({
@@ -117,7 +112,6 @@ export default class BasePlayer {
     }
 
     loadNewVideo(data: EpisodeVideoData[], epNum: number) {
-        if (!this.plyr) return
         if (data.length === 0) {
             Logger.error('No video data provided.')
             return
@@ -127,9 +121,9 @@ export default class BasePlayer {
             Logger.log('Plyr instance destroyed')
         }, false)
 
-        document.querySelector('.plyr')?.remove()
         this.epNum = epNum
         this.isANEpTriggered = false
+        this.hasTriggeredExpiry = false
 
         this.replace()
     }
@@ -201,32 +195,37 @@ export default class BasePlayer {
                 window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED))
                 return
             }
-            let playerElement = document.querySelector(this.selector) || document.querySelector('video')
+            let playerElement = document.querySelector(this.selector) ?? document.querySelector('video')
             let videoElement = this.createVideoElement()
-            if (!playerElement) {
-                Logger.error('Player element not found. Selector: ' + this.selector)
-                window.dispatchEvent(new Event(ACTIONS.IFRAME.PLAYER_REPLACE_FAILED))
-                return
-            }
 
             if (!document.getElementById('MATweaks-player-wrapper')) {
-                let wrapper = document.createElement('div')
-                wrapper.id = 'MATweaks-player-wrapper'
-                wrapper.style.height = '100%'
-                wrapper.style.width = '100%'
-                wrapper.style.maxWidth = '1200px'
-                wrapper.style.margin = '0 auto'
-                let style = document.createElement('style')
-                style.innerHTML = `
-                #MATweaks-player-wrapper .plyr {
-                    max-width: 100% !important;
-                    height: 100% !important;
-                }
-                `
-                wrapper.append(style, videoElement)
-                playerElement.replaceWith(wrapper)
+                if (!document.getElementById('MATweaks-player-style'))
+                    addCSS(
+                        `#MATweaks-player-wrapper .plyr {max-width: 100% !important;height: 100% !important;}`,
+                        'MATweaks-player-style',
+                    )
+
+                let wrapper = createElement('div', {
+                    id: 'MATweaks-player-wrapper',
+                    styles: {
+                        height: '100%',
+                        width: '100%',
+                        maxWidth: '1200px',
+                        margin: '0 auto',
+                    },
+                    children: [videoElement],
+                })
+                if (!playerElement) {
+                    let existingWrapper = document.getElementById('MATweaks-player-wrapper')!
+                    existingWrapper.innerHTML = ''
+                    existingWrapper.appendChild(videoElement)
+                } else playerElement.replaceWith(wrapper)
             } else {
-                playerElement.replaceWith(videoElement)
+                if (!playerElement) {
+                    let existingWrapper = document.getElementById('MATweaks-player-wrapper')!
+                    existingWrapper.innerHTML = ''
+                    existingWrapper.appendChild(videoElement)
+                } else playerElement.replaceWith(videoElement)
             }
 
             this.setupPlyr(videoElement)
@@ -241,20 +240,6 @@ export default class BasePlayer {
     }
 
     /**
-     * Add custom CSS to the page
-     * @param {string} css - The CSS to add
-     */
-    addCSS(css: string) {
-        let style = document.createElement('style')
-        style.innerHTML = css
-            .replace(/\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g, '')
-            .replace(/[\r\n\t]+/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-        document.head.appendChild(style)
-    }
-
-    /**
      * Handle video expiry
      */
     onVideoExpire() {}
@@ -264,7 +249,7 @@ export default class BasePlayer {
      */
     protected loadCustomCss() {
         if (this.settings.plyr.design) {
-            MAT.loadPlyrCSS().then((css) => this.addCSS(css))
+            MAT.loadPlyrCSS().then((css) => addCSS(css, 'MATweaks-plyr-style'))
             Logger.log('Custom CSS loaded.')
         }
     }
@@ -280,22 +265,10 @@ export default class BasePlayer {
         const plyrContainer = videoElement.closest('.plyr') as HTMLElement
         if (plyrContainer) {
             Logger.log('Video dimensions:' + width + 'x' + height)
-            plyrContainer.style.maxWidth = '100% !important'
-            plyrContainer.style.width = '100%'
-            plyrContainer.style.height = ''
-            if (width && height && Math.abs(width / height - 4 / 3) < 0.05) {
-                videoElement.style.aspectRatio = '4 / 3'
-                videoElement.style.margin = '0 auto'
-                plyrContainer.style.display = 'flex'
-                plyrContainer.style.alignItems = 'center'
-                plyrContainer.style.justifyContent = 'center'
-            } else {
-                videoElement.style.aspectRatio = '16 / 9'
-                videoElement.style.margin = '0'
-                plyrContainer.style.display = 'block'
-                plyrContainer.style.alignItems = ''
-                plyrContainer.style.justifyContent = ''
-            }
+            applyStyles(plyrContainer, { maxWidth: '100% !important', width: '100%', height: '' })
+            if (width && height && Math.abs(width / height - 4 / 3) < 0.05)
+                 applyStyles(plyrContainer, { aspectRatio: '4 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' })
+            else applyStyles(plyrContainer, { aspectRatio: '16 / 9', display: 'block', alignItems: '', justifyContent: '', margin: '0' })
         }
     }
 
@@ -342,7 +315,6 @@ export default class BasePlayer {
             }
         })
         videoElement.addEventListener('ended', () => {
-            if (!this.plyr) return
             if (!this.isANEpTriggered && this.plyr.currentTime !== 0 && this.plyr.duration !== 0) {
                 Logger.log('Auto next episode triggered.')
                 window.dispatchEvent(new Event('AutoNextEpisode'))
@@ -380,7 +352,7 @@ export default class BasePlayer {
                 this.isDownloadable ? 'download' : '',
                 'fullscreen',
             ],
-            keyboard: { focused: true, global: true },
+            keyboard: { focused: false, global: false },
             settings: ['quality', 'speed'],
             tooltips: { controls: true, seek: true },
             iconUrl: chrome.runtime.getURL('assets/plyr.svg'),
@@ -403,11 +375,11 @@ export default class BasePlayer {
         })
         this.addShortcutsToPlyr()
         this.adjustAspectRatio(videoElement)
-        if (this.settings.resume.enabled) this.Resume.init()
+        if (this.settings.history.enabled) this.History.init()
         if (this.settings.bookmarks.enabled) this.Bookmark.init()
         if (this.settings.plyr.plugins.aniSkip.enabled) this.AniSkip.init(videoElement)
         this.setupAutoHideCursor()
-        this.handlePlayerID()
+        this.monitorVideoExpiry()
         this.AntiFocus.init()
     }
 
@@ -415,7 +387,6 @@ export default class BasePlayer {
      * Skip forward in the video
      */
     skipForward() {
-        if (!this.plyr) return
         if (this.skipForwardCooldown && Date.now() - this.skipForwardCooldown < 200) {
             // 200ms cooldown
             Logger.log('Skip forward is on cooldown.')
@@ -431,7 +402,6 @@ export default class BasePlayer {
      * Skip backward in the video
      */
     skipBackward() {
-        if (!this.plyr) return
         if (this.skipBackwardCooldown && Date.now() - this.skipBackwardCooldown < 200) {
             // 200ms cooldown
             Logger.log('Skip backward is on cooldown.')
@@ -473,6 +443,14 @@ export default class BasePlayer {
         }
     }
 
+    /**
+     *
+     */
+    public seek(time: number) {
+        this.plyr.currentTime += time
+    }
+
+
     private addDownloadButton() {
         document.querySelector('.plyr__controls__item[data-plyr="download"]')?.addEventListener('click', (e) => {
             e.preventDefault()
@@ -482,97 +460,49 @@ export default class BasePlayer {
         })
     }
 
+    private stringifyKeyBind = (data: KeyboardEvent | keyBind): string => {
+        return `${data.ctrlKey ? '1' : '0'}|${data.altKey ? '1' : '0'}|${data.shiftKey ? '1' : '0'}|${data.metaKey ? '1' : '0'}|${data.key.toLowerCase()}`
+    }
     /**
      * Add keyboard shortcuts to the Plyr player
      */
     private addShortcutsToPlyr() {
         this.addDownloadButton()
 
-        const eventToString = (event: KeyboardEvent): string => {
-            return `${event.ctrlKey ? '1' : '0'}|${event.altKey ? '1' : '0'}|${event.shiftKey ? '1' : '0'}|${event.key}`
+        document.removeEventListener('keydown', this.keydownHandler as EventListener)
+
+        this.keydownHandler = (e: KeyboardEvent) => {
+            console.log('Keydown event:', this.stringifyKeyBind(e))
+            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable) return
+            if (this.settings.forwardSkip.enabled && checkShortcut(e, this.settings.forwardSkip.keyBind))
+                this.skipForward() // Forward skip
+            else if (this.settings.backwardSkip.enabled && checkShortcut(e, this.settings.backwardSkip.keyBind))
+                this.skipBackward() // Backward skip
+            else if (this.settings.nextEpisode.enabled && checkShortcut(e, this.settings.nextEpisode.keyBind)) {
+                window.dispatchEvent(new Event('NextEpisode')); this.nextEpisode() }
+            else if (this.settings.previousEpisode.enabled && checkShortcut(e, this.settings.previousEpisode.keyBind)) {
+                window.dispatchEvent(new Event('PreviousEpisode')); this.previousEpisode() }
+            else if (checkShortcut(e, this.settings.plyr.shortcuts.playPause))
+                this.plyr.playing ? this.plyr.pause() : this.plyr.play() // Play/Pause toggle
+            else if (checkShortcut(e, this.settings.plyr.shortcuts.muteUnmute))
+                this.plyr.muted = !this.plyr.muted // Mute/Unmute toggle
+            else if (checkShortcut(e, this.settings.plyr.shortcuts.volumeUp))
+                this.plyr.increaseVolume(0.1) // Volume up
+            else if (checkShortcut(e, this.settings.plyr.shortcuts.volumeDown))
+                this.plyr.decreaseVolume(0.1) // Volume down
+            else if (checkShortcut(e, this.settings.plyr.shortcuts.fullscreen))
+                this.plyr.fullscreen.toggle() // Fullscreen toggle
+            else if (checkShortcut(e, createKeyBind(false, false, false, false, 'ArrowRight')))
+                this.seek(this.settings.skip.time) // Seek forward
+            else if (checkShortcut(e, createKeyBind(false, false, false, false, 'ArrowLeft')))
+                this.seek(-this.settings.skip.time) // Seek backward
+            else if (e.key.match(/[0-9]/) && !e.ctrlKey && !e.altKey && !e.shiftKey && !e.metaKey)
+                this.seekTo((this.plyr.duration * Number(e.key)) / 10) // Number key seek (0-9)
+            else return // If no shortcut matches, do nothing
+            e.preventDefault()
+            e.stopPropagation()
         }
-
-        this.keydownHandler = (event: KeyboardEvent) => {
-            const key = eventToString(event)
-            const listeners = this.keyDownListeners.get(key)
-            if (listeners && listeners.length) {
-                event.preventDefault()
-                event.stopPropagation()
-                event.stopImmediatePropagation()
-                for (const cb of listeners) {
-                    try {
-                        cb(event)
-                    } catch (err) {
-                        Logger.error('Error in keydown listener: ' + err)
-                    }
-                }
-            }
-
-            // Fallback: keep original behavior for configured skip shortcuts if not registered in the map
-            if ((!this.keyDownListeners.size || !this.keyDownListeners.has(key)) && this.settings) {
-                // handle skip forward/backward if they are enabled and match
-                this.handleShortcutEvent(event, this.settings.forwardSkip, this.skipForward.bind(this))
-                this.handleShortcutEvent(event, this.settings.backwardSkip, this.skipBackward.bind(this))
-            }
-        }
-
-        // Default keyup handler: look up listeners by the event key and call them
-        this.keyupHandler = (event: KeyboardEvent) => {
-            const key = eventToString(event)
-            const listeners = this.keyUpListeners.get(key)
-            if (listeners && listeners.length) {
-                event.preventDefault()
-                event.stopPropagation()
-                event.stopImmediatePropagation()
-                for (const cb of listeners) {
-                    try {
-                        cb(event)
-                    } catch (err) {
-                        Logger.error('Error in keyup listener: ' + err)
-                    }
-                }
-            }
-
-            // Fallback: original next/previous behavior if not registered in the map
-            if ((!this.keyUpListeners.size || !this.keyUpListeners.has(key)) && this.settings) {
-                this.handleShortcutEvent(event, this.settings.nextEpisode, () => {
-                    window.dispatchEvent(new Event('NextEpisode'))
-                    this.nextEpisode()
-                })
-                this.handleShortcutEvent(event, this.settings.previousEpisode, () => {
-                    window.dispatchEvent(new Event('PreviousEpisode'))
-                    this.previousEpisode()
-                })
-            }
-        }
-
-        // Register default settings-based shortcuts into the maps so they can be managed/unregistered
-        try {
-            if (this.settings.forwardSkip && this.settings.forwardSkip.enabled) {
-                this.onKeyDown(this.settings.forwardSkip.keyBind, this.skipForward.bind(this))
-            }
-            if (this.settings.backwardSkip && this.settings.backwardSkip.enabled) {
-                this.onKeyDown(this.settings.backwardSkip.keyBind, this.skipBackward.bind(this))
-            }
-            if (this.settings.nextEpisode && this.settings.nextEpisode.enabled) {
-                this.onKeyUp(this.settings.nextEpisode.keyBind, () => {
-                    window.dispatchEvent(new Event('NextEpisode'))
-                    this.nextEpisode()
-                })
-            }
-            if (this.settings.previousEpisode && this.settings.previousEpisode.enabled) {
-                this.onKeyUp(this.settings.previousEpisode.keyBind, () => {
-                    window.dispatchEvent(new Event('PreviousEpisode'))
-                    this.previousEpisode()
-                })
-            }
-        } catch (e) {
-            // If settings shape differs, we silently ignore registration and fall back to handleShortcutEvent logic
-            Logger.log('Could not auto-register default shortcuts: ' + e)
-        }
-
-        document.addEventListener('keydown', this.keydownHandler)
-        document.addEventListener('keyup', this.keyupHandler)
+        document.addEventListener('keydown', this.keydownHandler as EventListener)
     }
 
     /**
@@ -580,7 +510,6 @@ export default class BasePlayer {
      */
     destroy() {
         if (this.keydownHandler) document.removeEventListener('keydown', this.keydownHandler)
-        if (this.keyupHandler) document.removeEventListener('keyup', this.keyupHandler)
         if (this.cursorActivityHandler) {
             const container = document.getElementById('MATweaks-player-wrapper')
             if (container) {
@@ -596,75 +525,6 @@ export default class BasePlayer {
         if (this.cursorAutoHideTimer) window.clearTimeout(this.cursorAutoHideTimer)
         this.plyr?.destroy()
 
-        // Clear keyboard listener maps
-        try {
-            this.keyDownListeners && this.keyDownListeners.clear()
-            this.keyUpListeners && this.keyUpListeners.clear()
-        } catch (e) {
-            // noop
-        }
-    }
-
-    /**
-     * Handle a shortcut event
-     * @param {KeyboardEvent} event - The keyboard event
-     * @param {Object} shortcut - The shortcut configuration
-     * @param {Function} action - The action to perform
-     */
-    private handleShortcutEvent(
-        event: KeyboardEvent,
-        shortcut: { enabled: any; time?: number; keyBind: keyBind },
-        action: Function,
-    ) {
-        if (shortcut.enabled && this.checkShortcut(event, shortcut.keyBind)) {
-            event.preventDefault()
-            event.stopPropagation()
-            event.stopImmediatePropagation()
-            action()
-        }
-    }
-
-    // New public API to register/unregister keyboard listeners using the Map
-    public onKeyDown(shortcut: keyBind, callback: Function) {
-        if (!shortcut || !callback) return
-        const key = `${shortcut.ctrlKey ? '1' : '0'}|${shortcut.altKey ? '1' : '0'}|${shortcut.shiftKey ? '1' : '0'}|${shortcut.key}`
-        const arr = this.keyDownListeners.get(key) || []
-        arr.push(callback)
-        this.keyDownListeners.set(key, arr)
-    }
-
-    public offKeyDown(shortcut: keyBind, callback?: Function) {
-        if (!shortcut) return
-        const key = `${shortcut.ctrlKey ? '1' : '0'}|${shortcut.altKey ? '1' : '0'}|${shortcut.shiftKey ? '1' : '0'}|${shortcut.key}`
-        if (!this.keyDownListeners.has(key)) return
-        if (!callback) {
-            this.keyDownListeners.delete(key)
-            return
-        }
-        const arr = (this.keyDownListeners.get(key) || []).filter((cb) => cb !== callback)
-        if (arr.length) this.keyDownListeners.set(key, arr)
-        else this.keyDownListeners.delete(key)
-    }
-
-    public onKeyUp(shortcut: keyBind, callback: Function) {
-        if (!shortcut || !callback) return
-        const key = `${shortcut.ctrlKey ? '1' : '0'}|${shortcut.altKey ? '1' : '0'}|${shortcut.shiftKey ? '1' : '0'}|${shortcut.key}`
-        const arr = this.keyUpListeners.get(key) || []
-        arr.push(callback)
-        this.keyUpListeners.set(key, arr)
-    }
-
-    public offKeyUp(shortcut: keyBind, callback?: Function) {
-        if (!shortcut) return
-        const key = `${shortcut.ctrlKey ? '1' : '0'}|${shortcut.altKey ? '1' : '0'}|${shortcut.shiftKey ? '1' : '0'}|${shortcut.key}`
-        if (!this.keyUpListeners.has(key)) return
-        if (!callback) {
-            this.keyUpListeners.delete(key)
-            return
-        }
-        const arr = (this.keyUpListeners.get(key) || []).filter((cb) => cb !== callback)
-        if (arr.length) this.keyUpListeners.set(key, arr)
-        else this.keyUpListeners.delete(key)
     }
 
     /**
@@ -711,21 +571,6 @@ export default class BasePlayer {
                 144: '',
             },
         }
-    }
-
-    /**
-     * Check if a keyboard event matches a shortcut
-     * @param {KeyboardEvent} event - The keyboard event
-     * @param {Object} shortcut - The shortcut configuration
-     * @returns {boolean} Whether the event matches the shortcut
-     */
-    private checkShortcut(event: KeyboardEvent, shortcut: keyBind): boolean {
-        return (
-            event.ctrlKey === shortcut.ctrlKey &&
-            event.altKey === shortcut.altKey &&
-            event.shiftKey === shortcut.shiftKey &&
-            event.key === shortcut.key
-        )
     }
 
     private setupAutoHideCursor() {
@@ -784,21 +629,31 @@ export default class BasePlayer {
         }
     }
 
-    private handlePlayerID() {
-        if (!this.playerID || this.playerID === 0) return
-        // TODO: implement playerID handling
-        return
-    }
+    private monitorVideoExpiry() {
+        const checkAndHandleExpiry = () => {
+            if (this.hasTriggeredExpiry) return
+            this.epData.forEach((video) => {
+                if (video.expires && isExpired(video.expires) && !this.hasTriggeredExpiry) {
+                    Logger.warn('Video has expired. Attempting to reload source.')
+                    this.hasTriggeredExpiry = true
+                    this.onVideoExpire()
+                }
+            })
+        }
 
-    // private monitorVideoExpiry() {
-    //     if (!this.plyr) return
-    //     this.plyr.on('stalled', () => {
-    //         this.epData.forEach((video) => {
-    //             if (video.expires && isExpired(video.expires)) {
-    //                 Logger.warn('Video has expired. Attempting to reload source.')
-    //                 this.onVideoExpire()
-    //             }
-    //         })
-    //     })
-    // }
+        // Run an initial check when the player is ready
+        if (this.plyr) {
+            checkAndHandleExpiry()
+        }
+
+        // If playback stalls, it might be due to an expired token
+        this.plyr.on('stalled', () => {
+            checkAndHandleExpiry()
+        })
+
+        // Also check periodically during playback
+        this.plyr.on('timeupdate', () => {
+            checkAndHandleExpiry()
+        })
+    }
 }

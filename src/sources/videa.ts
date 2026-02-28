@@ -1,7 +1,9 @@
 import { ACTIONS } from '../lib/actions'
-import Logger from "../Logger";
+import Logger from '../Logger'
 import { EpisodeVideoData } from '../global'
 import { parseExpiryFromUrl } from '../lib/expiry'
+
+console.log('[videa.ts] Module loaded');
 
 window.addEventListener('message', async function (event) {
     if (event.data?.type === ACTIONS.GET_SOURCE_URL) {
@@ -20,7 +22,7 @@ window.addEventListener('message', async function (event) {
             window.parent.postMessage({type: ACTIONS.SOURCE_URL, data: addExpiry(qualityData)}, '*');
         }
     }
-});
+})
 
 /**
  * Function to add expiry to the quality data
@@ -28,7 +30,7 @@ window.addEventListener('message', async function (event) {
  * @returns {EpisodeVideoData[]} The array of quality data with expiry
  */
 function addExpiry(qualityData: EpisodeVideoData[]) {
-    let data: EpisodeVideoData[] = [];
+    let data: EpisodeVideoData[] = []
     qualityData.forEach((item) => {
         if (item.url && item.quality) {
             data.push({
@@ -51,14 +53,17 @@ function addExpiry(qualityData: EpisodeVideoData[]) {
 async function getQualityData(): Promise<EpisodeVideoData[]> {
     return new Promise((resolve) => {
         document.addEventListener('MATweaksSourceUrl', () => {
-            let qualityData = JSON.parse((document.querySelector('matweaks.matweaks-data') as HTMLElement).getAttribute('data-video-data') || '[]') as EpisodeVideoData[];
-            resolve(qualityData);
-        });
-        document.dispatchEvent(new Event('MATweaksGetSourceUrl'));
+            let qualityData = JSON.parse(
+                (document.querySelector('matweaks.matweaks-data') as HTMLElement).getAttribute('data-video-data') ||
+                    '[]',
+            ) as EpisodeVideoData[]
+            resolve(qualityData)
+        })
+        document.dispatchEvent(new Event('MATweaksGetSourceUrl'))
         setInterval(() => {
-            resolve([]);
-        }, 5000);
-    });
+            resolve([])
+        }, 5000)
+    })
 }
 
 class VideaExtractor {
@@ -146,10 +151,7 @@ class VideaExtractor {
     private randomString(length: number): string {
         return Array.from(
             { length: length },
-            () =>
-                'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'[
-                    Math.floor(Math.random() * 52)
-                ],
+            () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 52)],
         ).join('')
     }
 
@@ -170,11 +172,7 @@ class VideaExtractor {
         }
 
         const noembedHtml = await this.downloadWebpage(url)
-        let playerURL = this.searchRegex(
-            /<iframe.*?src="(\/player\?[^"]+)"/,
-            noembedHtml,
-            'player url from noembed',
-        )
+        let playerURL = this.searchRegex(/<iframe.*?src="(\/player\?[^"]+)"/, noembedHtml, 'player url from noembed')
         playerURL = new URL(playerURL, window.location.href).href
 
         const playerHtml = await this.downloadWebpage(playerURL)
@@ -186,18 +184,12 @@ class VideaExtractor {
             result += s[i - (this.STATIC_SECRET.indexOf(l[i]) - 31)]
         }
 
-        const query = Object.fromEntries(new URLSearchParams(playerURL.split('?')[1])) as Record<
-            string,
-            string
-        >
+        const query = Object.fromEntries(new URLSearchParams(playerURL.split('?')[1])) as Record<string, string>
         const random_seed = this.randomString(8)
         query['_s'] = random_seed
         query['_t'] = result.slice(0, 16)
 
-        const [b64_info, handle] = await this.downloadWebpageHandle(
-            'https://videa.hu/player/xml',
-            query,
-        )
+        const [b64_info, handle] = await this.downloadWebpageHandle('https://videa.hu/player/xml', query)
 
         if (b64_info.startsWith('<?xml')) {
             return await this.parseXml(b64_info)
@@ -214,8 +206,7 @@ class VideaExtractor {
             if (xml.querySelector('error')?.getAttribute('panelstyle')) {
                 return await this.noEmbedError(xml)
             }
-            const err =
-                (xml.querySelector('error') as HTMLElement).textContent ?? 'Unknown XML error'
+            const err = (xml.querySelector('error') as HTMLElement).textContent ?? 'Unknown XML error'
             throw new Error(err)
         } else {
             return xml
@@ -235,11 +226,7 @@ class VideaExtractor {
             if (url.includes('videa.hu/player')) {
                 player_url = url
             } else {
-                player_url = this.searchRegex(
-                    /<iframe.*?src="(\/player\?[^"]+)"/,
-                    video_page,
-                    'player url',
-                )
+                player_url = this.searchRegex(/<iframe.*?src="(\/player\?[^"]+)"/, video_page, 'player url')
                 player_url = new URL(player_url, url).href
             }
             const player_page = await this.downloadWebpage(player_url)
@@ -254,10 +241,7 @@ class VideaExtractor {
             const random_seed = this.randomString(8)
             query['_s'] = random_seed
             query['_t'] = result.slice(0, 16)
-            const [b64_info, handle] = await this.downloadWebpageHandle(
-                'https://videa.hu/player/xml',
-                query,
-            )
+            const [b64_info, handle] = await this.downloadWebpageHandle('https://videa.hu/player/xml', query)
             let info: Document
             if (b64_info?.startsWith('<?xml')) {
                 info = await this.parseXml(b64_info)
@@ -275,9 +259,7 @@ class VideaExtractor {
                 const source_exp = source.getAttribute('exp')
                 if (!source_url || !source_name) return
 
-                const hash_value = info.querySelector(
-                    `hash_values > hash_value_${source_name}`,
-                )?.textContent
+                const hash_value = info.querySelector(`hash_values > hash_value_${source_name}`)?.textContent
                 let final_url = source_url
                 if (hash_value && source_exp) {
                     final_url = `${source_url}?md5=${hash_value}&expires=${source_exp}`
@@ -292,9 +274,7 @@ class VideaExtractor {
                     quality: quality,
                 })
             })
-            return formats
-                .filter((item) => !isNaN(item.quality))
-                .sort((a, b) => b.quality - a.quality)
+            return formats.filter((item) => !isNaN(item.quality)).sort((a, b) => b.quality - a.quality)
         } catch (error) {
             if (error instanceof Error) {
                 Logger.error(`Error while extracting video source: ${error.message}`)

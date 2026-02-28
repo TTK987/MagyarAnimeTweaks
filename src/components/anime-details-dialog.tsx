@@ -2,7 +2,7 @@ import Toast from "../Toast";
 import {Calendar, Clock, ImageIcon, Info, Play, Trash2} from "lucide-react";
 import {Button} from "./ui/button";
 import React, {useState} from "react";
-import Resume, {Anime, type Episode} from "../Resume";
+import Resume, {Anime, type Episode} from "../History";
 import Logger from "../Logger";
 import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger} from "./ui/alert-dialog";
 import {DialogContent, DialogTitle} from "./ui/dialog";

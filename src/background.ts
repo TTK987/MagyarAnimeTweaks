@@ -1,71 +1,100 @@
-import Bookmarks from "./Bookmark";
-import Logger from "./Logger";
-import MAT from "./MAT";
-import Resume from './Resume'
+import Bookmarks from './Bookmark'
+import Logger from './Logger'
+import MAT from './MAT'
+import Resume from './History'
 import { ACTIONS } from './lib/actions'
-import { migrateSettings } from "./lib/settingsMigration";
+import { migrateSettings } from './modules/settings/migrations/settingsMigration'
+
 
 chrome.runtime.onInstalled.addListener((details) => {
-    checkAndRequestPermissions();
-    if (details.reason === "install" || details.reason === "update") {
-        const version = chrome.runtime.getManifest().version;
-        if (details.reason === "update") {
-            // Temporarily disabled the changelog link. It will be re-enabled for the next major release.
-            //chrome.tabs.create({url: `https://matweaks.hu/changelog#${MAT.version.replace(/\./g, '')}`})
-            Logger.log(`[background.js]: Updated from version ${details.previousVersion ?? "unknown"}`, true);
-            if (details.previousVersion && version) {
-                migrateSettings(details.previousVersion, version);
+    checkAndRequestPermissions()
+    if (details.reason === 'install' || details.reason === 'update') {
+        if (details.reason === 'update') {
+            console.log(`[background.js]: Updated from version ${details.previousVersion} to ${MAT.version}`)
+            const prevVer = details.previousVersion
+            const currVer = MAT.version
+
+            const parseVer = (v?: string) => (v || '')
+                    .split('.')
+                    .slice(0, 3)
+                    .map((p) => {
+                        const n = Number(p)
+                        return Number.isFinite(n) ? n : 0
+                    })
+
+            let shouldOpenChangelog = false
+            if (!prevVer) {
+                shouldOpenChangelog = true
             } else {
-                Logger.error(`[background.js]: Cannot migrate settings, previousVersion or version is undefined`, true);
+                const [pv0, pv1, pv2] = parseVer(prevVer)
+                const [cv0, cv1, cv2] = parseVer(currVer)
+                if (cv0 > pv0 || cv1 > pv1 || cv2 > pv2) shouldOpenChangelog = true
             }
+
+            if (shouldOpenChangelog) {
+                chrome.tabs.create({ url: `https://matweaks.hu/changelog#${MAT.version.replace(/\./g, '')}` })
+            }
+
+            migrateSettings()
+            Logger.log(`[background.js]: Updated from version ${details.previousVersion ?? 'unknown'}`, true)
         }
-        if (details.reason === "install") {
-            chrome.tabs.create({url: `https://matweaks.hu/changelog#${MAT.version.replace(/\./g, '')}`})
-            MAT.saveSettings();
-            Bookmarks.saveBookmarks();
-            Resume.saveData();
+        if (details.reason === 'install') {
+            Logger.log(`[background.js]: Installed version ${MAT.version}`, true)
+            chrome.tabs.create({ url: `https://matweaks.hu/changelog#${MAT.version.replace(/\./g, '')}` })
+            MAT.saveSettings()
+            Bookmarks.saveBookmarks()
+            Resume.saveData()
+            loadSettingsAndUpdateRules()
         }
-        MAT.loadSettings().then(data => {
-            MAT.settings = data;
-            MAT.saveSettings();
-            Logger.log(`[background.js]: Loaded settings: ${JSON.stringify(data)}`, true);
-        });
-        setResumeExpirationCheck();
-        checkResumeExpiration();
+        setResumeExpirationCheck()
+        checkResumeExpiration()
+    } else {
+        // Only load settings on normal startup (not install/update)
+        loadSettingsAndUpdateRules()
     }
-});
+})
 /**
  * Remove all context menus and create a new one
  */
 chrome.contextMenus.removeAll(() => {
-    createContextMenu();
-});
+    createContextMenu()
+})
 
-MAT.loadSettings().then(data => {
-    MAT.settings = data;
-    Logger.log(`[background.js]: Loaded settings: ${JSON.stringify(data)}`, true);
-    MAT.updateDynamicRules();
-}).catch(() => {
-    MAT.settings = MAT.getDefaultSettings();
-    MAT.saveSettings();
-    Logger.error(`[background.js]: Failed to load settings`, true);
-});
+function loadSettingsAndUpdateRules() {
+    MAT.loadSettings()
+        .then((data) => {
+            MAT.settings = data
+            Logger.log(`[background.js]: Loaded settings: ${JSON.stringify(data)}`, true)
+            MAT.updateDynamicRules()
+        })
+        .catch(() => {
+            MAT.settings = MAT.getDefaultSettings()
+            MAT.saveSettings().then((s) => {
+                if (s) Logger.log(`[background.js]: Saved default settings: ${JSON.stringify(MAT.settings)}`, true)
+            })
+            Logger.error(`[background.js]: Failed to load settings`, true)
+        })
+}
+
+
 /**
  * Create a context menu to search on MagyarAnime from MyAnimeList.net
  */
 function createContextMenu() {
     chrome.contextMenus.create({
-        id: "searchOnMagyarAnime",
-        title: "Keresés a MagyarAnime-én",
-        contexts: ["link", "page"],
-        documentUrlPatterns: ["*://*.myanimelist.net/*"]
-    });
+        id: 'searchOnMagyarAnime',
+        title: 'Keresés a MagyarAnime-én',
+        contexts: ['link', 'page'],
+        documentUrlPatterns: ['*://*.myanimelist.net/*'],
+    })
 
     chrome.contextMenus.onClicked.addListener((info) => {
-        if (info.menuItemId === "searchOnMagyarAnime") {
-            chrome.tabs.create({url: `https://magyaranime.eu/web/kereso-mal/${(info.linkUrl || info.pageUrl)?.match(/myanimelist\.net\/anime\/(\d+)/)?.[1] || ''}/`});
+        if (info.menuItemId === 'searchOnMagyarAnime') {
+            chrome.tabs.create({
+                url: `https://magyaranime.eu/web/kereso-mal/${(info.linkUrl || info.pageUrl)?.match(/myanimelist\.net\/anime\/(\d+)/)?.[1] || ''}/`,
+            })
         }
-    });
+    })
 }
 
 /**
@@ -75,93 +104,102 @@ function createContextMenu() {
  */
 async function setResumeExpirationCheck() {
     try {
-        const alarms = await chrome.alarms.getAll();
-        const alarmExists = alarms.some(alarm => alarm.name === "checkResumeExpiration");
+        const alarms = await chrome.alarms.getAll()
+        console.log(alarms)
+        const alarmExists = alarms.some((alarm) => alarm.name === 'checkResumeExpiration')
 
         if (!alarmExists) {
-            await chrome.alarms.create("checkResumeExpiration", {
+            await chrome.alarms.create('checkResumeExpiration', {
                 periodInMinutes: 60 * 24,
-            });
-            Logger.log(`[background.js]: Set daily resume expiration check`, true);
+            })
+            Logger.log(`[background.js]: Set daily resume expiration check`, true)
         } else {
-            Logger.log(`[background.js]: Alarm "checkResumeExpiration" already exists`, true);
+            Logger.log(`[background.js]: Alarm "checkResumeExpiration" already exists`, true)
         }
+        console.log(await chrome.alarms.getAll())
     } catch (error) {
-        Logger.error(`[background.js]: Failed to set daily resume expiration check: ${error}`, true);
+        Logger.error(`[background.js]: Failed to set daily resume expiration check: ${error}`, true)
     }
 }
 /**
  * Handle the resume expiration check
  */
 chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === "checkResumeExpiration") {
-        Logger.log(`[background.js]: Checking for expired resume data`, true);
-        checkResumeExpiration();
+    if (alarm.name === 'checkResumeExpiration') {
+        Logger.log(`[background.js]: Checking for expired resume data`, true)
+        checkResumeExpiration()
     }
 })
 
 function checkResumeExpiration() {
-    Resume.loadData().then((data) => {
-        if (data && data.length > 0) {
-            MAT.loadSettings().then(s => {
-                const currentTime = Date.now();
-                const expirationTime = strToTime(s.resume.clearAfter);
-                if (expirationTime === -1) {
-                    Logger.log(`[background.js]: Resume data will not expire`, true);
-                    return;
-                }
-                Logger.log(`[background.js]: Running resume expiration check with expiration time: ${expirationTime}ms (${s.resume.clearAfter})`, true,)
-                const animesToRemove: number[] = []
-                for (const anime of data) {
-                    const expiredEpisodes = anime.episodes.filter(
-                        (ep) => ep.updateTime && currentTime - ep.updateTime > expirationTime,
-                    )
-                    expiredEpisodes.forEach((ep) => anime.removeEpisode(ep.epID))
-                    if (anime.episodes.length === 0) {
-                        animesToRemove.push(anime.animeID)
+    Resume.loadData()
+        .then((data) => {
+            if (data && data.length > 0) {
+                MAT.loadSettings().then((s) => {
+                    const currentTime = Date.now()
+                    const expirationTime = strToTime(s.history.clearAfter.toLowerCase().trim() as '1w' | '1m' | '3m' | '1y' | 'never')
+                    if (expirationTime === -1) {
+                        Logger.log(`[background.js]: Resume data will not expire`, true)
+                        return
                     }
-                }
-                data = data.filter(a => !animesToRemove.includes(a.animeID));
-                Resume.animes = data;
-                Logger.log(`[background.js]: Removed ${animesToRemove.length} animes with all episodes expired from resume data`, true);
-                Resume.saveData()
-                Resume.loadData()
-            })
-        }
-    }).catch((error) => {
-        Logger.error(`[background.js]: Failed to load resume data: ${error}`, true);
-    })
+                    Logger.log(
+                        `[background.js]: Running resume expiration check with expiration time: ${expirationTime}ms (${s.history.clearAfter})`,
+                        true,
+                    )
+                    const animesToRemove: number[] = []
+                    for (const anime of data) {
+                        const expiredEpisodes = anime.episodes.filter(
+                            (ep) => ep.updateTime && currentTime - ep.updateTime > expirationTime,
+                        )
+                        expiredEpisodes.forEach((ep) => anime.removeEpisode(ep.epID))
+                        if (anime.episodes.length === 0) {
+                            animesToRemove.push(anime.animeID)
+                        }
+                    }
+                    data = data.filter((a) => !animesToRemove.includes(a.animeID))
+                    Resume.animes = data
+                    Logger.log(
+                        `[background.js]: Removed ${animesToRemove.length} animes with all episodes expired from resume data`,
+                        true,
+                    )
+                    Resume.saveData()
+                    Resume.loadData()
+                })
+            }
+        })
+        .catch((error) => {
+            Logger.error(`[background.js]: Failed to load resume data: ${error}`, true)
+        })
 }
 
-function strToTime(str: "1w" | "1m" | "3m" | "1y" | "never"): number {
+function strToTime(str: '1w' | '1m' | '3m' | '1y' | 'never'): number {
     switch (str) {
-        case "1w":
-            return 7 * 24 * 60 * 60 * 1000; // 1 week
-        case "1m":
-            return 30 * 24 * 60 * 60 * 1000; // 1 month
-        case "3m":
-            return 90 * 24 * 60 * 60 * 1000; // 3 months
-        case "1y":
-            return 365 * 24 * 60 * 60 * 1000; // 1 year
-        case "never":
-            return -1; // never expires
+        case '1w':
+            return 7 * 24 * 60 * 60 * 1000 // 1 week
+        case '1m':
+            return 30 * 24 * 60 * 60 * 1000 // 1 month
+        case '3m':
+            return 90 * 24 * 60 * 60 * 1000 // 3 months
+        case '1y':
+            return 365 * 24 * 60 * 60 * 1000 // 1 year
+        case 'never':
+            return -1 // never expires
         default:
-            return -1; // never expires
+            return -1 // never expires
     }
 }
-
 
 /**
  *  Temporary storage for bookmarks that are currently being opened and loaded
  *  @type {[{id: number, url: string}]}
  */
-let openBookmarks: Array<{epID: number, epURL: string}> = [];
+let openBookmarks: Array<{ epID: number, epURL: string }> = []
 
 /**
  * Temporary storage for resumes that are currently being opened and loaded
  * @type {[{id: number, url: string, time: number}]}
  */
-let openResume: Array<{epID: number, epURL: string, epTime: number}> = [];
+let openResume: Array<{ epID: number, epURL: string, epTime: number }> = []
 
 /**
  * Handle messages from the extension
@@ -252,9 +290,10 @@ chrome.runtime.onMessage.addListener((request, sender: chrome.runtime.MessageSen
  * @since v0.1.6.1
  */
 function checkAndRequestPermissions() {
-    chrome.permissions.contains({origins: chrome.runtime.getManifest()['host_permissions']}, (answer) => {
-        if (!answer) openPermissionPage(); else Logger.log(`[background.js]: Permissions already granted`, true);
-    });
+    chrome.permissions.contains({ origins: chrome.runtime.getManifest()['host_permissions'] }, (answer) => {
+        if (!answer) openPermissionPage()
+        else Logger.log(`[background.js]: Permissions already granted`, true)
+    })
 }
 
 /**
@@ -264,5 +303,5 @@ function openPermissionPage() {
     chrome.tabs.create({
         url: chrome.runtime.getURL('src/pages/permissions/index.html'),
         active: true,
-    });
+    })
 }

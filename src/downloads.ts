@@ -1,6 +1,5 @@
 import {FansubData} from './global'
-import {renderFileName} from './lib/utils'
-import MAT from "./MAT";
+import {renderFileName} from './modules/downloads/file-name'
 import { ACTIONS } from './lib/actions'
 
 

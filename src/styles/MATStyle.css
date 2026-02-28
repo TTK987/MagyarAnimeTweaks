@@ -3,6 +3,20 @@
     top: 9.5px !important;
 }
 
+
+#MATPopupIframe {
+    position: fixed;
+    top: 80px;
+    right: 100px;
+    width: 420px;
+    height: 500px;
+    border: none;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+
 #VideoPlayer {
     border-radius: 5px !important;
     overflow: hidden !important;
@@ -262,9 +276,7 @@
 
 /* the "!important" is used to override the default styles, and because I'm too lazy to find a better way to do it */
 .mat-servers-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 3px;
+    display: block;
     margin-bottom: 1rem;
 }
 

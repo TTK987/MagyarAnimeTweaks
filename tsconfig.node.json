@@ -8,6 +8,7 @@
     },
     "include": [
         "vite.config.ts",
-        "manifest.ts"
+        "manifest.ts",
+        "manifest.common.ts"
     ]
 }

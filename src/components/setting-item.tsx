@@ -12,6 +12,7 @@ interface SettingCardProps {
             ctrlKey: boolean
             altKey: boolean
             shiftKey: boolean
+            metaKey: boolean
             key: string
         }
     }
@@ -19,9 +20,10 @@ interface SettingCardProps {
     title: string
     description: string
     onSettingChange: (id: string, updatedSetting: { [key: string]: any }) => void
+    className?: string
 }
 
-export default function SettingCard({id, setting, icon, title, description, onSettingChange,}: SettingCardProps) {
+export default function SettingCard({id, setting, icon, title, description, onSettingChange, className,}: SettingCardProps) {
     const handleToggleChange = (checked: boolean) => {
         const updatedSetting = { ...setting, enabled: checked }
         onSettingChange(id, updatedSetting)
@@ -39,6 +41,7 @@ export default function SettingCard({id, setting, icon, title, description, onSe
         ctrlKey: boolean
         altKey: boolean
         shiftKey: boolean
+        metaKey: boolean
         key: string
     }) => {
         const updatedSetting = { ...setting, keyBind: newKeyBind }
@@ -50,7 +53,7 @@ export default function SettingCard({id, setting, icon, title, description, onSe
     const hasKeyBind = setting && typeof setting.keyBind === 'object' && setting.keyBind !== null
 
     return (
-        <Card className="bg-[#0a0e17] border-[#205daa]/20 rounded-lg shadow-md p-1 hover:shadow-lg transition-shadow duration-300 ease-in-out w-full">
+        <Card className={`bg-[#0a0e17] border-[#205daa]/20 rounded-lg shadow-md p-1 hover:shadow-lg transition-shadow duration-300 ease-in-out w-full ${className || ''}`}>
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -97,7 +100,7 @@ export default function SettingCard({id, setting, icon, title, description, onSe
                             />
                         </div>
                     )}
-                    {description && <p className="text-xs text-[#fff]/70">{description}</p>}
+                    {description && <p className="text-xs text-white/70">{description}</p>}
                 </div>
             </CardContent>
         </Card>

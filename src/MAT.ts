@@ -1,12 +1,15 @@
 import Logger from './Logger'
 import { Settings } from './global'
+import { createKeyBind } from './lib/shortcuts'
 
 class MAT {
     settings: Settings
     version: string
+    eap: boolean
     constructor() {
         this.settings = this.getDefaultSettings()
         this.version = chrome.runtime.getManifest().version || '0.0.0'
+        this.eap = false
     }
 
     /**
@@ -29,6 +32,7 @@ class MAT {
             chrome.storage.sync.get('settings', (result) => {
                 if (result && result.settings) {
                     this.settings = result.settings as Settings
+                    this.eap = this.settings.eap
                     Logger.success('Settings loaded from storage', true)
                     resolve(this.settings)
                 } else {
@@ -53,8 +57,7 @@ class MAT {
                 .then(async () => {
                     const randomId = Math.floor(Math.random() * 1000)
                     const newRule =
-                        this.settings.advanced.player === 'plyr'
-                            ? ([
+                            ([
                                   {
                                       id: randomId,
                                       action: { type: 'block' },
@@ -96,14 +99,10 @@ class MAT {
                                       },
                                   },
                               ] as chrome.declarativeNetRequest.Rule[])
-                            : ([] as chrome.declarativeNetRequest.Rule[])
                     chrome.declarativeNetRequest
                         .updateDynamicRules({
                             addRules: newRule,
                             removeRuleIds: [],
-                        })
-                        .then(() => {
-                            Logger.log(`Default player is now "${this.settings.advanced.player}"`)
                         })
                         .catch((error) => {
                             Logger.error(`Failed to add new dynamic rules: ${error}`, true)
@@ -119,24 +118,20 @@ class MAT {
      * Save the settings to the storage
      * and update the dynamic rules based on the settings
      */
-    saveSettings() {
-        chrome.storage.sync.set({ settings: this.settings }, () => {
-            if (chrome.runtime.lastError) {
-                Logger.error('Error: Settings not saved', true)
-                Logger.error(chrome.runtime.lastError.message || 'Unknown error', true)
-            }
-            this.updateDynamicRules()
-            Logger.success('Settings saved', true)
+    saveSettings(): Promise<boolean> {
+        return new Promise((resolve) => {
+            chrome.storage.sync.set({ settings: this.settings }, () => {
+                if (chrome.runtime.lastError) {
+                    Logger.error('Error: Settings not saved', true)
+                    Logger.error(chrome.runtime.lastError.message || 'Unknown error', true)
+                    resolve(false)
+                }
+                this.updateDynamicRules()
+                this.eap = this.settings.eap
+                Logger.success('Settings saved', true)
+                resolve(true)
+            })
         })
-    }
-
-    /**
-     * Get the version of the extension
-     * @returns {String} The version of the extension
-     * @deprecated
-     */
-    getVersion(): string {
-        return chrome.runtime.getManifest().version || '0.0.0'
     }
 
     /**
@@ -148,40 +143,20 @@ class MAT {
             forwardSkip: { /* Forward skip settings (default: ctrl + →) */
                 enabled: true,
                 time: 85,
-                keyBind: {
-                    ctrlKey: true,
-                    altKey: false,
-                    shiftKey: false,
-                    key: 'ArrowRight',
-                },
+                keyBind: createKeyBind(true, false, false, false, 'ArrowRight'),
             },
             backwardSkip: { /* Backward skip settings (default: ctrl + ←) */
                 enabled: true,
                 time: 85,
-                keyBind: {
-                    ctrlKey: true,
-                    altKey: false,
-                    shiftKey: false,
-                    key: 'ArrowLeft',
-                },
+                keyBind: createKeyBind(true, false, false, false, 'ArrowLeft'),
             },
             nextEpisode: { /* Next episode settings (default: alt + →)  */
                 enabled: true,
-                keyBind: {
-                    ctrlKey: false,
-                    altKey: true,
-                    shiftKey: false,
-                    key: 'ArrowRight',
-                },
+                keyBind: createKeyBind(false, true, false, false, 'ArrowRight'),
             },
             previousEpisode: { /* Previous episode settings (default: alt + ←) */
                 enabled: true,
-                keyBind: {
-                    ctrlKey: false,
-                    altKey: true,
-                    shiftKey: false,
-                    key: 'ArrowLeft',
-                },
+                keyBind: createKeyBind(false, true, false, false, 'ArrowLeft'),
             },
             autoNextEpisode: {
                 /* Auto next episode (default: false) (on last episode of the season it won't skip) */
@@ -192,7 +167,7 @@ class MAT {
             bookmarks: {
                 /* Bookmarks settings */ enabled: true /* Bookmarks (default: true) */,
             },
-            resume: {
+            history: {
                 enabled: true /* Resume watching (default: true) */,
                 mode: 'ask' /* Resume mode (default: "ask") (ask, auto) */,
                 clearAfter: '1m' /* Clear time (default: "1m") (1w, 1m, 3m, 1y, never) (deletes an entry after the specified time, if no changes were made) */,
@@ -204,7 +179,6 @@ class MAT {
 
             advanced: {/* Advanced settings */
                 consoleLog: false /* Console log (default: false) (enables console logging for debugging purposes) */,
-                player: 'plyr',
                 downloadName: '%title% - %episode%.rész (%MAT%)',
                 /* Download name (default: "%title% - %episode%.rész (%MAT%)") */
                 /*
@@ -221,81 +195,46 @@ class MAT {
             nav: { /* Navigation settings */
                 searchBox: {
                     enabled: true /* Search box in the navigation bar (default: true) */,
-                    openSearch: { /* Open the search page (default: ctrl + Enter) */
-                        ctrlKey: true,
-                        altKey: false,
-                        shiftKey: false,
-                        key: 'Enter',
-                    },
-                    open: { /* Open the search box (default: alt + /) */
-                        ctrlKey: false,
-                        altKey: true,
-                        shiftKey: false,
-                        key: '/',
-                    },
-                    close: { /* Close the search box (default: shift + Escape) */
-                        ctrlKey: false,
-                        altKey: false,
-                        shiftKey: true,
-                        key: 'Escape',
-                    }
+                    openSearch: createKeyBind(true, false, false, false, 'Enter'),
+                    open: createKeyBind(false, false, true, false, '/'),
+                    close: createKeyBind(false, false, false, false, 'Escape'),
                 },
                 episode: { /* Episode page navigation */
                     enabled: true /* Enable episode page navigation (default: true) */,
-                    open: { /* Open anime episode (default: Enter) */
-                        ctrlKey: false,
-                        altKey: false,
-                        shiftKey: false,
-                        key: 'Enter',
-                    }
+                    open: createKeyBind(false, false, false, false, 'Enter')
+                },
+                mainPage: { /* Main page navigation */
+                    enabled: true /* Enable main page navigation (default: true) */,
+                    open: createKeyBind(false, false, false, false, 'Enter')
                 }
             },
             plyr: {
                 /* Plyr settings */
                 design: false /* Plyr design settings (default: false) */,
                 shortcuts: {
-                    playPause: {
-                        ctrlKey: false,
-                        altKey: false,
-                        shiftKey: false,
-                        key: 'Space',
-                    },
-                    muteUnmute: {
-                        ctrlKey: false,
-                        altKey: false,
-                        shiftKey: false,
-                        key: 'KeyM',
-                    },
-                    fullscreen: {
-                        ctrlKey: false,
-                        altKey: false,
-                        shiftKey: false,
-                        key: 'KeyF',
-                    },
-                    volumeUp: {
-                        ctrlKey: false,
-                        altKey: false,
-                        shiftKey: false,
-                        key: 'ArrowUp',
-                    },
-                    volumeDown: {
-                        ctrlKey: false,
-                        altKey: false,
-                        shiftKey: false,
-                        key: 'ArrowDown',
-                    },
+                    playPause:[
+                        createKeyBind(false, false, false, false, ' '),
+                        createKeyBind(false, false, false, false, 'k'),
+                    ],
+                    muteUnmute: [
+                        createKeyBind(false, false, false, false, 'm'),
+                    ],
+                    fullscreen: [
+                        createKeyBind(false, false, false, false, 'f'),
+                    ],
+                    volumeUp: [
+                        createKeyBind(false, false, false, false, 'ArrowUp'),
+                    ],
+                    volumeDown: [
+                        createKeyBind(false, false, false, false, 'ArrowDown'),
+                    ]
                 },
                 plugins: {
                     aniSkip: {
-                        enabled: false /* Enable AniSkip plugin (default: false) */,
-                        skipOP: true /* Skip opening (default: true) */,
-                        skipED: true /* Skip ending (default: true) */,
-                        keyBind: {
-                            ctrlKey: false,
-                            altKey: false,
-                            shiftKey: false,
-                            key: 'KeyS',
-                        }
+                        enabled: true /* Enable AniSkip plugin (default: true) */,
+                        skips: ['op', 'ed'] /* Skip types (default: ['op', 'ed']) */,
+                        keyBind: createKeyBind(false, false, false, false, 's') /* Key bind to toggle skipping (default: S) */ ,
+                        autoSkip: []
                     }
                 }
             },
@@ -320,28 +259,25 @@ class MAT {
      * Save Plyr CSS to local storage
      * @param {string} css - The CSS string to save
      */
-    savePlyrCSS(css: string) {
-        // Attempt to clean the CSS string by removing HTML tags and invalid characters
-        css = css
-            .replace(/<([a-z][a-z0-9]*)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
-            .replace(/<[^>]+>/g, '')
-            .replace(/[^{}:;,.#\w\-\s()\/%"]/g, '')
-
-        // Limit the CSS string length to 10000 characters
-        if (css.length > 10000) {
-            Logger.error('Error: Plyr CSS is too long (max 10000 characters)', true)
-            return
+    savePlyrCSS(css: string): Promise<boolean> {
+        // Limit the CSS string length to 100000 characters
+        if (css.length > 100000) {
+            Logger.error('Error: Plyr CSS is too long (max 100000 characters)', true)
+            return Promise.resolve(false)
         }
 
-        chrome.storage.local.set({ plyrCSS: css }, () => {
-            if (chrome.runtime.lastError) {
-                Logger.error('Error: Plyr CSS not saved', true)
-            } else {
-                Logger.success('Plyr CSS saved', true)
-            }
+        return new Promise((resolve) => {
+            chrome.storage.local.set({ plyrCSS: css }, () => {
+                if (chrome.runtime.lastError) {
+                    Logger.error('Error: Plyr CSS not saved', true)
+                    resolve(false)
+                } else {
+                    Logger.success('Plyr CSS saved', true)
+                    resolve(true)
+                }
+            })
         })
     }
-
     /**
      * Get the default Plyr CSS
      * @returns {string} The default CSS
@@ -368,14 +304,6 @@ class MAT {
     --plyr-tooltip-background: #ffffffe6;
     --plyr-tooltip-color: #4a5464;
 }`
-    }
-
-    /**
-     * Returns whether the extension is an Early Access Program build
-     * @returns {boolean}
-     */
-    isEAP(): boolean {
-        return this.settings.eap
     }
 }
 

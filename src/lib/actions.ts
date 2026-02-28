@@ -20,6 +20,7 @@ export const ACTIONS = {
         TOGGLE_MUTE: 'ToggleMute',
         TOGGLE_FULLSCREEN: 'ToggleFullscreen',
         SEEK: 'Seek',
+        SEEK_TO: 'SeekTo',
         BACKWARD_SKIP: 'BackwardSkip',
         FORWARD_SKIP: 'ForwardSkip',
         GET_CURRENT_TIME: 'getCurrentTime',
@@ -29,7 +30,8 @@ export const ACTIONS = {
         TOAST: 'Toast',
         PLAYER_REPLACED: 'PlayerReplaced',
         PLAYER_REPLACE_FAILED: 'PlayerReplaceFailed',
+        TOGGLE_THEATRE_MODE: 'ToggleTheatreMode',
+        TOKEN_EXPIRED: 'TokenExpired',
     },
     DOWNLOAD: 'download',
 } as const
-

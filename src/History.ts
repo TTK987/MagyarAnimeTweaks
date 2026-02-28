@@ -1,19 +1,19 @@
 import Logger from './Logger'
-
-class Resume {
+// TODO: Move storage location to history namespace
+class History {
     animes: Anime[]
     /**
      * Create a new Episode class
      * @since v0.1.8
      * @constructor Episode - Create a new Episode class
-     * @property {Array<Anime>} animes - The animes with resume data
+     * @property {Array<Anime>} animes - The animes with history data
      */
     constructor() {
         this.animes = []
     }
 
     /**
-     * Add resume data
+     * Add history data
      * @param epID
      * @param epTime
      * @param animeID
@@ -68,7 +68,7 @@ class Resume {
     }
 
     /**
-     * Remove resume data
+     * Remove history data by episode ID
      * @param {Number} id - The ID of the episode
      * @since v0.1.8
      */
@@ -82,13 +82,13 @@ class Resume {
             if (this.getDataByEpisodeId(id) === null) {
                 resolve(true)
             } else {
-                reject(new Error('Resume data not removed'))
+                reject(new Error('History data not removed'))
             }
         })
     }
 
     /**
-     * Save the resume data
+     * Save the history data
      * @since v0.1.8
      */
     saveData() {
@@ -107,13 +107,13 @@ class Resume {
                 }))
             })
             .catch(() => {
-                Logger.error('Error: Resume data not saved', true)
+                Logger.error('Error: History data not saved', true)
             })
     }
 
     /**
-     * Load the resume data
-     * @returns {Promise<Array<Anime>>} The resume data
+     * Load the history data
+     * @returns {Promise<Array<Anime>>} The history data
      * @since v0.1.8
      */
     loadData(): Promise<Anime[]> {
@@ -121,20 +121,18 @@ class Resume {
             chrome.storage.local
                 .get('resume')
                 .then((data) => {
-                    this.animes = (data.resume as Resume[] || []).map(
-                        (anime: any) => {
-                            const animeInstance = new Anime(anime.animeID, anime.animeTitle)
-                            animeInstance.episodes = (anime.episodes || []).map((ep: any) => ({
-                                ...ep,
-                                epID: Number(ep.epID),
-                                epTime: Number(ep.epTime),
-                                epNum: Number(ep.epNum),
-                                updateTime: Number(ep.updateTime),
-                            }))
-        return animeInstance
-    }
-)
-resolve(this.animes)
+                    this.animes = ((data.resume as History[]) || []).map((anime: any) => {
+                        const animeInstance = new Anime(anime.animeID, anime.animeTitle)
+                        animeInstance.episodes = (anime.episodes || []).map((ep: any) => ({
+                            ...ep,
+                            epID: Number(ep.epID),
+                            epTime: Number(ep.epTime),
+                            epNum: Number(ep.epNum),
+                            updateTime: Number(ep.updateTime),
+                        }))
+                        return animeInstance
+                    })
+                    resolve(this.animes)
                 })
                 .catch(() => {
                     resolve([])
@@ -143,9 +141,9 @@ resolve(this.animes)
     }
 
     /**
-     * Get the resume data by episode ID
+     * Get the history data by episode ID
      * @param {Number} id - The ID of the episode
-     * @returns {Episode | null} The resume data
+     * @returns {Episode | null} The history data
      * @since v0.1.8
      */
     getDataByEpisodeId(id: number): Episode | null {
@@ -157,7 +155,7 @@ resolve(this.animes)
     }
 
     /**
-     * Update resume data
+     * Update the history data
      * @param epID
      * @param epTime
      * @param animeID
@@ -197,13 +195,15 @@ resolve(this.animes)
     }
 
     /**
-     * Get the last updated resume data
-     * @returns {{episode: Episode | null, anime: Anime | null}} The last updated resume data
+     * Get the last updated history data
+     * @param {Number} [animeID] - The ID of the anime to get the last updated history data for (optional)
+     * @returns {{episode: Episode, anime: Anime }} The last updated history data
      */
-    getLastUpdated(): { episode: Episode | null; anime: Anime | null } {
+    getLastUpdated(animeID?: number): { episode: Episode; anime: Anime } | null {
         let lastUpdated = null
         let lastAnime = null
         for (const anime of this.animes) {
+            if (animeID && Number(anime.animeID) !== Number(animeID)) continue
             for (const episode of anime.episodes) {
                 if (!lastUpdated || episode.updateTime > lastUpdated.updateTime) {
                     lastUpdated = episode
@@ -211,7 +211,7 @@ resolve(this.animes)
                 }
             }
         }
-        return { episode: lastUpdated, anime: lastAnime }
+        return lastUpdated && lastAnime ? { episode: lastUpdated, anime: lastAnime } : null
     }
 
     openEpisode(id: number) {
@@ -285,4 +285,4 @@ export type Episode = {
     updateTime: number
 }
 
-export default new Resume()
+export default new History()

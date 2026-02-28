@@ -1,23 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Switch } from './ui/switch'
 import type { Settings } from '../global'
 import {
     FaCheckCircle,
-    FaExclamationTriangle,
     FaFileAlt,
     FaFlask,
-    FaPlayCircle,
 } from 'react-icons/fa'
 import React from 'react'
 import { FaTerminal } from 'react-icons/fa6'
+import ImportExportSettings from './import-export-settings'
 
 interface props {
     settings: Settings
     onSettingChange: (id: string, updatedSetting: { [key: string]: any }) => void
+    onSettingsImport?: (settings: Settings) => void
 }
 
-export default function AdvancedSettings({ settings, onSettingChange }: props) {
+export default function AdvancedSettings({ settings, onSettingChange, onSettingsImport }: props) {
     return (
         <>
             {/* Left Column - Console Logging and Player Type */}
@@ -48,7 +47,7 @@ export default function AdvancedSettings({ settings, onSettingChange }: props) {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            <p className="text-xs text-[#fff]/70">
+                            <p className="text-xs text-white/70">
                                 Ez a beállítás engedélyezi, hogy az üzenetek megjelenjenek a
                                 konzolon, ezek hasznosak lehetnek hibakereséshez.
                             </p>
@@ -56,64 +55,6 @@ export default function AdvancedSettings({ settings, onSettingChange }: props) {
                     </CardContent>
                 </Card>
 
-                {/* Player Selection */}
-                <Card className="bg-[#0a0e17] border-[#205daa]/20 rounded-lg shadow-md p-1 hover:shadow-lg transition-shadow duration-300 ease-in-out w-full">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-center gap-4">
-                            <FaPlayCircle className="h-5 w-5 text-[#3f9fff]" />
-                            <CardTitle className="text-white text-lg font-medium">
-                                Lejátszó típusa
-                            </CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            <div className="text-sm text-gray-400">
-                                Válaszd ki a használni kívánt videó lejátszót
-                            </div>
-                            <Select
-                                value={settings.advanced.player}
-                                onValueChange={(value: 'plyr' | 'default') => {
-                                    const updatedSetting = { ...settings.advanced, player: value }
-                                    onSettingChange('advanced', updatedSetting)
-                                }}
-                            >
-                                <SelectTrigger className="bg-[#1a1f2e] border-[#205daa]/20 text-white">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-[#1a1f2e] border-[#205daa]/20">
-                                    <SelectItem
-                                        value="plyr"
-                                        className="text-white hover:bg-[#205daa]/20"
-                                    >
-                                        Plyr (Ajánlott)
-                                    </SelectItem>
-                                    <SelectItem
-                                        value="default"
-                                        className="text-white hover:bg-[#205daa]/20"
-                                    >
-                                        Alapértelmezett
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <div className="mt-3 p-2 bg-[#1a1f2e] border border-yellow-500/20 rounded-md">
-                                <div className="flex items-start gap-2">
-                                    <div className="text-yellow-500 mt-0.5 text-sm">
-                                        <FaExclamationTriangle />
-                                    </div>
-                                    <div className="text-xs text-yellow-200">
-                                        Ha az{' '}
-                                        <code className="bg-[#0a0e17] px-1 py-0.5 rounded">
-                                            Alapértelmezett
-                                        </code>{' '}
-                                        lejátszót választod, akkor tulajdonképpen kikapcsolod a
-                                        MATweaks bővitményét.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
                 {/* Early Access Program setting */}
                 <Card className="bg-[#0a0e17] border-[#205daa]/20 rounded-lg shadow-md p-1 hover:shadow-lg transition-shadow duration-300 ease-in-out w-full">
                     <CardHeader className="pb-3">
@@ -139,7 +80,7 @@ export default function AdvancedSettings({ settings, onSettingChange }: props) {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            <p className="text-xs text-[#fff]/70">
+                            <p className="text-xs text-white/70">
                                 Ez a beállítás lehetővé teszi, hogy hozzáférj a kísérleti
                                 funkciókhoz, amelyek még fejlesztés alatt állnak. Ezek a funkciók
                                 instabilak / kiforratlanok lehetnek, és olykor hibákat is
@@ -151,10 +92,7 @@ export default function AdvancedSettings({ settings, onSettingChange }: props) {
                                     {settings.eap ? '(aktív)' : '(inaktív)'}:
                                 </div>
                                 <ul className="space-y-2">
-                                    {[
-                                        'AniSkip Integráció - OP/ED pontos átugrása (ha elérhető)',
-                                        'Főoldal Nav - Navigálj a főoldalon és az anime adatlapján a billentyűzet segítségével (nyilak és Enter / Space (kiválasztás))',
-                                    ].map((feature) => (
+                                    {[].map((feature) => (
                                         <li
                                             key={feature}
                                             className={`flex items-start gap-2 text-xs ${
@@ -172,6 +110,11 @@ export default function AdvancedSettings({ settings, onSettingChange }: props) {
                         </div>
                     </CardContent>
                 </Card>
+
+                <ImportExportSettings
+                    settings={settings}
+                    onSettingsImport={onSettingsImport}
+                />
             </div>
 
             {/* Right Column - Download Name Template */}

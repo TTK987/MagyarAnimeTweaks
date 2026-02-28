@@ -1,5 +1,55 @@
 # Verziók
 
+## 0.1.10
+
+
+- **Lejátszó vezérlők testreszabása** ([#3](https://github.com/TTK987/MagyarAnimeTweaks/issues/3#issuecomment-3515382627))
+    - Mostantól a lejátszó vezérlői testre szabhatóak a Beállításokban.
+    - A lejátszóhoz kapcsolódó billentyűkiosztások is testre szabhatóak.
+
+- **AniSkip integráció**
+    - Az AniSkip kikerült az előzetes hozzáférés alól, és mostantól a lejátszó része.
+    - Ha elérhető OP/ED kihagyás, azt a lejátszó vizuálisan jelzi.
+    - Az átugrás egy külön gombbal indítható (ami a Beállításokban konfigurálható).
+    - Az automatikus átugrásra is van lehetőség, ezt a Beállításokban lehet engedélyezni, és beállítani, hogy EP és/vagy ED átugrás legyen-e.
+
+- **Keresés fejlesztések**
+    - A kereső mostantól `fuse.js`-t használ a jobb találatokért és elgépelés-toleranciáért.
+
+- **Navigáció (Főoldal + Anime adatlap)**
+    - Navigáció elérhető a főoldalon és az anime adatlapján is.
+    - A navigációhoz tartozó gombok beállíthatóak a Beállításokban.
+    - Az anime adatlapján a beállított megnyitás gombbal (alapértelmezett: `Enter`) folytatható a legutóbb elkezdett rész, ha előtte nem volt kiválasztva epizód a nyílakkal.
+
+- **Korlátok**
+    - Az egyedi CSS maximális mérete 10,000-ről 100,000 karakterre nőtt.
+
+- **Hibák megjelenítésének új rendszere**
+    - Megújult megjelenés videóbetöltési hibáknál.
+    - Pontosabb hibakódok, szebb megjelenés és részletesebb információk a hibákról.
+
+- **Changelog viselkedés**
+    - Frissítés után a changelog oldal csak nagyobb verzióváltások esetén nyílik meg.
+
+- **Chrome-specifikus UI**
+    - Chromeium-on a profilkép mellett megjelenik egy gomb (a MATweaks logójával), amivel megnyitható a kiegészítő pop-up ablakja (Firefoxon jelenleg nem elérhető).
+
+- **Egyéb újítások**
+    - Beállítások exportálása/importálása a Beállítások -> Haladó részben.
+    - Kibővített billentyűkombináció támogatás: a `meta` billentyű (Windows/macOS key) is menthető a keybindekben.
+
+- **Bugfixek**
+    - Indavideo.hu forrásnál kevesebb adatforgalom: a videó elem `preload` attribútuma kikapcsolásra került.
+    - Automatikus szerverválasztás, ha csak egy szerver érhető el, de az `active` hamis értékre van állítva.
+    - S4/S5 szerverek letöltési lehetőségének megszüntetése.
+    - Mega.nz forrásnál hibás UI megjelenés javítása.
+    > Köszönet Sali-nak (MA moderátor) a hiba bejelentésért Edge böngészőben, a BNP animénél. (Ő kérte, hogy így írjam ki xd)
+
+
+
+
+
+
 ## 0.1.9.9
 
 - Videa.hu forrásnál törölt videó esetén hibaüzenet megjelenítése.
