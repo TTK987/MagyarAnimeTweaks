@@ -1,5 +1,9 @@
 # Verziók
 
+## 0.1.10.1
+
+- Törölt videó esetén hibaüzenet megjelenítése akkor, ha a szerver csak egy error üzenetet ad.
+
 ## 0.1.10
 
 
