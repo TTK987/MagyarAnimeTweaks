@@ -631,8 +631,13 @@ function handleServerResponse(data: ServerResponse) {
                 handleError('VIDEO', 'INVALID_TYPE', `Nem támogatott lejátszó típus.`, 'HandleServerResponse.Unknown.UnsupportedType')
                 break
             } else {
+                if (/3x003/.test(data.error)) {
+                    // Error: MAT-V008 @ HandleServerResponse.Unknown.VideoRemoved
+                    handleError('VIDEO', 'REMOVED', 'A videó törölve lett vagy nem elérhető.', 'HandleServerResponse.Unknown.VideoRemoved')
+                    return
+                }
                 const videoPlayer = document.querySelector('#VideoPlayer') as HTMLDivElement
-                videoPlayer.innerHTML = data.output
+                videoPlayer.innerHTML = data.output == "" ? data.error : data.output
                 Logger.log('Unknown player type, but video or iframe found. Using provided output HTML.')
                 Toast.error(
                     'Hiba lépett fel a lejátszó betöltése közben.',
