@@ -1,0 +1,5 @@
+allowBuilds:
+  '@heroui/shared-utils': true
+  core-js: true
+  esbuild: true
+  spawn-sync: true

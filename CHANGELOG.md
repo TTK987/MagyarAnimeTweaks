@@ -1,5 +1,14 @@
 # Verziók
 
+## 0.1.10.2
+
+- **Bugfixek**
+    - Indavideo.hu forrásnál letiltott videó esetén hibaüzenet megjelenítése.
+- **Technikai változások**
+    - Átállás `npm`-ről `pnpm` csomagkezelőre.
+    - A függőségek frissítése.
+    - A Chrome- és Firefox-verziók kiadási csomagjainak automatizált elkészítése.
+
 ## 0.1.10.1
 
 - Törölt videó esetén hibaüzenet megjelenítése akkor, ha a szerver csak egy error üzenetet ad.

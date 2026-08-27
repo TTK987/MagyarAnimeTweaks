@@ -453,11 +453,6 @@ export class MATError extends Error {
             stack: new Error().stack
         };
         this.fullCode = fullCode;
-
-        // Maintain proper stack trace in V8 engines
-        if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, MATError);
-        }
     }
 
     /**

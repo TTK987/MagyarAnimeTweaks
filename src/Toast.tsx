@@ -32,7 +32,7 @@ interface Options {
 class Toast {
     private static instance: Toast
     private toasts: Map<string, { id: string; element: HTMLElement }>
-    private timers: Map<string, NodeJS.Timeout>
+    private timers: Map<string, ReturnType<typeof setTimeout>>
     private containers: Map<string, HTMLElement>
     private positions: string[]
     private stylesInjected: boolean = false

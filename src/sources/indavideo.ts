@@ -46,6 +46,9 @@ function checkNoVideo(): boolean {
     return document.querySelector('img[src="https://assets.indavideo.hu/images/default/video_box/no.jpg"]') !== null;
 }
 
+function checkBannedVideo(): boolean {
+    return document.querySelector('img[src="https://assets.indavideo.hu/images/default/video_box/banned_video.jpg"]') !== null;
+}
 
 window.addEventListener('message', async (event) => {
     if (!event.data || typeof event.data.type !== 'string') return
@@ -102,6 +105,8 @@ window.addEventListener('message', async (event) => {
                         ?.href || ''
                 gatewayIframe.style.display = 'none'
                 document.body.appendChild(gatewayIframe)
+            } else if (checkBannedVideo()) {
+                return gatewayUp(ACTIONS.INDA_NO_VIDEO)
             } else if (checkNoVideo()) {
                 return gatewayUp(ACTIONS.INDA_NO_VIDEO)
             } else if (!isGateway) {
@@ -226,7 +231,7 @@ function getIndavideoToken(): Promise<EpisodeVideoData[]> {
 async function getIndavideoToken2(): Promise<EpisodeVideoData[]> {
     return new Promise((resolve, reject) => {
         let retry = 10;
-        let interval: NodeJS.Timeout | null = null;
+        let interval: any | null = null;
 
         const tryGetUrls = () => {
             try {
