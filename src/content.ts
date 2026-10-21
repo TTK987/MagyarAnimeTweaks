@@ -4,6 +4,7 @@ import type { ServerResponse, EpisodeVideoData, serverType, Settings } from './g
 import { initTheatreMode, toggleTheatreMode } from './modules/TheatreMode'
 import { decidePlayerType, genVideoHTML } from './player/player-utils'
 import { renderFileName } from './modules/downloads/file-name'
+import { getSubtitleCreditHTML } from './lib/subtitle-credit'
 import { showMATError, MATErrorContext } from './lib/errors'
 import { initMainPageNavigation } from './handlers/MainPage'
 import { parseVideoData } from './sources/dailymotion-utils'
@@ -42,8 +43,10 @@ let vData: EpisodeVideoData[] = []
 let MALId: number = 0
 let videoID: number = 0
 let isVideoLoading = false
+let captchaVerification: Promise<boolean> | undefined
+let captchaRequestId = 0
 
-const serverTypeList: serverType[] = ['s1', 's2', 's3', 's4', 's5']
+const serverTypeList: serverType[] = ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8']
 
 function clearVideoPlayer() {
     const videoPlayer = document.querySelector('#VideoPlayer') as HTMLDivElement
@@ -81,6 +84,7 @@ function handleError<A extends ErrorArea>(
         location: location,
         originalError: originalError,
         data: customMessage ? { customMessage } : undefined,
+        stack: originalError instanceof Error ? originalError.stack : undefined,
     }
 
     // Cleanup player state
@@ -290,6 +294,8 @@ function EpisodePage() {
 
     document.querySelector('#ttkeztkapcsoldki')?.remove()
 
+    document.querySelector('#csapatmegjeloles')?.remove()
+
     addCSS(`#lejatszo, #indavideoframe {max-width: 100%;} .plyr {max-width: 100%; width: 100%; height: 100%;}`)
 
     videoID = MA.EPISODE.getId()
@@ -310,6 +316,8 @@ function EpisodePage() {
                 button_vid_next: 0,
                 button_aid: 0,
                 playerid: 0,
+                csapat_name: '',
+                csapat_type: 'normal',
             },
             vData,
         )
@@ -496,7 +504,7 @@ function loadVideo(server: serverType, vid: number) {
         return
     }
 
-    if (isVideoLoading) {
+    if (isVideoLoading || captchaVerification) {
         Logger.warn('Video is already loading, ignoring duplicate loadVideo call.')
         return
     }
@@ -510,8 +518,9 @@ function loadVideo(server: serverType, vid: number) {
     Logger.log(`Loading video from server: ${server}, video ID: ${vid}`)
 
     getServerResponse(server, vid)
-        .then((data: ServerResponse) => {
-            handleServerResponse(data)
+        .then(async (response: ServerResponse) => {
+            const data = await resolvePlayerCaptcha(response, server, vid)
+            if (data) await handleServerResponse(data)
         })
         .catch((error) => {
             // Error: MAT-P002 @ LoadVideo.ServerResponse.Error
@@ -521,7 +530,140 @@ function loadVideo(server: serverType, vid: number) {
             isVideoLoading = false
         })
 }
-function handleServerResponse(data: ServerResponse) {
+type CaptchaResult = { success: false; error: string } | { success: true; token: string }
+
+function handleCaptcha(signal?: AbortSignal): Promise<CaptchaResult> {
+    const requestId = ++captchaRequestId
+    return new Promise((resolve) => {
+        const finish = (result: CaptchaResult) => {
+            clearTimeout(timeout)
+            document.removeEventListener('MAT-CFTurnstile', onResult)
+            signal?.removeEventListener('abort', onAbort)
+            document.dispatchEvent(new CustomEvent('MAT-CFTurnstileDestroy', { detail: { requestId } }))
+            resolve(result)
+        }
+        const onResult = (event: Event) => {
+            const detail = (event as CustomEvent<CaptchaResult & { requestId: number }>).detail
+            if (detail?.requestId !== requestId) return
+            if (detail.success && detail.token) {
+                finish({ success: true, token: detail.token })
+            } else {
+                finish({ success: false, error: detail.success ? 'Turnstile token missing' : detail.error })
+            }
+        }
+        const onAbort = () => finish({ success: false, error: 'Az ellenőrzés megszakítva.' })
+        const timeout = setTimeout(() => finish({ success: false, error: 'Turnstile timeout' }), 5 * 60 * 1000)
+        document.addEventListener('MAT-CFTurnstile', onResult)
+        signal?.addEventListener('abort', onAbort, { once: true })
+        if (signal?.aborted) {
+            onAbort()
+            return
+        }
+        document.dispatchEvent(new CustomEvent('MAT-CFTurnstileInit', { detail: { requestId } }))
+    })
+}
+
+async function verifyPlayerCaptcha(data: ServerResponse): Promise<boolean> {
+    const sitekey = document.querySelector('mat-data[site-key]')?.getAttribute('site-key')
+    if (!sitekey) {
+        handleError('CAPTCHA', 'SITE_KEY_NOT_FOUND', 'Nem található a Cloudflare Turnstile-hoz szükséges sitekey.', 'VerifyPlayerCaptcha.SiteKey.NotFound')
+        return false
+    }
+    const videoPlayer = document.getElementById('VideoPlayer')
+    if (!videoPlayer) {
+        handleError('CAPTCHA', 'ERROR', 'Nem található a videólejátszó.', 'VerifyPlayerCaptcha.Player.NotFound')
+        return false
+    }
+
+    // Keep the current player intact so silent loading can reuse it after verification.
+    const challenge = document.createElement('dialog')
+    challenge.className = 'mat-captcha'
+    challenge.setAttribute('aria-labelledby', 'mat-captcha-title')
+    challenge.innerHTML = `
+        <button type="button" class="mat-captcha-close" aria-label="Bezárás" title="Bezárás">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <path d="m6 6 12 12M18 6 6 18"/>
+            </svg>
+        </button>
+        <div class="mat-captcha-layout">
+            <figure class="mat-captcha-character"><img alt="Ma-chan" draggable="false"></figure>
+            <div class="mat-captcha-content">
+                <p id="mat-captcha-title" class="mat-captcha-prompt">A folytatáshoz igazold, hogy ember vagy!</p>
+                <div id="turnstile-player"></div>
+            </div>
+        </div>
+    `
+    // Reuse the site's artwork without its original layout or duplicate instructions.
+    const nativeChallenge = new DOMParser().parseFromString(data.output, 'text/html')
+    const character = nativeChallenge.querySelector('img[src*="machan"]') ?? nativeChallenge.querySelector('img')
+    challenge.querySelector('img')!.src = character?.getAttribute('src') || '/images/machan/Ma-chan_security.png?v1'
+    const controller = new AbortController()
+    challenge.querySelector('.mat-captcha-close')!.addEventListener('click', () => controller.abort())
+    challenge.addEventListener('cancel', (event) => {
+        event.preventDefault()
+        controller.abort()
+    })
+    document.body.appendChild(challenge)
+    const wasInert = videoPlayer.inert
+    const pausePlayback = () => {
+        Player?.plyr?.pause()
+        videoPlayer.querySelectorAll('video').forEach((video) => video.pause())
+        IFrameComm?.pause()
+    }
+    pausePlayback()
+    videoPlayer.addEventListener('play', pausePlayback, true)
+    videoPlayer.inert = true
+    if (document.fullscreenElement) {
+        document.exitFullscreen().catch((error) => Logger.warn(`Cannot leave fullscreen for CAPTCHA: ${error}`))
+    }
+
+    try {
+        challenge.showModal()
+        const captchaData = await handleCaptcha(controller.signal)
+        if (!captchaData.success) throw new Error(captchaData.error)
+
+        // Verification acknowledges the session; the video is requested separately afterwards.
+        const response = await postForm('https://magyaranime.eu/data/lejatszo/data_player.php', {
+            captcha: 1,
+            server: 's1',
+            vid: 1,
+            'cf-turnstile-response': captchaData.token,
+            csrf_token: csrfToken,
+        }, { timeout: 30000, signal: controller.signal })
+        if (!response.ok) throw new Error(`Szerver hiba: ${response.status} ${response.statusText}`)
+
+        const result: { success?: boolean; error?: string } = await response.json()
+        if (!result.success) throw new Error(result.error || 'A CAPTCHA ellenőrzése sikertelen.')
+        return true
+    } catch (error) {
+        if (controller.signal.aborted) return false
+        handleError('CAPTCHA', 'ERROR', error instanceof Error ? error.message : String(error), 'VerifyPlayerCaptcha.Error', error)
+        return false
+    } finally {
+        videoPlayer.removeEventListener('play', pausePlayback, true)
+        videoPlayer.inert = wasInert
+        if (challenge.open) challenge.close()
+        challenge.remove()
+    }
+}
+
+async function resolvePlayerCaptcha(data: ServerResponse, server: serverType, vid: number): Promise<ServerResponse | undefined> {
+    for (let attempt = 0; data.error === 'captcha_required'; attempt++) {
+        if (attempt >= 2) {
+            handleError('CAPTCHA', 'ERROR', 'Az ellenőrzés után a szerver újabb CAPTCHA-t kér. Próbáld újra.', 'ResolvePlayerCaptcha.RetryLimit')
+            return
+        }
+        if (!captchaVerification) {
+            captchaVerification = verifyPlayerCaptcha(data).finally(() => { captchaVerification = undefined })
+        }
+        if (!await captchaVerification) return
+        data = await getServerResponse(server, vid)
+    }
+    return data
+}
+
+async function handleServerResponse(data: ServerResponse) {
+
     // Auto-switch to the only available server
     if (data.servers.length === 1 && data.servers[0].server !== currentServer) {
         currentServer = data.servers[0].server
@@ -530,8 +672,6 @@ function handleServerResponse(data: ServerResponse) {
 
     setDailyLimit(data)
     setServers(data)
-
-    console.log(data)
 
     if (settings.advanced.consoleLog) console.log(data)
 
@@ -703,6 +843,7 @@ function getQualityDataFromIFrame(data: ServerResponse): Promise<EpisodeVideoDat
     })
 }
 function IFrameEventListener(e: KeyboardEvent) {
+    if (captchaVerification) return
     if (['INPUT', 'TEXTAREA'].includes((document.activeElement as HTMLElement).tagName)) return
     if (!IFrameComm) {
         Logger.error('PlayerComm is not defined.')
@@ -1088,14 +1229,18 @@ function previousEpisode() {
     }, 1000)
 }
 function silentLoadVideo(server: serverType, vid: number, retryAttempt: number = 0) {
+    if (captchaVerification) return
+
     if (!server || !vid) {
         // Error: MAT-S007 @ SilentLoadVideo.Args.Invalid
         handleError('SERVER', 'INVALID_ARGS', 'Szerver vagy videó ID nem definiált.', 'SilentLoadVideo.Args.Invalid')
         return
     }
 
-    getServerResponse(server, vid)
-        .then((data: ServerResponse) => {
+    getServerResponse(server, vid).then(async (response: ServerResponse) => {
+            const data = await resolvePlayerCaptcha(response, server, vid)
+            if (!data) return false
+
             if (data.needRefleshPage) {
                 Logger.log('Server requested CSRF refresh. Attempting background token refresh...')
                 if (retryAttempt >= 1) {
@@ -1152,8 +1297,8 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
 
             if (['dailymotion', 'mega'].includes(newPlayerType)) {
                 Logger.warn('Cannot silently load video for iframe-based players. Falling back to full load.')
-                handleServerResponse(data)
-                return data.button_vid_next
+                await handleServerResponse(data)
+                return { next: data.button_vid_next, prev: data.button_vid_prev }
             }
 
             if (currentImpl === 'Native' && ['HTML5', 'indavideo', 'videa'].includes(newPlayerType)) {
@@ -1166,7 +1311,7 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                         if (videoData.length === 0) {
                             // Error: MAT-V002 @ SilentLoadVideo.Native.NoSources
                             handleError('VIDEO', 'NO_SOURCES', 'Videó források nem találhatók.', 'SilentLoadVideo.Native.NoSources')
-                            return data.button_vid_next
+                            return { next: data.button_vid_next, prev: data.button_vid_prev }
                         }
                         window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`)
                         document.querySelector('#VideoPlayer')!.setAttribute('data-server', server)
@@ -1180,7 +1325,7 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                         // Error: MAT-V004 @ SilentLoadVideo.Native.DataError
                         handleError('VIDEO', 'DATA_ERROR', `Videó adatok betöltési hiba: ${error}`, 'SilentLoadVideo.Native.DataError', error)
                     })
-                return data.button_vid_next
+                return { next: data.button_vid_next, prev: data.button_vid_prev }
             }
 
             if (currentImpl === 'HLS' && newPlayerType === 'HLS') {
@@ -1188,14 +1333,14 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                 if (!data.hls_url) {
                     // Error: MAT-V002 @ SilentLoadVideo.HLS.NoURL
                     handleError('VIDEO', 'NO_SOURCES', 'HLS URL nem található.', 'SilentLoadVideo.HLS.NoURL')
-                    return data.button_vid_next
+                    return { next: data.button_vid_next, prev: data.button_vid_prev }
                 }
                 parseVideoData(atob(data.hls_url))
                     .then((videoData) => {
                         if (videoData.length === 0) {
                             // Error: MAT-V002 @ SilentLoadVideo.HLS.NoSources
                             handleError('VIDEO', 'NO_SOURCES', 'Videó források nem találhatók.', 'SilentLoadVideo.HLS.NoSources')
-                            return data.button_vid_next
+                            return { next: data.button_vid_next, prev: data.button_vid_prev }
                         }
                         window.history.pushState({}, '', `https://magyaranime.eu/resz/${vid}/`)
                         document.querySelector('#VideoPlayer')!.setAttribute('data-server', server)
@@ -1209,20 +1354,28 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
                         // Error: MAT-V004 @ SilentLoadVideo.HLS.DataError
                         handleError('VIDEO', 'DATA_ERROR', `Videó adatok betöltési hiba: ${error}`, 'SilentLoadVideo.HLS.DataError', error)
                     })
-                return data.button_vid_next
+                return { next: data.button_vid_next, prev: data.button_vid_prev }
             }
 
             Logger.warn('Cannot silently load video for the current player type combination. Performing full reload.')
-            handleServerResponse(data)
-            return data.button_vid_next
+            await handleServerResponse(data)
+            return { next: data.button_vid_next, prev: data.button_vid_prev }
         })
-        .then((nextEpID) => {
-            if (nextEpID !== false)
+        .then((data) => {
+            if (data !== false) {
                 Toast.success(
-                    `Most nézed: ${MA.EPISODE.getEpisodeNumber()}. rész ${nextEpID === -1 ? '(Utolsó)' : ''}`,
+                    `Most nézed: ${MA.EPISODE.getEpisodeNumber()}. rész ${data.next === -1 ? '(Utolsó)' : ''}`,
                     '',
                     { duration: 3000, position: 'top-center' },
                 )
+                // bugfix: add "Láttam" tag to previous episode on silent load
+                let prev = document.querySelector('.list-group-item.videoChange[data-vid="' + data.prev + '"]') as  HTMLDivElement
+                if (prev) {
+                    if (prev.querySelector('.episode-tags > .watched') === null) {
+                        (prev.querySelector('.episode-tags') as HTMLDivElement).innerHTML += `<span class="watched">Láttam</span>`
+                    }
+                }
+            }
         })
         .catch((error) => {
             // Error: MAT-P002 @ SilentLoadVideo.Catch.LoadError
@@ -1355,7 +1508,6 @@ function setDailyLimit(data: ServerResponse) {
     })
 
     dailyLimit.appendChild(sessionContainer)
-
 }
 function setServers(data: ServerResponse) {
     if (!data.servers) {
@@ -1375,30 +1527,51 @@ function setServers(data: ServerResponse) {
 
     serverList.innerHTML = ''
 
-    let serversHTML = `
-      <div class="mat-servers-grid">
-  `
+    let serversHTML = getSubtitleCreditHTML(data)
+    serversHTML += `<div class="mat-servers-grid">`
 
     let isActive = (server: { server: serverType; hq: string; title: string; active: number }): boolean => {
         return server.active === 1 || currentServer === server.server
     }
 
-    servers.forEach((server) => {
+    let normalServers = servers.filter((server) => server.title.toLowerCase().includes('szerver'))
+    let streamServers = servers.filter((server) => server.title.toLowerCase().includes('stream'))
+    let aiServers = servers.filter((server) => server.title.toLowerCase().includes('ai'))
+
+    function serverBtnHTML(server: { server: serverType; hq: string; title: string; active: number }): string {
         const qualityIcon = getIcon(Number(server.hq.replace('hq', '')))
 
-        serversHTML += `
-      <button
-        class="mat-server-btn ${isActive(server) ? 'mat-server-active' : ''}"
-        data-server="${server.server}"
-        data-vid="${videoID}"
-        data-quality="${server.hq}"
-      >
-        <div class="mat-server-content">
-          <div class="mat-server-icon">${qualityIcon}</div>
-          <span class="mat-server-title">${server.title}</span>
-        </div>
-      </button>
-    `
+        return`
+          <button
+            class="mat-server-btn ${isActive(server) ? 'mat-server-active' : ''}"
+            data-server="${server.server}"
+            data-vid="${videoID}"
+            data-quality="${server.hq}"
+          >
+            <div class="mat-server-content">
+              <div class="mat-server-icon">${qualityIcon}</div>
+              <span class="mat-server-title">${server.title}</span>
+            </div>
+          </button>
+        `
+    }
+
+    normalServers.forEach((server) => {
+        serversHTML += serverBtnHTML(server)
+    })
+
+    if (streamServers.length > 0)
+        serversHTML += `<hr class="mat-server-separator" />`
+
+    streamServers.forEach((server) => {
+        serversHTML += serverBtnHTML(server)
+    })
+
+    if (aiServers.length > 0)
+        serversHTML += `<hr class="mat-server-separator" />`
+
+    aiServers.forEach((server) => {
+        serversHTML += serverBtnHTML(server)
     })
 
     serversHTML += `
@@ -1443,6 +1616,10 @@ function setServers(data: ServerResponse) {
   `
 
     serverList.innerHTML = serversHTML
+
+    serverList.querySelector('.mat-subtitle-credit-close')?.addEventListener('click', () => {
+        serverList.querySelector('.mat-subtitle-credit')?.remove()
+    })
 
     serverList.querySelectorAll('.mat-server-btn').forEach((button) => {
         button.addEventListener('click', (event) => {

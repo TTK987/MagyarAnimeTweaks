@@ -197,6 +197,10 @@ class IFramePlayerComm {
         this.sendAction(ACTIONS.IFRAME.TOGGLE_PLAY)
     }
 
+    pause() {
+        this.sendAction(ACTIONS.IFRAME.PAUSE)
+    }
+
     /**
      * Increases the volume of the IFrame player.
      */

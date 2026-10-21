@@ -1,4 +1,4 @@
-import packageData from './package.json'
+import packageData from './package.json' with { type: 'json' }
 import { ManifestV3Export } from '@crxjs/vite-plugin'
 
 

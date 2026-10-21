@@ -1,5 +1,17 @@
 # Verziók
 
+## 0.1.10.3
+
+- **Cloudflare Turnstile támogatás**
+- **Szerverválasztó fejlesztések**
+    - Az új szerverek (`s6`, `s7`, `s8`) támogatása.
+    - A normál, stream és AI szerverek külön csoportokban jelennek meg.
+- **Bugfixek**
+    - Teljes újratöltés nélküli részváltásnál az előző rész mostantól megkapja a „Láttam” jelölést az epizódlistában.
+- **Technikai változások**
+    - A függőségek és a `pnpm` frissítése.
+    - A build beállításainak frissítése a Vite 8-hoz.
+
 ## 0.1.10.2
 
 - **Bugfixek**

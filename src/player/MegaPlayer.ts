@@ -127,6 +127,9 @@ class MegaPlayer extends BasePlayer {
     addEventListeners() {
         window.addEventListener('message', (event) => {
             switch (event.data.type) {
+                case ACTIONS.IFRAME.PAUSE:
+                    this.plyr?.pause()
+                    break
                 case ACTIONS.IFRAME.TOGGLE_PLAY:
                     let btn = document.querySelector(".plyr__controls__item[data-plyr='play']") as HTMLButtonElement
                     if (!btn) this.plyr.togglePlay()

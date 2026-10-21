@@ -61,6 +61,7 @@ export async function matFetch(
         withCredentials = false,
         baseHeaders = DEFAULT_HEADERS,
         headers: customHeaders,
+        signal: externalSignal,
         ...fetchOptions
     } = options
 
@@ -100,7 +101,9 @@ export async function matFetch(
             headers,
             body,
             credentials,
-            signal: controller?.signal,
+            signal: controller && externalSignal
+                ? AbortSignal.any([controller.signal, externalSignal])
+                : controller?.signal ?? externalSignal,
         })
     } finally {
         if (timeoutId) clearTimeout(timeoutId)

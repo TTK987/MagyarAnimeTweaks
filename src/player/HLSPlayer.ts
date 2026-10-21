@@ -56,6 +56,10 @@ class HLSPlayer extends BasePlayer {
     }
 
     private handleMessage(event: MessageEvent) {
+        if (event.data?.type === ACTIONS.IFRAME.PAUSE) {
+            this.plyr?.pause()
+            return
+        }
         window.addEventListener('message', (event) => {
             switch (event.data.type) {
                 case ACTIONS.IFRAME.TOGGLE_PLAY:

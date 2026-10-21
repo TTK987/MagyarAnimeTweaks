@@ -1,5 +1,6 @@
 import { defineManifest } from '@crxjs/vite-plugin'
-import { commonManifest } from './manifest.common'
+// @ts-ignore Vite wants the file extension, but ts reports an error...
+import { commonManifest } from './manifest.common.ts'
 
 export default defineManifest({
     ...commonManifest,

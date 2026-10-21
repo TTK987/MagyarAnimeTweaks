@@ -23,6 +23,170 @@
     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2) !important;
 }
 
+.mat-captcha,
+.mat-captcha * {
+    box-sizing: border-box;
+}
+
+.mat-captcha {
+    position: fixed;
+    inset: 0;
+    width: min(490px, calc(100% - 32px));
+    max-width: none;
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 0;
+    border: 1px solid rgba(63, 159, 255, 0.28);
+    border-radius: 10px;
+    background: #0a0e17;
+    color: #f1f5f9;
+    font: 14px "Segoe UI", Arial, sans-serif;
+    box-shadow: none;
+    overflow: auto;
+}
+
+.mat-captcha::backdrop {
+    background: rgba(5, 8, 16, 0.78);
+    backdrop-filter: blur(4px);
+}
+
+.mat-captcha-layout {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: center;
+    gap: 20px;
+    padding: 26px 24px;
+}
+
+.mat-captcha .mat-captcha-character {
+    position: relative;
+    width: 96px;
+    height: 150px;
+    margin: 0;
+    overflow: hidden;
+}
+
+.mat-captcha .mat-captcha-character img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: block;
+    width: 150px;
+    height: 150px;
+    max-width: none;
+    object-fit: contain;
+    transform: translate(-50%, -50%);
+}
+
+.mat-captcha-content {
+    min-width: 0;
+}
+
+.mat-captcha .mat-captcha-prompt {
+    margin: 0 0 20px;
+    color: #c3dcf8;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.mat-captcha .mat-captcha-close {
+    position: absolute;
+    right: 7px;
+    top: 7px;
+    appearance: none;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    padding: 7px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #7d91ab;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.mat-captcha-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+.mat-captcha .mat-captcha-close:hover {
+    background: rgba(63, 159, 255, 0.12);
+    color: #3f9fff;
+}
+
+.mat-captcha .mat-captcha-close:focus-visible {
+    outline: 2px solid #3f9fff;
+    outline-offset: 1px;
+}
+
+.mat-captcha #turnstile-player {
+    display: flex;
+    justify-content: center;
+    width: 300px;
+    max-width: 100%;
+    min-height: 65px;
+    margin: auto;
+}
+
+@media (max-width: 520px) {
+    .mat-captcha {
+        width: min(490px, calc(100% - 24px));
+    }
+
+    .mat-captcha-layout {
+        grid-template-columns: 80px minmax(0, 1fr);
+        gap: 12px;
+        padding: 28px 16px 22px;
+    }
+
+    .mat-captcha .mat-captcha-character {
+        width: 80px;
+    }
+
+    .mat-captcha .mat-captcha-character img {
+        width: 145px;
+        height: 145px;
+    }
+
+    .mat-captcha .mat-captcha-prompt {
+        margin-bottom: 16px;
+        font-size: 13px;
+    }
+
+    .mat-captcha #turnstile-player {
+        width: 150px;
+        min-height: 140px;
+    }
+
+    .mat-captcha .mat-captcha-close {
+        right: 5px;
+        top: 5px;
+    }
+}
+
+@media (max-width: 350px) {
+    .mat-captcha-layout {
+        grid-template-columns: 65px minmax(0, 1fr);
+        gap: 9px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .mat-captcha .mat-captcha-character {
+        width: 65px;
+    }
+
+    .mat-captcha .mat-captcha-prompt {
+        font-size: 12px;
+    }
+}
+
 #search_box > a {
     transition: color 0.15s, background-color 0.15s !important;
 }
@@ -205,6 +369,10 @@
 }
 
 @media (max-width: 992px) {
+    .mat-servers-grid > .mat-server-separator {
+        display: none;
+    }
+
     .Btn {
         width: calc(100% - 10px);
     }
@@ -274,10 +442,132 @@
     border-color: rgba(32, 93, 170, 0.5);
 }
 
+.mat-subtitle-credit {
+    --mat-credit-accent: #5ed6b7;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 10px 44px 10px 10px;
+    border-left: 2px solid var(--mat-credit-accent);
+    border-radius: 4px;
+    background: rgba(94, 214, 183, 0.06);
+    text-align: left;
+}
+
+.mat-subtitle-credit--ai {
+    --mat-credit-accent: #b0a1ff;
+    background: rgba(176, 161, 255, 0.06);
+}
+
+.mat-subtitle-credit--unknown {
+    --mat-credit-accent: #a0aec0;
+    background: rgba(160, 174, 192, 0.06);
+}
+
+.mat-subtitle-credit-icon {
+    display: flex;
+    flex: 0 0 24px;
+    color: var(--mat-credit-accent);
+}
+
+.mat-subtitle-credit-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.mat-subtitle-credit-content {
+    min-width: 0;
+    line-height: 1.5;
+}
+
+.mat-subtitle-credit-label,
+.mat-subtitle-credit-byline {
+    display: block;
+    font-size: 12px;
+}
+
+.mat-subtitle-credit-label {
+    color: var(--mat-credit-accent);
+    font-weight: 600;
+}
+
+.mat-subtitle-credit-byline {
+    color: #e2e8f0;
+    overflow-wrap: anywhere;
+}
+
+.mat-subtitle-credit-byline a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--mat-credit-accent);
+    text-underline-offset: 3px;
+}
+
+.mat-subtitle-credit-byline a:hover {
+    color: var(--mat-credit-accent);
+}
+
+.mat-subtitle-credit-byline a:focus-visible {
+    outline: 2px solid var(--mat-credit-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+#VideoPlayerServers .mat-subtitle-credit-close {
+    appearance: none;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #94a3b8 !important;
+    box-shadow: none;
+    text-shadow: none;
+    line-height: 1;
+    cursor: pointer;
+}
+
+#VideoPlayerServers .mat-subtitle-credit-close svg {
+    width: 20px;
+    height: 20px;
+}
+
+#VideoPlayerServers .mat-subtitle-credit-close:hover {
+    color: var(--mat-credit-accent) !important;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+#VideoPlayerServers .mat-subtitle-credit-close:focus-visible {
+    outline: 2px solid var(--mat-credit-accent);
+    outline-offset: 2px;
+}
+
 /* the "!important" is used to override the default styles, and because I'm too lazy to find a better way to do it */
 .mat-servers-grid {
-    display: block;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    gap: 0.5rem;
     margin-bottom: 1rem;
+}
+
+.mat-servers-grid > .mat-server-separator {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 2px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: linear-gradient(to right, transparent, var(--primary-color, #3f9fff), transparent);
+    opacity: 0.25;
 }
 
 .mat-server-btn {
@@ -289,7 +579,7 @@
     box-sizing: border-box !important;
     display: inline-block !important;
     padding: 2px 5px !important;
-    min-width: 115px !important;
+    min-width: 0 !important;
     background-color: #2d2d3f !important;
     color: #f8f9fa !important;
     border-radius: 6px !important;
@@ -398,10 +688,6 @@
 
 /* Responsive design */
 @media (max-width: 640px) {
-    .mat-servers-grid {
-        grid-template-columns: 1fr !important;
-    }
-
     .mat-action-buttons {
         flex-direction: column !important;
     }

@@ -3,7 +3,7 @@ import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
 
 // @ts-ignore
-import manifest from './manifest'
+import manifest from './manifest.ts'
 
 // @ts-ignore
 export default defineConfig(() => {

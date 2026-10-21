@@ -299,26 +299,46 @@ interface Bookmark {
 }
 
 type ServerResponse = {
-    error: string // Error message if there's an issue
+    // Error message if there's an issue
+    error: string
+    // An id for the player... I guess? Never used...
     playerid: number
     servers: {
-        server: 's1' | 's2' | 's3' | 's4' // Server identifier
-        hq: string // Quality (e.g., "240", "360", etc.)
-        title: string // Server title
-        active: number // Indicates if the server is active (1 for active)
+        // Server identifier
+        server: serverType
+        // Quality (e.g., "240", "360", etc.)
+        hq: string
+        // Server title
+        title: string
+        // Indicates if the server is active (1 for active)
+        active: number
     }[]
-    output: string // HTML output for the video player
-    hls: boolean // Indicates if HLS is supported
-    hls_url: string // Base64-encoded HLS URL
-    needRefleshPage: boolean // Indicates if the page needs to be refreshed (Expired csrf token)
-    daily_limit: string // Daily limit message
-    download_link: string // Download link for the video
-    button_vid_prev: number // ID of the previous video (-1 if none)
-    button_vid_next: number // ID of the next video (-1 if none)
-    button_aid: number // ID of the datasheet page
+    // HTML output for the video player
+    output: string
+    // Indicates if HLS is supported
+    hls: boolean
+    // Base64-encoded HLS URL
+    hls_url: string
+    // Indicates if the page needs to be refreshed (Expired csrf token)
+    needRefleshPage: boolean
+    // Daily limit message
+    daily_limit: string
+    // Download link for the video
+    download_link: string
+    // ID of the previous video (-1 if none)
+    button_vid_prev: number
+    // ID of the next video (-1 if none)
+    button_vid_next: number
+    // ID of the datasheet page
+    button_aid: number
+    // Type of the fansub group (normal or AI)
+    csapat_type: 'normal' | 'ai'
+    // You would expect this to be the name of the fansub group, however... it is a html string...
+    // like this: A videóban szereplő felirat a `<a href="..." target=\"_blank\" rel=\"noopener noreferrer\">...</a> munkája. A felirat emberi fordítást tartalmaz.`
+    csapat_name: string
 }
 
-type serverType = 's1' | 's2' | 's3' | 's4' | 's5'
+type serverType = 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8'
 
 
 // Timestamp related types

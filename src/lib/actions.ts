@@ -15,6 +15,7 @@ export const ACTIONS = {
         CURRENT_TIME: 'CurrentTime',
         REPLACE_PLAYER: 'ReplacePlayer',
         TOGGLE_PLAY: 'TogglePlay',
+        PAUSE: 'Pause',
         VOL_UP: 'VolUp',
         VOL_DOWN: 'VolDown',
         TOGGLE_MUTE: 'ToggleMute',

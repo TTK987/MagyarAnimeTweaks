@@ -2,4 +2,5 @@ allowBuilds:
   '@heroui/shared-utils': true
   core-js: true
   esbuild: true
+  plyr: true
   spawn-sync: true

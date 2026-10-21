@@ -58,81 +58,85 @@ export const ERROR_CATALOG: Record<string, MATErrorDetails> = {
     // ═══════════════════════════════════════════════════════════════
     // CSRF Errors (C001-C099)
     // ═══════════════════════════════════════════════════════════════
-    'C001': {
+    C001: {
         code: 'MAT-C001',
         category: 'C',
         numericCode: 1,
         message: 'A CSRF-token nem található.',
-        suggestions: [
-            'Töltsd újra az oldalt',
-        ],
+        suggestions: ['Töltsd újra az oldalt'],
         canAutoReload: true,
-        shouldReport: false
+        shouldReport: false,
     },
-    'C002': {
+    C002: {
         code: 'MAT-C002',
         category: 'C',
         numericCode: 2,
         message: 'A CSRF-token lejárt.',
-        suggestions: [
-            'Az oldal automatikusan újratöltődik',
-            'Ha nem, töltsd újra manuálisan'
-        ],
+        suggestions: ['Az oldal automatikusan újratöltődik', 'Ha nem, töltsd újra manuálisan'],
         canAutoReload: true,
-        shouldReport: false
+        shouldReport: false,
+    },
+
+    C003: {
+        code: 'MAT-C003',
+        category: 'C',
+        numericCode: 3,
+        message: 'Nem található a Cloudflare turnstile-hoz szükséges sitekey.',
+        suggestions: ['Töltsd újra az oldalt', 'Ha a probléma fennáll, jelezd a hibát'],
+        canAutoReload: true,
+        shouldReport: true,
+    },
+
+     C004: {
+        code: 'MAT-C004',
+        category: 'C',
+        numericCode: 4,
+        message: 'Turnstile hiba.',
+        suggestions: ['Töltsd újra az oldalt'],
+        canAutoReload: true,
+        shouldReport: true,
     },
 
     // ═══════════════════════════════════════════════════════════════
     // Server/Network Errors (S001-S099)
     // ═══════════════════════════════════════════════════════════════
-    'S001': {
+    S001: {
         code: 'MAT-S001',
         category: 'S',
         numericCode: 1,
         message: 'A szerver nem található.',
-        suggestions: [
-            'Próbálj meg másik szervert választani',
-        ],
+        suggestions: ['Próbálj meg másik szervert választani'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
-    'S002': {
+    S002: {
         code: 'MAT-S002',
         category: 'S',
         numericCode: 2,
         message: 'Érvénytelen szerver.',
-        suggestions: [
-            'Válassz egy másik szervert a listából',
-            'Töltsd újra az oldalt'
-        ],
+        suggestions: ['Válassz egy másik szervert a listából', 'Töltsd újra az oldalt'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
-    'S003': {
+    S003: {
         code: 'MAT-S003',
         category: 'S',
         numericCode: 3,
         message: 'A szerver adatai nem találhatók.',
-        suggestions: [
-            'Próbálj meg másik szervert választani',
-            'Töltsd újra az oldalt'
-        ],
+        suggestions: ['Próbálj meg másik szervert választani', 'Töltsd újra az oldalt'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
-    'S004': {
+    S004: {
         code: 'MAT-S004',
         category: 'S',
         numericCode: 4,
         message: 'Hiba történt a szerver válaszában.',
-        suggestions: [
-            'Próbáld újra néhány másodperc múlva',
-            'Válassz másik szervert'
-        ],
+        suggestions: ['Próbáld újra néhány másodperc múlva', 'Válassz másik szervert'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
-    'S005': {
+    S005: {
         code: 'MAT-S005',
         category: 'S',
         numericCode: 5,
@@ -140,141 +144,114 @@ export const ERROR_CATALOG: Record<string, MATErrorDetails> = {
         suggestions: [
             'Ellenőrizd az internetkapcsolatodat',
             'Próbáld újra néhány másodperc múlva',
-            'Ha VPN-t használsz, próbáld kikapcsolni'
+            'Ha VPN-t használsz, próbáld kikapcsolni',
         ],
         canAutoReload: true,
-        shouldReport: false
+        shouldReport: false,
     },
-    'S007': {
+    S007: {
         code: 'MAT-S007',
         category: 'S',
         numericCode: 7,
         message: 'Érvénytelen paraméterek.',
-        suggestions: [
-            'Töltsd újra az oldalt',
-            'Ha a probléma fennáll, jelezd a hibát'
-        ],
+        suggestions: ['Töltsd újra az oldalt', 'Ha a probléma fennáll, jelezd a hibát'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
 
     // ═══════════════════════════════════════════════════════════════
     // Video/Player Errors (V001-V099)
     // ═══════════════════════════════════════════════════════════════
-    'V001': {
+    V001: {
         code: 'MAT-V001',
         category: 'V',
         numericCode: 1,
         message: 'A videólejátszó nem található.',
-        suggestions: [
-            'Töltsd újra az oldalt',
-        ],
+        suggestions: ['Töltsd újra az oldalt'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
-    'V002': {
+    V002: {
         code: 'MAT-V002',
         category: 'V',
         numericCode: 2,
         message: 'Nem találhatók videóforrások.',
-        suggestions: [
-            'Válassz másik szervert',
-            'Jelents be a hibát a MagyarAnime-nek'
-        ],
+        suggestions: ['Válassz másik szervert', 'Jelents be a hibát a MagyarAnime-nek'],
         canAutoReload: false,
-        shouldReport: true
+        shouldReport: true,
     },
-    'V003': {
+    V003: {
         code: 'MAT-V003',
         category: 'V',
         numericCode: 3,
         message: 'Az iframe nem található.',
-        suggestions: [
-            'Válassz másik szervert',
-            'Töltsd újra az oldalt'
-        ],
+        suggestions: ['Válassz másik szervert', 'Töltsd újra az oldalt'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
-    'V004': {
+    V004: {
         code: 'MAT-V004',
         category: 'V',
         numericCode: 4,
         message: 'Hiba történt a videóadatok betöltése közben.',
-        suggestions: [
-            'Válassz másik szervert',
-            'Töltsd újra az oldalt'
-        ],
+        suggestions: ['Válassz másik szervert', 'Töltsd újra az oldalt'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
-    'V005': {
+    V005: {
         code: 'MAT-V005',
         category: 'V',
         numericCode: 5,
         message: 'Nem támogatott lejátszótípus.',
-        suggestions: [
-            'Válassz másik szervert',
-        ],
+        suggestions: ['Válassz másik szervert'],
         canAutoReload: false,
-        shouldReport: true
+        shouldReport: true,
     },
-    'V006': {
+    V006: {
         code: 'MAT-V006',
         category: 'V',
         numericCode: 6,
         message: 'Hiba történt a videó letöltése közben.',
-        suggestions: [
-            'Próbáld újra',
-        ],
+        suggestions: ['Próbáld újra'],
         canAutoReload: false,
-        shouldReport: false
+        shouldReport: false,
     },
-    'V008': {
+    V008: {
         code: 'MAT-V008',
         category: 'V',
         numericCode: 8,
         message: 'A videó törölve lett.',
-        suggestions: [
-            'Válassz másik szervert',
-            'Jelents be a hibát a MagyarAnime-nak'
-        ],
+        suggestions: ['Válassz másik szervert', 'Jelents be a hibát a MagyarAnime-nak'],
         canAutoReload: false,
-        shouldReport: true
+        shouldReport: true,
     },
 
     // ═══════════════════════════════════════════════════════════════
     // Player Initialization Errors (P001-P099)
     // ═══════════════════════════════════════════════════════════════
-    'P001': {
+    P001: {
         code: 'MAT-P001',
         category: 'P',
         numericCode: 1,
         message: 'Hiba történt a lejátszó inicializálásakor.',
-        suggestions: [
-            'Töltsd újra az oldalt',
-            'Ellenőrizd, hogy nincs-e ütköző bővítmény'
-        ],
+        suggestions: ['Töltsd újra az oldalt', 'Ellenőrizd, hogy nincs-e ütköző bővítmény'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
-    'P002': {
+    P002: {
         code: 'MAT-P002',
         category: 'P',
         numericCode: 2,
         message: 'Hiba történt a videó betöltése közben.',
-        suggestions: [
-            'Válassz másik szervert',
-            'Töltsd újra az oldalt'
-        ],
+        suggestions: ['Válassz másik szervert', 'Töltsd újra az oldalt'],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
 
     // ═══════════════════════════════════════════════════════════════
     // Internal/Extension Errors (I001-I099)
     // ═══════════════════════════════════════════════════════════════
-    'I001': {
+    I001: {
         code: 'MAT-I001',
         category: 'I',
         numericCode: 1,
@@ -282,24 +259,21 @@ export const ERROR_CATALOG: Record<string, MATErrorDetails> = {
         suggestions: [
             'Töltsd újra az oldalt',
             'Próbáld meg kikapcsolni majd visszakapcsolni a bővítményt',
-            'Ha a probléma fennáll, telepítsd újra a bővítményt'
+            'Ha a probléma fennáll, telepítsd újra a bővítményt',
         ],
         canAutoReload: true,
-        shouldReport: true
+        shouldReport: true,
     },
-    'I003': {
+    I003: {
         code: 'MAT-I003',
         category: 'I',
         numericCode: 3,
         message: 'Ismeretlen hiba történt.',
-        suggestions: [
-            'Töltsd újra az oldalt',
-            'Ha a probléma fennáll, jelezd a hibát a hibakóddal együtt'
-        ],
+        suggestions: ['Töltsd újra az oldalt', 'Ha a probléma fennáll, jelezd a hibát a hibakóddal együtt'],
         canAutoReload: true,
-        shouldReport: true
-    }
-};
+        shouldReport: true,
+    },
+}
 
 export type MATErrorKey = keyof typeof ERROR_CATALOG;
 
@@ -307,6 +281,10 @@ export const ERROR_CODE_MAP = {
     CSRF: {
         NOT_FOUND: 'C001',
         EXPIRED: 'C002',
+    },
+    CAPTCHA: {
+        SITE_KEY_NOT_FOUND: 'C003',
+         ERROR: 'C004',
     },
     SERVER: {
         NOT_FOUND: 'S001',
@@ -333,7 +311,7 @@ export const ERROR_CODE_MAP = {
         INIT_ERROR: 'I001',
         UNKNOWN_ERROR: 'I003',
     },
-} as const satisfies Record<string, Record<string, MATErrorKey>>;
+} as const satisfies Record<string, Record<string, MATErrorKey>>
 
 export type ErrorArea = keyof typeof ERROR_CODE_MAP;
 export type ErrorTypeByArea<A extends ErrorArea> = keyof (typeof ERROR_CODE_MAP)[A];
@@ -450,7 +428,7 @@ export class MATError extends Error {
         this.details = details;
         this.context = {
             ...context,
-            stack: new Error().stack
+            stack: context?.originalError instanceof Error ? context.originalError.stack : undefined
         };
         this.fullCode = fullCode;
     }
