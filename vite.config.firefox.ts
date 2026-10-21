@@ -14,7 +14,7 @@ function Copy() {
             const buildDir = path.resolve(__dirname, 'build-firefox')
             if (fs.existsSync(distDir)) {
                 fs.rmSync(buildDir, { recursive: true, force: true })
-                fs.renameSync(distDir, buildDir)
+                fs.cpSync(distDir, buildDir, { recursive: true })
             }
         },
     }
@@ -51,6 +51,7 @@ export default defineConfig({
     },
     plugins: [
         react(),
+        // @ts-expect-error
         webExtension({
             manifest: manifest,
             browser: 'firefox',
