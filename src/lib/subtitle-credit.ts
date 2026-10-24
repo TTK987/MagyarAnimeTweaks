@@ -1,6 +1,7 @@
 import type { ServerResponse } from '../global'
+import { matFetch } from './fetch-utils'
 
-export function getSubtitleCreditHTML(data: Pick<ServerResponse, 'csapat_name' | 'csapat_type'>): string {
+export function createSubtitleCredit(data: Pick<ServerResponse, 'csapat_name' | 'csapat_type' | 'videoid' | 'button_aid' | 'button_ep'>): HTMLDivElement | undefined {
     const source = document.createElement('template')
     source.innerHTML = data.csapat_name || ''
 
@@ -10,7 +11,7 @@ export function getSubtitleCreditHTML(data: Pick<ServerResponse, 'csapat_name' |
         .replace(/\s+munkája[.!]?[\s\S]*$/iu, '')
         .trim()
 
-    if (!fansub) return ''
+    if (!fansub) return
 
     const kind = data.csapat_type === 'ai' ? 'ai' : data.csapat_type === 'normal' ? 'normal' : 'unknown'
     const label = kind === 'ai' ? 'Gépi fordítás' : kind === 'normal' ? 'Emberi fordítás' : 'Felirat'
@@ -30,12 +31,42 @@ export function getSubtitleCreditHTML(data: Pick<ServerResponse, 'csapat_name' |
             <span class="mat-subtitle-credit-label">${label}</span>
             <span class="mat-subtitle-credit-byline">Felirat: </span>
         </div>
+        <div class="mat-subtitle-thx">
+             <button type="button" class="mat-subtitle-thx-button" aria-label="Köszönöm a fordítást!" title="Köszönet">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                     <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>
+                 </svg>
+                 <span>Köszönöm a fordítást!</span>
+             </button>
+        </div>
         <button type="button" class="mat-subtitle-credit-close" aria-label="Feliratinformáció bezárása" title="Bezárás">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                 <path d="m6 6 12 12M18 6 6 18"/>
             </svg>
         </button>
     `
+    credit.querySelector('.mat-subtitle-thx-button')?.addEventListener('click', () => {
+        matFetch('https://magyaranime.eu/data/data_thanx.php', {
+            method: 'POST',
+            withCredentials: true,
+            formData: {
+                vid: data.videoid,
+                aid: data.button_aid,
+                aep: data.button_ep
+            }
+        }).then((result) => {
+            const thxButton = credit.querySelector('.mat-subtitle-thx-button')
+            if (thxButton) {
+                thxButton.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>
+                    </svg>
+                    <span>Sikeresen megköszönted a fordítást!</span>
+                `
+                thxButton.setAttribute('disabled', 'true')
+            }
+        })
+    })
 
     let fansubURL: URL | undefined
     const href = sourceLink?.getAttribute('href')
@@ -57,5 +88,5 @@ export function getSubtitleCreditHTML(data: Pick<ServerResponse, 'csapat_name' |
     }
     credit.querySelector('.mat-subtitle-credit-byline')!.appendChild(name)
 
-    return credit.outerHTML
+    return credit
 }

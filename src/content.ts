@@ -4,7 +4,7 @@ import type { ServerResponse, EpisodeVideoData, serverType, Settings } from './g
 import { initTheatreMode, toggleTheatreMode } from './modules/TheatreMode'
 import { decidePlayerType, genVideoHTML } from './player/player-utils'
 import { renderFileName } from './modules/downloads/file-name'
-import { getSubtitleCreditHTML } from './lib/subtitle-credit'
+import { createSubtitleCredit } from './lib/subtitle-credit'
 import { showMATError, MATErrorContext } from './lib/errors'
 import { initMainPageNavigation } from './handlers/MainPage'
 import { parseVideoData } from './sources/dailymotion-utils'
@@ -315,9 +315,13 @@ function EpisodePage() {
                 button_vid_prev: 0,
                 button_vid_next: 0,
                 button_aid: 0,
+                button_ep: 0,
                 playerid: 0,
                 csapat_name: '',
                 csapat_type: 'normal',
+                videoid: 0,
+                s_int: 0,
+                s_string: 's1'
             },
             vData,
         )
@@ -1527,7 +1531,8 @@ function setServers(data: ServerResponse) {
 
     serverList.innerHTML = ''
 
-    let serversHTML = getSubtitleCreditHTML(data)
+    const subtitleCredit = createSubtitleCredit(data)
+    let serversHTML = ''
     serversHTML += `<div class="mat-servers-grid">`
 
     let isActive = (server: { server: serverType; hq: string; title: string; active: number }): boolean => {
@@ -1616,6 +1621,7 @@ function setServers(data: ServerResponse) {
   `
 
     serverList.innerHTML = serversHTML
+    if (subtitleCredit) serverList.prepend(subtitleCredit)
 
     serverList.querySelector('.mat-subtitle-credit-close')?.addEventListener('click', () => {
         serverList.querySelector('.mat-subtitle-credit')?.remove()

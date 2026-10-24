@@ -1,5 +1,9 @@
 # Verziók
 
+## 0.1.10.4
+
+- Fordítás megköszönése gomb hozzáadva
+
 ## 0.1.10.3
 
 - **Cloudflare Turnstile támogatás**

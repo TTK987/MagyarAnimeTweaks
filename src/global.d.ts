@@ -331,11 +331,19 @@ type ServerResponse = {
     button_vid_next: number
     // ID of the datasheet page
     button_aid: number
+    // Episode number
+    button_ep  : number
     // Type of the fansub group (normal or AI)
     csapat_type: 'normal' | 'ai'
     // You would expect this to be the name of the fansub group, however... it is a html string...
     // like this: A videóban szereplő felirat a `<a href="..." target=\"_blank\" rel=\"noopener noreferrer\">...</a> munkája. A felirat emberi fordítást tartalmaz.`
     csapat_name: string
+    // Server number
+    s_int: number
+    // Server type
+    s_string: serverType
+    // Video id
+    videoid: number
 }
 
 type serverType = 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8'
