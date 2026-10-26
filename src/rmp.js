@@ -11,7 +11,7 @@ const observer = new MutationObserver((mutations) => {
                     console.warn('Session ID not found in the script.');
                 }
 
-                const sitekeyMatch = node.innerText.match(/sitekey:\s*(['"])([^'"]+)\1/);
+                const sitekeyMatch = node.innerText.match(/(?:\bsitekey|['"]sitekey['"])\s*:\s*(['"])([^'"]+)\1/);
                 if (sitekeyMatch) {
                     sitekey = sitekeyMatch[2].trim();
                     console.log('Site key found:', sitekey);
@@ -45,69 +45,176 @@ Object.defineProperty(window, 'currentPlyr', {
 
 let turnstileWidgetId;
 let turnstileRequestId;
-let turnstileLoadTimer;
+let turnstileWidgetApi;
+let turnstileLoadCleanup;
+const failedTurnstileScripts = new WeakSet();
+
+function parseTurnstileRequest(event) {
+    try {
+        if (typeof event.detail !== 'string') return;
+        const data = JSON.parse(event.detail);
+        if (data && Number.isSafeInteger(data.requestId) && data.requestId > 0) return data;
+    } catch {}
+}
+
+function removeTurnstileWidget(api, widgetId) {
+    try {
+        api?.remove(widgetId);
+    } catch (error) {
+        console.warn('Cannot remove Turnstile widget:', error);
+    }
+}
 
 function removeTurnstile() {
-    clearTimeout(turnstileLoadTimer);
     turnstileRequestId = undefined;
+    turnstileLoadCleanup?.();
+    turnstileLoadCleanup = undefined;
     if (turnstileWidgetId !== undefined) {
-        window.turnstile?.remove(turnstileWidgetId);
+        const widgetId = turnstileWidgetId;
+        const api = turnstileWidgetApi;
         turnstileWidgetId = undefined;
+        turnstileWidgetApi = undefined;
+        removeTurnstileWidget(api, widgetId);
+    }
+}
+
+function loadTurnstile(requestId, onReady, onError) {
+    let finished = false;
+    let script;
+    let ownsScript = false;
+    let pollTimer;
+    let timeout;
+    const cleanup = () => {
+        if (finished) return;
+        finished = true;
+        clearInterval(pollTimer);
+        clearTimeout(timeout);
+        script?.removeEventListener('load', check);
+        script?.removeEventListener('error', failed);
+        if (turnstileLoadCleanup === cancel) turnstileLoadCleanup = undefined;
+    };
+    const failed = () => {
+        if (finished) return;
+        if (script) failedTurnstileScripts.add(script);
+        cleanup();
+        if (turnstileRequestId === requestId) {
+            onError('A Cloudflare ellenőrzés nem tölthető be. Ellenőrizd, hogy a challenges.cloudflare.com nincs-e letiltva.');
+        }
+    };
+    const check = () => {
+        if (finished) return;
+        if (turnstileRequestId !== requestId) {
+            cleanup();
+            return;
+        }
+        const api = window.turnstile;
+        if (typeof api?.render !== 'function') return;
+        cleanup();
+        onReady(api);
+    };
+
+    const cancel = () => {
+        if (!finished && ownsScript && !window.turnstile) {
+            failedTurnstileScripts.add(script);
+            script.remove();
+        }
+        cleanup();
+    };
+    turnstileLoadCleanup = cancel;
+    pollTimer = setInterval(check, 100);
+    timeout = setTimeout(failed, 30000);
+    check();
+    if (finished) return;
+
+    script = Array.from(document.scripts).find((candidate) => {
+        try {
+            const url = new URL(candidate.src);
+            return url.origin === 'https://challenges.cloudflare.com' && url.pathname === '/turnstile/v0/api.js';
+        } catch {
+            return false;
+        }
+    });
+
+    if (script && failedTurnstileScripts.has(script)) {
+        script.remove();
+        script = undefined;
+    }
+    if (!script) {
+        script = document.createElement('script');
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        script.async = true;
+        ownsScript = true;
+        const nonce = document.querySelector('script[nonce]')?.nonce;
+        if (nonce) script.nonce = nonce;
+    }
+    script.addEventListener('load', check);
+    script.addEventListener('error', failed);
+    if (ownsScript) {
+        try {
+            (document.head || document.documentElement).appendChild(script);
+        } catch {
+            failed();
+        }
     }
 }
 
 document.addEventListener('MAT-CFTurnstileDestroy', (event) => {
-    if (event.detail?.requestId === turnstileRequestId) removeTurnstile();
+    if (parseTurnstileRequest(event)?.requestId === turnstileRequestId) removeTurnstile();
 });
 
 document.addEventListener('MAT-CFTurnstileInit', (event) => {
+    const data = parseTurnstileRequest(event);
+    if (!data || typeof data.containerId !== 'string') return;
+    const div = document.getElementById(data.containerId);
+    if (!div?.closest('dialog.mat-captcha')) return;
     removeTurnstile();
-    const requestId = event.detail?.requestId;
+    const requestId = data.requestId;
     turnstileRequestId = requestId;
-    const finish = (result) => {
+    let lastStatus;
+    const emit = (result) => {
         if (turnstileRequestId === requestId) {
+            lastStatus = result.status;
             document.dispatchEvent(new CustomEvent('MAT-CFTurnstile', {
-                detail: { requestId, ...result },
+                detail: JSON.stringify({ requestId, ...result }),
             }));
         }
     };
-    const div = document.getElementById('turnstile-player');
-    if (!div || !sitekey) {
-        finish({ success: false, error: !div ? 'Turnstile div not found' : 'Turnstile site key not found' });
+    if (!sitekey) {
+        emit({ status: 'error', error: 'Nem található a Cloudflare ellenőrzéshez szükséges sitekey.' });
         return;
     }
-
-    const loadStarted = Date.now();
-    const render = () => {
+    emit({ status: 'loading' });
+    loadTurnstile(requestId, (api) => {
         if (turnstileRequestId !== requestId) return;
-        if (!window.turnstile) {
-            if (Date.now() - loadStarted >= 30000) {
-                finish({ success: false, error: 'Turnstile not loaded' });
-            } else {
-                turnstileLoadTimer = setTimeout(render, 100);
-            }
-            return;
-        }
         try {
-            const widgetId = window.turnstile.render(div, {
+            const widgetId = api.render(div, {
                 sitekey,
                 theme: 'dark',
                 size: div.clientWidth < 300 ? 'compact' : 'normal',
-                callback: (token) => finish({ success: true, token }),
-                'error-callback': () => finish({ success: false, error: 'Turnstile error' }),
-                'expired-callback': () => finish({ success: false, error: 'Turnstile token expired' }),
-                'timeout-callback': () => finish({ success: false, error: 'Turnstile timeout' }),
+                retry: 'auto',
+                'refresh-expired': 'auto',
+                'refresh-timeout': 'auto',
+                callback: (token) => emit({ status: 'success', token }),
+                'error-callback': (errorCode) => {
+                    const code = String(errorCode || 'unknown');
+                    const fatal = /^(110100|110110|110200|400020|400021|400070)$/.test(code);
+                    emit({ status: fatal ? 'error' : 'retrying', error: 'Cloudflare Turnstile hiba.', code });
+                    return fatal;
+                },
+                'expired-callback': () => emit({ status: 'retrying', error: 'Az ellenőrzés lejárt. Új ellenőrzés betöltése...' }),
+                'timeout-callback': () => emit({ status: 'retrying', error: 'Az ellenőrzés időtúllépés miatt újraindul...' }),
             });
             if (turnstileRequestId === requestId) {
                 turnstileWidgetId = widgetId;
+                turnstileWidgetApi = api;
+                if (lastStatus === 'loading') emit({ status: 'ready' });
             } else {
-                window.turnstile.remove(widgetId);
+                removeTurnstileWidget(api, widgetId);
             }
         } catch (error) {
-            finish({ success: false, error: error instanceof Error ? error.message : 'Turnstile error' });
+            emit({ status: 'error', error: error instanceof Error ? error.message : 'Turnstile error' });
         }
-    };
-    render();
+    }, (error) => emit({ status: 'error', error }));
 })
 
 document.addEventListener('DOMContentLoaded', () => {

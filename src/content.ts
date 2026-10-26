@@ -457,7 +457,7 @@ function roadblock() {
     addCSS(style)
 }
 function getServerResponse(server: serverType, vid: number): Promise<ServerResponse> {
-    if (!serverTypeList.includes(server) || vid < 1 || vid > 80000 || !csrfToken) {
+    if (!serverTypeList.includes(server) || vid < 1 || vid > 99999 || !csrfToken) {
         if (!csrfToken) {
             // Error: MAT-C001 @ GetServerResponse.CSRFToken.NotFound
             handleError('CSRF', 'NOT_FOUND', undefined, 'GetServerResponse.CSRFToken.NotFound')
@@ -468,32 +468,50 @@ function getServerResponse(server: serverType, vid: number): Promise<ServerRespo
             // Error: MAT-S007 @ GetServerResponse.VideoID.Invalid
             handleError('SERVER', 'INVALID_ARGS', `Érvénytelen videó ID: ${vid}`, 'GetServerResponse.VideoID.Invalid')
         }
-        return Promise.reject('Invalid arguments')
+        return Promise.reject({
+            handled: true,
+            message: 'Invalid arguments',
+        })
     }
 
-    return postForm('https://magyaranime.eu/data/lejatszo/data_player.php', {
-        server: server,
-        vid: vid,
-        csrf_token: csrfToken,
-    }, {
-        headers: {
-            'User-Agent': navigator.userAgent,
-            'Referer': window.location.href,
-            'Origin': window.location.href,
+    return postForm(
+        'https://magyaranime.eu/data/lejatszo/data_player.php',
+        {
+            server: server,
+            vid: vid,
+            csrf_token: csrfToken,
         },
-    })
+        {
+            headers: {
+                'User-Agent': navigator.userAgent,
+                Referer: window.location.href,
+                Origin: window.location.href,
+            },
+        },
+    )
         .then((response) => {
             if (!response.ok) {
                 // Error: MAT-S004 @ GetServerResponse.Response.NotOK
-                handleError('SERVER', 'RESPONSE_ERROR', `Szerver hiba: ${response.statusText}`, 'GetServerResponse.Response.NotOK')
-                return Promise.reject(`Error while loading video: ${response.statusText}`)
+                handleError(
+                    'SERVER',
+                    'RESPONSE_ERROR',
+                    `Szerver hiba: ${response.statusText}`,
+                    'GetServerResponse.Response.NotOK',
+                )
+                return Promise.reject({
+                    handled: true,
+                    message: `Error while loading video: ${response.statusText}`,
+                })
             }
             return response.json()
         })
         .catch((e) => {
             // Error: MAT-S005 @ GetServerResponse.Fetch.Error
             handleError('SERVER', 'FETCH_ERROR', `Hálózati hiba: ${e}`, 'GetServerResponse.Fetch.Error', e)
-            return Promise.reject(e)
+            return Promise.reject({
+                handled: true,
+                message: `Network error while loading video: ${e}`,
+            })
         })
 }
 function loadVideo(server: serverType, vid: number) {
@@ -527,6 +545,10 @@ function loadVideo(server: serverType, vid: number) {
             if (data) await handleServerResponse(data)
         })
         .catch((error) => {
+            if (error && error.handled) {
+                Logger.error('Error already handled, skipping further processing.')
+                return
+            }
             // Error: MAT-P002 @ LoadVideo.ServerResponse.Error
             handleError('PLAYER', 'LOAD_ERROR', `Videó betöltési hiba: ${error}`, 'LoadVideo.ServerResponse.Error', error)
         })
@@ -535,35 +557,113 @@ function loadVideo(server: serverType, vid: number) {
         })
 }
 type CaptchaResult = { success: false; error: string } | { success: true; token: string }
+type CaptchaStatus = 'loading' | 'ready' | 'retrying' | 'error'
 
-function handleCaptcha(signal?: AbortSignal): Promise<CaptchaResult> {
-    const requestId = ++captchaRequestId
+function handleCaptcha(
+    widget: HTMLElement,
+    retryButton: HTMLButtonElement,
+    onStatus: (status: CaptchaStatus, message: string) => void,
+    signal?: AbortSignal,
+): Promise<CaptchaResult> {
     return new Promise((resolve) => {
-        const finish = (result: CaptchaResult) => {
+        let requestId = 0
+        let settled = false
+        let attemptFailed = false
+        let timeout: ReturnType<typeof setTimeout> | undefined
+        let bridgeTimeout: ReturnType<typeof setTimeout> | undefined
+        const destroy = () => {
             clearTimeout(timeout)
+            clearTimeout(bridgeTimeout)
+            if (requestId) {
+                document.dispatchEvent(new CustomEvent('MAT-CFTurnstileDestroy', {
+                    detail: JSON.stringify({ requestId }),
+                }))
+            }
+        }
+        const finish = (result: CaptchaResult) => {
+            if (settled) return
+            settled = true
+            destroy()
             document.removeEventListener('MAT-CFTurnstile', onResult)
             signal?.removeEventListener('abort', onAbort)
-            document.dispatchEvent(new CustomEvent('MAT-CFTurnstileDestroy', { detail: { requestId } }))
+            retryButton.removeEventListener('click', start)
+            retryButton.disabled = true
             resolve(result)
         }
+        const failAttempt = (message: string) => {
+            attemptFailed = true
+            destroy()
+            retryButton.hidden = false
+            retryButton.disabled = false
+            onStatus('error', message)
+            Logger.warn(`CAPTCHA: ${message}`)
+        }
         const onResult = (event: Event) => {
-            const detail = (event as CustomEvent<CaptchaResult & { requestId: number }>).detail
-            if (detail?.requestId !== requestId) return
-            if (detail.success && detail.token) {
-                finish({ success: true, token: detail.token })
-            } else {
-                finish({ success: false, error: detail.success ? 'Turnstile token missing' : detail.error })
+            // Strings can safely cross Firefox's content-script/page boundary.
+            const raw: unknown = (event as CustomEvent).detail
+            if (typeof raw !== 'string') return
+            let detail: unknown
+            try {
+                detail = JSON.parse(raw)
+            } catch {
+                return
+            }
+            if (!detail || typeof detail !== 'object' || Array.isArray(detail)) return
+            const message = detail as Record<string, unknown>
+            if (settled || attemptFailed || message.requestId !== requestId) return
+            if (typeof message.status !== 'string' || !['loading', 'ready', 'retrying', 'error', 'success'].includes(message.status)) return
+            clearTimeout(bridgeTimeout)
+            const code = typeof message.code === 'string' ? ` (${message.code})` : ''
+            switch (message.status) {
+                case 'success':
+                    if (typeof message.token === 'string' && message.token.trim()) {
+                        finish({ success: true, token: message.token })
+                    } else {
+                        failAttempt('A Cloudflare nem adott ellenőrző tokent. Próbáld újra!')
+                    }
+                    break
+                case 'loading':
+                    onStatus('loading', 'A Cloudflare ellenőrzés betöltésE...')
+                    break
+                case 'ready':
+                    onStatus('ready', 'Végezd el a Cloudflare ellenőrzést.')
+                    break
+                case 'retrying':
+                    onStatus('retrying', `A Cloudflare ellenőrzés újrapróbálkozik${code}. Ha nem folytatódik, próbáld újra!`)
+                    retryButton.hidden = false
+                    retryButton.disabled = false
+                    Logger.warn(`CAPTCHA: ${typeof message.error === 'string' ? message.error : 'Turnstile retry'}${code}`)
+                    break
+                case 'error':
+                    failAttempt(`${typeof message.error === 'string' ? message.error : 'A Cloudflare ellenőrzés nem sikerült.'}${code}`)
+                    break
             }
         }
         const onAbort = () => finish({ success: false, error: 'Az ellenőrzés megszakítva.' })
-        const timeout = setTimeout(() => finish({ success: false, error: 'Turnstile timeout' }), 5 * 60 * 1000)
+        const start = () => {
+            if (settled || signal?.aborted) return
+            destroy()
+            requestId = ++captchaRequestId
+            attemptFailed = false
+            widget.replaceChildren()
+            widget.id = `mat-captcha-turnstile-${requestId}`
+            retryButton.hidden = true
+            retryButton.disabled = true
+            onStatus('loading', 'A Cloudflare ellenőrzés betöltése…')
+            bridgeTimeout = setTimeout(() => failAttempt('A Cloudflare ellenőrzés nem indult el. Próbáld újra, vagy töltsd újra az oldalt!'), 10000)
+            timeout = setTimeout(() => failAttempt('Az ellenőrzés ideje lejárt. Próbáld újra!'), 5 * 60 * 1000)
+            document.dispatchEvent(new CustomEvent('MAT-CFTurnstileInit', {
+                detail: JSON.stringify({ requestId, containerId: widget.id }),
+            }))
+        }
         document.addEventListener('MAT-CFTurnstile', onResult)
+        retryButton.addEventListener('click', start)
         signal?.addEventListener('abort', onAbort, { once: true })
         if (signal?.aborted) {
             onAbort()
             return
         }
-        document.dispatchEvent(new CustomEvent('MAT-CFTurnstileInit', { detail: { requestId } }))
+        start()
     })
 }
 
@@ -593,7 +693,9 @@ async function verifyPlayerCaptcha(data: ServerResponse): Promise<boolean> {
             <figure class="mat-captcha-character"><img alt="Ma-chan" draggable="false"></figure>
             <div class="mat-captcha-content">
                 <p id="mat-captcha-title" class="mat-captcha-prompt">A folytatáshoz igazold, hogy ember vagy!</p>
-                <div id="turnstile-player"></div>
+                <div class="mat-captcha-widget"></div>
+                <p class="mat-captcha-status" role="status" aria-live="polite"></p>
+                <button type="button" class="mat-captcha-retry" hidden>Újrapróbálás</button>
             </div>
         </div>
     `
@@ -623,8 +725,19 @@ async function verifyPlayerCaptcha(data: ServerResponse): Promise<boolean> {
 
     try {
         challenge.showModal()
-        const captchaData = await handleCaptcha(controller.signal)
+        const status = challenge.querySelector('.mat-captcha-status') as HTMLParagraphElement
+        const captchaData = await handleCaptcha(
+            challenge.querySelector('.mat-captcha-widget') as HTMLDivElement,
+            challenge.querySelector('.mat-captcha-retry') as HTMLButtonElement,
+            (state, message) => {
+                status.dataset.state = state
+                status.textContent = message
+            },
+            controller.signal,
+        )
         if (!captchaData.success) throw new Error(captchaData.error)
+        status.dataset.state = 'loading'
+        status.textContent = 'Pillanat...'
 
         // Verification acknowledges the session; the video is requested separately afterwards.
         const response = await postForm('https://magyaranime.eu/data/lejatszo/data_player.php', {
@@ -1382,8 +1495,10 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
             }
         })
         .catch((error) => {
-            // Error: MAT-P002 @ SilentLoadVideo.Catch.LoadError
-            handleError('PLAYER', 'LOAD_ERROR', `Videó betöltési hiba (silent load): ${error}`, 'SilentLoadVideo.Catch.LoadError', error)
+            if (error && error.handled) {
+                Logger.error('Silent load video error handled: ' + error.message)
+                return
+            }
             Logger.error(`Hiba történt a videó háttérben történő betöltése közben: ${error}`)
         })
 }

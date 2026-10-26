@@ -1,5 +1,14 @@
 # Verziók
 
+## 0.1.10.5
+
+- **Cloudflare Turnstile javítások**
+    - A Firefoxon üresen megjelenő CAPTCHA ablak javítása.
+    - Az ellenőrzés aszinkron betöltésének és az átmeneti hibák utáni automatikus újrapróbálkozásának javítása.
+    - Betöltési állapot, részletesebb hibaüzenetek és „Újrapróbálás” gomb hozzáadva.
+- **Eghyéb**
+    - A 80000-ről 99999-re növelve az epizód ID maximális értéke
+
 ## 0.1.10.4
 
 - Fordítás megköszönése gomb hozzáadva
