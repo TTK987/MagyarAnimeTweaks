@@ -120,6 +120,7 @@ function loadTurnstile(requestId, onReady, onError) {
         }
         cleanup();
     };
+
     turnstileLoadCleanup = cancel;
     pollTimer = setInterval(check, 100);
     timeout = setTimeout(failed, 30000);

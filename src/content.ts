@@ -5,6 +5,7 @@ import { initTheatreMode, toggleTheatreMode } from './modules/TheatreMode'
 import { decidePlayerType, genVideoHTML } from './player/player-utils'
 import { renderFileName } from './modules/downloads/file-name'
 import { createSubtitleCredit } from './lib/subtitle-credit'
+import { isVideoAccessBlocked } from './lib/errors/VideoAccessBlocked'
 import { showMATError, MATErrorContext } from './lib/errors'
 import { initMainPageNavigation } from './handlers/MainPage'
 import { parseVideoData } from './sources/dailymotion-utils'
@@ -489,8 +490,11 @@ function getServerResponse(server: serverType, vid: number): Promise<ServerRespo
             },
         },
     )
-        .then((response) => {
+        .then(async (response) => {
             if (!response.ok) {
+                const data = await response.clone().json().catch(() => undefined)
+                if (data && isVideoAccessBlocked(data)) return data
+
                 // Error: MAT-S004 @ GetServerResponse.Response.NotOK
                 handleError(
                     'SERVER',
@@ -503,9 +507,26 @@ function getServerResponse(server: serverType, vid: number): Promise<ServerRespo
                     message: `Error while loading video: ${response.statusText}`,
                 })
             }
-            return response.json()
+            return response.json().catch((error) => {
+                // Parsing failed after a response arrived; keep it separate from transport failures.
+                if (!(error instanceof SyntaxError)) throw error
+
+                handleError(
+                    'SERVER',
+                    'MALFORMED_RESPONSE',
+                    'A szerver válasza nem érvényes JSON.',
+                    'GetServerResponse.Response.Malformed',
+                    error,
+                )
+                return Promise.reject({
+                    handled: true,
+                    message: 'Malformed JSON response while loading video',
+                })
+            })
         })
         .catch((e) => {
+            if (e?.handled) return Promise.reject(e)
+
             // Error: MAT-S005 @ GetServerResponse.Fetch.Error
             handleError('SERVER', 'FETCH_ERROR', `Hálózati hiba: ${e}`, 'GetServerResponse.Fetch.Error', e)
             return Promise.reject({
@@ -556,15 +577,10 @@ function loadVideo(server: serverType, vid: number) {
             isVideoLoading = false
         })
 }
+
 type CaptchaResult = { success: false; error: string } | { success: true; token: string }
 type CaptchaStatus = 'loading' | 'ready' | 'retrying' | 'error'
-
-function handleCaptcha(
-    widget: HTMLElement,
-    retryButton: HTMLButtonElement,
-    onStatus: (status: CaptchaStatus, message: string) => void,
-    signal?: AbortSignal,
-): Promise<CaptchaResult> {
+function handleCaptcha( widget: HTMLElement, retryButton: HTMLButtonElement, onStatus: (status: CaptchaStatus, message: string) => void, signal?: AbortSignal): Promise<CaptchaResult> {
     return new Promise((resolve) => {
         let requestId = 0
         let settled = false
@@ -666,7 +682,6 @@ function handleCaptcha(
         start()
     })
 }
-
 async function verifyPlayerCaptcha(data: ServerResponse): Promise<boolean> {
     const sitekey = document.querySelector('mat-data[site-key]')?.getAttribute('site-key')
     if (!sitekey) {
@@ -763,7 +778,6 @@ async function verifyPlayerCaptcha(data: ServerResponse): Promise<boolean> {
         challenge.remove()
     }
 }
-
 async function resolvePlayerCaptcha(data: ServerResponse, server: serverType, vid: number): Promise<ServerResponse | undefined> {
     for (let attempt = 0; data.error === 'captcha_required'; attempt++) {
         if (attempt >= 2) {
@@ -780,6 +794,10 @@ async function resolvePlayerCaptcha(data: ServerResponse, server: serverType, vi
 }
 
 async function handleServerResponse(data: ServerResponse) {
+    if (isVideoAccessBlocked(data)) {
+        handleError('VIDEO', 'ACCESS_BLOCKED', data.error, 'HandleServerResponse.Video.AccessBlocked')
+        return
+    }
 
     // Auto-switch to the only available server
     if (data.servers.length === 1 && data.servers[0].server !== currentServer) {
@@ -1357,6 +1375,11 @@ function silentLoadVideo(server: serverType, vid: number, retryAttempt: number =
     getServerResponse(server, vid).then(async (response: ServerResponse) => {
             const data = await resolvePlayerCaptcha(response, server, vid)
             if (!data) return false
+
+            if (isVideoAccessBlocked(data)) {
+                handleError('VIDEO', 'ACCESS_BLOCKED', data.error, 'SilentLoadVideo.Video.AccessBlocked')
+                return false
+            }
 
             if (data.needRefleshPage) {
                 Logger.log('Server requested CSRF refresh. Attempting background token refresh...')

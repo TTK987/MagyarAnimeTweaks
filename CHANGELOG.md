@@ -1,5 +1,11 @@
 # Verziók
 
+## 0.1.10.6
+
+- **Bugfixek**
+    - Videólejátszási hozzáférés tiltása esetén hibaüzenet megjelenítése.
+    - Hibás szerver válasz esetén hibaüzenet megjelenítése.
+
 ## 0.1.10.5
 
 - **Cloudflare Turnstile javítások**

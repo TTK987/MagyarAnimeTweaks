@@ -149,6 +149,15 @@ export const ERROR_CATALOG: Record<string, MATErrorDetails> = {
         canAutoReload: true,
         shouldReport: false,
     },
+    S006: {
+        code: 'MAT-S006',
+        category: 'S',
+        numericCode: 6,
+        message: 'A szerver hibás formátumú választ küldött.',
+        suggestions: ['Próbáld újra néhány másodperc múlva', 'Ha a hiba továbbra is fennáll, jelezd a hibát a hibakóddal együtt'],
+        canAutoReload: true,
+        shouldReport: true,
+    },
     S007: {
         code: 'MAT-S007',
         category: 'S',
@@ -225,6 +234,15 @@ export const ERROR_CATALOG: Record<string, MATErrorDetails> = {
         canAutoReload: false,
         shouldReport: true,
     },
+    V009: {
+        code: 'MAT-V009',
+        category: 'V',
+        numericCode: 9,
+        message: 'A videólejátszási hozzáférésed letiltásra került.',
+        suggestions: ['A feloldáshoz vedd fel a kapcsolatot az adminisztrátorokkal'],
+        canAutoReload: false,
+        shouldReport: false,
+    },
 
     // ═══════════════════════════════════════════════════════════════
     // Player Initialization Errors (P001-P099)
@@ -292,6 +310,7 @@ export const ERROR_CODE_MAP = {
         DATA_MISSING: 'S003',
         RESPONSE_ERROR: 'S004',
         FETCH_ERROR: 'S005',
+        MALFORMED_RESPONSE: 'S006',
         INVALID_ARGS: 'S007',
     },
     VIDEO: {
@@ -302,6 +321,7 @@ export const ERROR_CODE_MAP = {
         INVALID_TYPE: 'V005',
         DOWNLOAD_ERROR: 'V006',
         REMOVED: 'V008',
+        ACCESS_BLOCKED: 'V009',
     },
     PLAYER: {
         INIT_ERROR: 'P001',
