@@ -161,8 +161,8 @@ class IFramePlayerComm {
             this.sendAction(ACTIONS.GET_SOURCE_URL, {}, (event: MessageEvent) => {
                 if (event.data.type === ACTIONS.SOURCE_URL) {
                     resolve(event.data.data)
-                } else if (event.data.type === ACTIONS.INDA_NO_VIDEO || event.data.type === ACTIONS.VIDEA_NO_VIDEO) {
-                    reject('No video available')
+                } else if (event.data.type === ACTIONS.INDA_NO_VIDEO || event.data.type === ACTIONS.INDA_DOWN) {
+                    reject(event.data.type)
                 }
             })
         })

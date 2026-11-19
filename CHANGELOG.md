@@ -1,5 +1,12 @@
 # Verziók
 
+## 0.1.10.7
+
+- Hibaüzenet kiírása, ha nem elérhető az indavideo
+- `pnpm` frissítése 12.14.0 → 12.21.0
+- egyéb függőségek frissítése
+- readme frissítése
+
 ## 0.1.10.6
 
 - **Bugfixek**

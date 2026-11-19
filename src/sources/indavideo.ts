@@ -50,6 +50,10 @@ function checkBannedVideo(): boolean {
     return document.querySelector('img[src="https://assets.indavideo.hu/images/default/video_box/banned_video.jpg"]') !== null;
 }
 
+function checkIndaDown(): boolean {
+    return document.querySelector('img[src="img/player_down.png"]') !== null;
+}
+
 window.addEventListener('message', async (event) => {
     if (!event.data || typeof event.data.type !== 'string') return
 
@@ -95,7 +99,9 @@ window.addEventListener('message', async (event) => {
             break
 
         case ACTIONS.GET_SOURCE_URL:
-            if (checkEmbedBan()) {
+            if (checkIndaDown()) {
+                return gatewayUp(ACTIONS.INDA_DOWN)
+            } else if (checkEmbedBan()) {
                 if (event.data.gateway) {
                     return gatewayUp(ACTIONS.VIDEO_ONLY_ON_INDAVIDEO)
                 }

@@ -225,6 +225,15 @@ export const ERROR_CATALOG: Record<string, MATErrorDetails> = {
         canAutoReload: false,
         shouldReport: false,
     },
+    V007: {
+        code: 'MAT-V007',
+        category: 'V',
+        numericCode: 7,
+        message: 'Az indavideo jelenleg nem elérhető.',
+        suggestions: ['Próbálj meg másik szervert választani', 'Ha a probléma fennáll, akkor próbáld újra később'],
+        canAutoReload: false,
+        shouldReport: false,
+    },
     V008: {
         code: 'MAT-V008',
         category: 'V',
@@ -320,6 +329,7 @@ export const ERROR_CODE_MAP = {
         DATA_ERROR: 'V004',
         INVALID_TYPE: 'V005',
         DOWNLOAD_ERROR: 'V006',
+        INDA_DOWN: 'V007',
         REMOVED: 'V008',
         ACCESS_BLOCKED: 'V009',
     },

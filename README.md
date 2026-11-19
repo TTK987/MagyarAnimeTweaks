@@ -101,8 +101,8 @@ Ez a kiegészítő animenéző(k)től animenézőknek készült.
 
 Használd ezeket a lépéseket, ha a forráskódból szeretnéd telepíteni a kiegészítőt:
 1. Klónozd vagy töltsd le a projektet a GitHub-ról: `git clone https://github.com/TTK987/MagyarAnimeTweaks.git`
-2. Használd a következő parancsot: `npm install`
-3. Futtasd a build parancsot: `npm run build` (chromium alapú böngészőkhöz) vagy `npm run build:firefox` (Firefox alapú böngészőkhöz)
+2. Használd a következő parancsot: `pnpm install`
+3. Futtasd a build parancsot: `pnpm run build` (chromium alapú böngészőkhöz) vagy `pnpm run build:firefox` (Firefox alapú böngészőkhöz)
 4. Nyisd meg a böngésződ kiegészítőkezelőjét (pl. Chrome-ban: `chrome://extensions/`, Firefox-ban: `about:addons`)
 5. Engedélyezd a fejlesztői módot és töltsd be a `build` / `build-firefox` mappát.
 

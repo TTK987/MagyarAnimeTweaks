@@ -7,6 +7,7 @@ export const ACTIONS = {
     INDA_NO_VIDEO: 'indaNoVideo',
     VIDEA_NO_VIDEO: 'videaNoVideo',
     VIDEO_ONLY_ON_INDAVIDEO: 'videoOnlyOnIndavideo',
+    INDA_DOWN: 'indaDown',
     IFRAME: {
         FRAME_LOADED: 'FrameLoaded',
         AUTO_NEXT_EPISODE: 'AutoNextEpisode',

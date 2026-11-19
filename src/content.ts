@@ -27,6 +27,7 @@ import History from './History'
 import onLoad from './lib/load'
 import Logger from './Logger'
 import MAT from './MAT'
+import { ACTIONS } from './lib/actions'
 // ↑↑ I was bored... ↑↑
 
 
@@ -971,8 +972,13 @@ function getQualityDataFromIFrame(data: ServerResponse): Promise<EpisodeVideoDat
                 })
                 .catch((error) => {
                     iframe.remove()
-                    // Error: MAT-V008 @ GetQualityDataFromIFrame.VideoRemoved
-                    handleError('VIDEO', 'REMOVED', 'A videó törölve lett vagy nem elérhető.', 'GetQualityDataFromIFrame.VideoRemoved', error)
+                    if (error == ACTIONS.INDA_DOWN) {
+                        // Error: MAT-V007 @ GetQualityDataFromIFrame.IndaDown
+                        handleError('VIDEO', 'INDA_DOWN', 'Az indavideo nem elérhető.', 'GetQualityDataFromIFrame.IndaDown', error)
+                    } else if (error == ACTIONS.INDA_NO_VIDEO) {
+                        // Error: MAT-V008 @ GetQualityDataFromIFrame.VideoRemoved
+                        handleError('VIDEO', 'REMOVED', 'A videó törölve lett vagy nem elérhető.', 'GetQualityDataFromIFrame.VideoRemoved',error)
+                    }
                 })
         }
     })
